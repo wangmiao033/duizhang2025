@@ -1,0 +1,162 @@
+.history-panel {
+  position: relative;
+  display: inline-block;
+}
+
+.history-btn {
+  padding: 10px 20px;
+  background: #6f42c1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.history-btn:hover {
+  background: #5a32a3;
+}
+
+.history-content {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 10px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  min-width: 400px;
+  max-height: 500px;
+  z-index: 100;
+  animation: slideDown 0.3s;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.history-header h4 {
+  margin: 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.history-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.clear-history-btn,
+.close-history-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.clear-history-btn {
+  background: #dc3545;
+  color: white;
+}
+
+.clear-history-btn:hover {
+  background: #c82333;
+}
+
+.close-history-btn {
+  background: #6c757d;
+  color: white;
+  font-size: 1.2rem;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-history-btn:hover {
+  background: #5a6268;
+}
+
+.history-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.empty-history {
+  text-align: center;
+  padding: 40px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.history-item {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  transition: background-color 0.2s;
+}
+
+.history-item:hover {
+  background: #e9ecef;
+}
+
+.history-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.history-action {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.history-time {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.history-item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.restore-btn {
+  padding: 6px 12px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.restore-btn:hover {
+  background: #218838;
+}
+

@@ -1,0 +1,16 @@
+.copy-record-btn {
+  padding: 6px 12px;
+  background: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin: 0 3px;
+}
+
+.copy-record-btn:hover {
+  background: #138496;
+}
+
