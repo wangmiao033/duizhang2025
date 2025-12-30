@@ -55,6 +55,29 @@
   overflow-y: auto;
 }
 
+.config-section {
+  background: #f8f9fa;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.config-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.config-item label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 1rem;
+}
+
+.company-info-section {
+  margin-bottom: 30px;
+}
+
 .export-section {
   text-align: center;
   padding-top: 20px;

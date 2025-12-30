@@ -124,10 +124,23 @@ tbody td {
   color: #721c24;
 }
 
-.delete-btn {
-  padding: 6px 16px;
-  background: #dc3545;
-  color: white;
+.data-table h3 {
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 1.3rem;
+}
+
+.edit-input {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.edit-btn, .save-btn, .cancel-btn, .delete-btn {
+  padding: 6px 12px;
+  margin: 0 3px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -135,7 +148,53 @@ tbody td {
   transition: background-color 0.2s;
 }
 
+.edit-btn {
+  background: #007bff;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #0056b3;
+}
+
+.save-btn {
+  background: #28a745;
+  color: white;
+}
+
+.save-btn:hover {
+  background: #218838;
+}
+
+.cancel-btn {
+  background: #6c757d;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #5a6268;
+}
+
+.delete-btn {
+  background: #dc3545;
+  color: white;
+}
+
 .delete-btn:hover {
   background: #c82333;
+}
+
+.settlement-amount {
+  color: #007bff !important;
+  font-weight: 700;
+}
+
+.total-row {
+  background: #f8f9fa;
+  font-weight: 600;
+}
+
+.total-row td {
+  border-top: 2px solid #667eea;
 }
 
