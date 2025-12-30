@@ -1,0 +1,37 @@
+.data-backup {
+  display: flex;
+  gap: 10px;
+}
+
+.backup-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.backup-btn.export-btn {
+  background: #28a745;
+  color: white;
+}
+
+.backup-btn.export-btn:hover {
+  background: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.backup-btn.import-btn {
+  background: #17a2b8;
+  color: white;
+}
+
+.backup-btn.import-btn:hover {
+  background: #138496;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
+}
+

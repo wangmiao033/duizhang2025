@@ -1,0 +1,76 @@
+.data-validator {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.data-validator.valid {
+  background: #d4edda;
+  color: #155724;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.data-validator.has-issues {
+  background: #fff3cd;
+  border: 2px solid #ffc107;
+}
+
+.validator-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #856404;
+}
+
+.validator-icon {
+  font-size: 1.2rem;
+}
+
+.validator-issues {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.validator-issue {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.validator-issue.error {
+  background: #f8d7da;
+  color: #721c24;
+  border-left: 4px solid #dc3545;
+}
+
+.validator-issue.warning {
+  background: #fff3cd;
+  color: #856404;
+  border-left: 4px solid #ffc107;
+}
+
+.issue-record {
+  font-weight: 600;
+  min-width: 60px;
+}
+
+.issue-field {
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.issue-message {
+  flex: 1;
+}
+

@@ -1,7 +1,18 @@
 import React, { useState } from 'react'
 import './DataTable.css'
 
-function DataTable({ records, onUpdateRecord, onDeleteRecord, calculateSettlementAmount }) {
+function DataTable({ 
+  records, 
+  onUpdateRecord, 
+  onDeleteRecord, 
+  calculateSettlementAmount, 
+  onUpdateSuccess,
+  selectedIds = [],
+  onSelectAll,
+  onSelectRecord,
+  onBatchDelete,
+  onCopyRecord
+}) {
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({})
 
@@ -20,15 +31,43 @@ function DataTable({ records, onUpdateRecord, onDeleteRecord, calculateSettlemen
     onUpdateRecord(editingId, { ...editForm, settlementAmount: settlementAmount.toFixed(2) })
     setEditingId(null)
     setEditForm({})
+    if (onUpdateSuccess) {
+      onUpdateSuccess()
+    }
   }
+
+  const allSelected = records.length > 0 && selectedIds.length === records.length
+  const someSelected = selectedIds.length > 0 && selectedIds.length < records.length
 
   return (
     <div className="data-table">
-      <h3>对账记录列表</h3>
+      <div className="table-header">
+        <h3>对账记录列表</h3>
+        {selectedIds.length > 0 && (
+          <div className="batch-actions">
+            <span className="selected-count">已选择 {selectedIds.length} 条</span>
+            <button className="batch-delete-btn" onClick={onBatchDelete}>
+              批量删除
+            </button>
+          </div>
+        )}
+      </div>
       <div className="table-wrapper">
         <table>
           <thead>
             <tr>
+              <th style={{ width: '50px' }}>
+                {records.length > 0 && (
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    ref={(input) => {
+                      if (input) input.indeterminate = someSelected
+                    }}
+                    onChange={(e) => onSelectAll && onSelectAll(e.target.checked)}
+                  />
+                )}
+              </th>
               <th>结算月份</th>
               <th>合作方</th>
               <th>游戏</th>
@@ -47,13 +86,21 @@ function DataTable({ records, onUpdateRecord, onDeleteRecord, calculateSettlemen
           <tbody>
             {records.length === 0 ? (
               <tr>
-                <td colSpan="13" className="empty-message">暂无对账记录</td>
+                <td colSpan="14" className="empty-message">暂无对账记录</td>
               </tr>
             ) : (
               records.map((record) => (
-                <tr key={record.id}>
+                <tr key={record.id} className={selectedIds.includes(record.id) ? 'selected-row' : ''}>
                   {editingId === record.id ? (
                     <>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(record.id)}
+                          onChange={(e) => onSelectRecord && onSelectRecord(record.id, e.target.checked)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </td>
                       <td>
                         <input
                           type="text"
@@ -160,6 +207,13 @@ function DataTable({ records, onUpdateRecord, onDeleteRecord, calculateSettlemen
                     </>
                   ) : (
                     <>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(record.id)}
+                          onChange={(e) => onSelectRecord && onSelectRecord(record.id, e.target.checked)}
+                        />
+                      </td>
                       <td>{record.settlementMonth || '-'}</td>
                       <td>{record.partner || '-'}</td>
                       <td>{record.game || '-'}</td>
@@ -175,6 +229,7 @@ function DataTable({ records, onUpdateRecord, onDeleteRecord, calculateSettlemen
                         ¥{parseFloat(record.settlementAmount || 0).toFixed(2)}
                       </td>
                       <td>
+                        {onCopyRecord && <CopyRecord record={record} onCopy={onCopyRecord} />}
                         <button className="edit-btn" onClick={() => startEdit(record)}>编辑</button>
                         <button className="delete-btn" onClick={() => onDeleteRecord(record.id)}>删除</button>
                       </td>
@@ -203,6 +258,7 @@ function DataTable({ records, onUpdateRecord, onDeleteRecord, calculateSettlemen
                 <td className="amount-cell settlement-amount">
                   <strong>¥{records.reduce((sum, r) => sum + (parseFloat(r.settlementAmount) || 0), 0).toFixed(2)}</strong>
                 </td>
+                <td>-</td>
                 <td>-</td>
               </tr>
             )}

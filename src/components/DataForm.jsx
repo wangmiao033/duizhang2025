@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import './DataForm.css'
 
-function DataForm({ onAddRecord, settlementMonth }) {
+function DataForm({ onAddRecord, settlementMonth, onError }) {
   const [formData, setFormData] = useState({
     settlementMonth: settlementMonth || '',
     partner: '',
@@ -20,27 +20,79 @@ function DataForm({ onAddRecord, settlementMonth }) {
     setFormData(prev => ({ ...prev, settlementMonth: settlementMonth || '' }))
   }, [settlementMonth])
 
+  const validateForm = () => {
+    if (!formData.game || !formData.gameFlow) {
+      return '请至少填写游戏名称和游戏流水！'
+    }
+    
+    const gameFlow = parseFloat(formData.gameFlow)
+    if (isNaN(gameFlow) || gameFlow <= 0) {
+      return '游戏流水必须是大于0的数字！'
+    }
+
+    const testingFee = parseFloat(formData.testingFee || 0)
+    if (isNaN(testingFee) || testingFee < 0) {
+      return '测试费不能为负数！'
+    }
+
+    const voucher = parseFloat(formData.voucher || 0)
+    if (isNaN(voucher) || voucher < 0) {
+      return '代金券金额不能为负数！'
+    }
+
+    const channelFeeRate = parseFloat(formData.channelFeeRate || 0)
+    if (isNaN(channelFeeRate) || channelFeeRate < 0 || channelFeeRate > 100) {
+      return '通道费率必须在0-100%之间！'
+    }
+
+    const taxPoint = parseFloat(formData.taxPoint || 0)
+    if (isNaN(taxPoint) || taxPoint < 0 || taxPoint > 100) {
+      return '税点必须在0-100%之间！'
+    }
+
+    const revenueShareRatio = parseFloat(formData.revenueShareRatio || 0)
+    if (isNaN(revenueShareRatio) || revenueShareRatio < 0 || revenueShareRatio > 100) {
+      return '分成比例必须在0-100%之间！'
+    }
+
+    const discount = parseFloat(formData.discount || 0)
+    if (isNaN(discount) || discount < 0 || discount > 1) {
+      return '折扣必须在0-1之间！'
+    }
+
+    const refund = parseFloat(formData.refund || 0)
+    if (isNaN(refund) || refund < 0) {
+      return '退款金额不能为负数！'
+    }
+
+    return null
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (formData.game && formData.gameFlow) {
-      onAddRecord(formData)
-      setFormData({
-        settlementMonth: settlementMonth || '',
-        partner: '',
-        game: '',
-        gameFlow: '',
-        testingFee: '0',
-        voucher: '0',
-        channelFeeRate: '5',
-        taxPoint: '0',
-        revenueShareRatio: '30',
-        discount: '0.005',
-        refund: '0'
-      })
-      alert('记录添加成功！')
-    } else {
-      alert('请至少填写游戏名称和游戏流水！')
+    
+    const error = validateForm()
+    if (error) {
+      if (onError) {
+        onError(error)
+      }
+      return
     }
+
+    onAddRecord(formData)
+    setFormData({
+      settlementMonth: settlementMonth || '',
+      partner: '',
+      game: '',
+      gameFlow: '',
+      testingFee: '0',
+      voucher: '0',
+      channelFeeRate: '5',
+      taxPoint: '0',
+      revenueShareRatio: '30',
+      discount: '0.005',
+      refund: '0'
+    })
   }
 
   const handleChange = (field, value) => {

@@ -11,11 +11,11 @@ function ExportButton({
   totalGameFlow,
   totalTestingFee,
   totalVoucher,
-  totalSettlementAmount
+  totalSettlementAmount,
+  onExportSuccess
 }) {
   const exportToExcel = () => {
     if (records.length === 0) {
-      alert('请先添加对账记录！')
       return
     }
 
@@ -133,24 +133,30 @@ function ExportButton({
 
     // 设置列宽
     const colWidths = [
-      { wch: 12 }, // 结算月份
-      { wch: 12 }, // 合作方
-      { wch: 25 }, // 游戏
-      { wch: 12 }, // 游戏流水
-      { wch: 10 }, // 测试费
-      { wch: 10 }, // 代金券
-      { wch: 10 }, // 通道费率
-      { wch: 8 },  // 税点
-      { wch: 10 }, // 分成比例
-      { wch: 12 }, // 结算金额
-      { wch: 10 }, // 退款
-      { wch: 8 }   // 折扣
+      { wch: 15 }, // 结算月份
+      { wch: 15 }, // 合作方
+      { wch: 30 }, // 游戏
+      { wch: 15 }, // 游戏流水
+      { wch: 12 }, // 测试费
+      { wch: 12 }, // 代金券
+      { wch: 12 }, // 通道费率
+      { wch: 10 }, // 税点
+      { wch: 12 }, // 分成比例
+      { wch: 15 }, // 结算金额
+      { wch: 12 }, // 退款
+      { wch: 10 }  // 折扣
     ]
     ws['!cols'] = colWidths
 
-    // 设置标题样式（合并单元格）
+    // 设置合并单元格
     if (!ws['!merges']) ws['!merges'] = []
+    // 标题行合并
     ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 11 } })
+    
+    // 设置行高（标题行）
+    if (!ws['!rows']) ws['!rows'] = []
+    ws['!rows'][0] = { hpt: 30 }
+    ws['!rows'][2] = { hpt: 25 } // 表头行
 
     // 添加工作表到工作簿
     XLSX.utils.book_append_sheet(wb, ws, '对账单')
@@ -159,7 +165,9 @@ function ExportButton({
     const fileName = `${title}_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`
     XLSX.writeFile(wb, fileName)
     
-    alert('对账单导出成功！')
+    if (onExportSuccess) {
+      onExportSuccess()
+    }
   }
 
   return (

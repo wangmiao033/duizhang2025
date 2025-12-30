@@ -4,8 +4,26 @@
 }
 
 .app-header {
-  text-align: center;
   color: white;
+  margin-bottom: 30px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.report-section,
+.comparison-section {
   margin-bottom: 30px;
 }
 
@@ -13,11 +31,27 @@
   font-size: 2.5rem;
   margin-bottom: 10px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  text-align: left;
 }
 
 .app-header p {
   font-size: 1.1rem;
   opacity: 0.9;
+  text-align: left;
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .app-header h1,
+  .app-header p {
+    text-align: center;
+    width: 100%;
+  }
 }
 
 .app-container {
@@ -47,6 +81,19 @@
   padding: 25px;
 }
 
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.form-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.3rem;
+}
+
 .table-section {
   background: #f8f9fa;
   border-radius: 15px;
@@ -60,6 +107,73 @@
   border-radius: 15px;
   padding: 20px;
   margin-bottom: 20px;
+}
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.toolbar-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.statistics-section {
+  margin-bottom: 30px;
+}
+
+.validator-section {
+  margin-bottom: 20px;
+}
+
+.table-actions {
+  margin-bottom: 15px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.export-section {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 2px solid #e9ecef;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .toolbar-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .toolbar-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .toolbar-buttons > * {
+    width: 100%;
+  }
+  
+  .export-buttons {
+    flex-direction: column;
+  }
+  
+  .export-buttons > * {
+    width: 100%;
+  }
 }
 
 .config-item {
