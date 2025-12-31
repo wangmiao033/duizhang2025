@@ -27,10 +27,13 @@ import Settings from './components/Settings.jsx'
 import UserGuide from './components/UserGuide.jsx'
 import QuickActions from './components/QuickActions.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
+import ThemeToggle from './components/ThemeToggle.jsx'
+import { useTheme } from './contexts/ThemeContext.jsx'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js'
 import { addHistoryItem } from './utils/history.js'
 
 function App() {
+  const { theme } = useTheme()
   const [records, setRecords] = useState([])
   const [partyA, setPartyA] = useState({
     invoiceTitle: '厦门巴掌互动科技有限公司',
@@ -373,6 +376,7 @@ function App() {
             <p>生成标准格式的对账单</p>
           </div>
           <div className="header-actions">
+            <ThemeToggle />
             <UserGuide />
             <Settings onSettingsChange={(settings) => {
               // 可以在这里应用设置
