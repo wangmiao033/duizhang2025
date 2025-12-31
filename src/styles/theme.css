@@ -1,0 +1,84 @@
+/* 深色主题样式 */
+[data-theme="dark"] {
+  --bg-primary: #1e1e2e;
+  --bg-secondary: #2d2d44;
+  --bg-tertiary: #3d3d5c;
+  --text-primary: #e0e0e0;
+  --text-secondary: #b0b0b0;
+  --border-color: #4d4d6c;
+  --shadow: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --text-primary: #333333;
+  --text-secondary: #6c757d;
+  --border-color: #e9ecef;
+  --shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* 应用主题变量 */
+[data-theme="dark"] .form-section,
+[data-theme="dark"] .table-section,
+[data-theme="dark"] .company-info-section,
+[data-theme="dark"] .bill-manager-section,
+[data-theme="dark"] .statistics-chart,
+[data-theme="dark"] .statistics-report,
+[data-theme="dark"] .data-comparison,
+[data-theme="dark"] .validator-section,
+[data-theme="dark"] .quick-actions-section {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .summary-card,
+[data-theme="dark"] .company-section,
+[data-theme="dark"] .report-section,
+[data-theme="dark"] .bill-card,
+[data-theme="dark"] .template-item {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] table {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] thead {
+  background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+}
+
+[data-theme="dark"] tbody tr {
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] tbody tr:hover {
+  background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus {
+  border-color: #667eea;
+  background: var(--bg-secondary);
+}
+
+[data-theme="dark"] .empty-message,
+[data-theme="dark"] .empty-chart,
+[data-theme="dark"] .empty-bills,
+[data-theme="dark"] .empty-history {
+  color: var(--text-secondary);
+}
+

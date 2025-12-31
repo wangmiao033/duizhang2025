@@ -268,3 +268,41 @@ tbody td {
   border-top: 2px solid #667eea;
 }
 
+.dragging {
+  opacity: 0.5;
+}
+
+.drag-over {
+  border-top: 3px solid #667eea !important;
+}
+
+.drag-handle {
+  cursor: grab;
+  padding: 0 8px;
+  color: #6c757d;
+  font-size: 1rem;
+  user-select: none;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle:hover {
+  color: #667eea;
+}
+
+tr[draggable="true"] {
+  cursor: move;
+}
+
+tr[draggable="true"]:hover {
+  background-color: #f0f4ff !important;
+}
+
+[data-theme="dark"] tr[draggable="true"]:hover {
+  background-color: #2a2a3e !important;
+}
+

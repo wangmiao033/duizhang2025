@@ -1,0 +1,103 @@
+.quick-fill {
+  position: relative;
+  display: inline-block;
+}
+
+.quick-fill-btn {
+  padding: 8px 16px;
+  background: #ffc107;
+  color: #333;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quick-fill-btn:hover {
+  background: #e0a800;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+}
+
+.quick-fill-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  min-width: 250px;
+  z-index: 100;
+  animation: slideDown 0.3s;
+}
+
+[data-theme="dark"] .quick-fill-menu {
+  background: #1e1e2e;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.quick-fill-item {
+  width: 100%;
+  padding: 10px 12px;
+  background: #f8f9fa;
+  border: none;
+  border-radius: 6px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+[data-theme="dark"] .quick-fill-item {
+  background: #2d2d44;
+}
+
+.quick-fill-item:last-child {
+  margin-bottom: 0;
+}
+
+.quick-fill-item:hover {
+  background: #e9ecef;
+  transform: translateX(5px);
+}
+
+[data-theme="dark"] .quick-fill-item:hover {
+  background: #3d3d5c;
+}
+
+.template-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+[data-theme="dark"] .template-name {
+  color: #e0e0e0;
+}
+
+.template-preview {
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+[data-theme="dark"] .template-preview {
+  color: #b0b0b0;
+}
+

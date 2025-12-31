@@ -59,6 +59,12 @@
   border-radius: 20px;
   padding: 30px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+[data-theme="dark"] .app-container {
+  background: #1e1e2e;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
 .summary-section {
@@ -92,6 +98,12 @@
   margin: 0;
   color: #333;
   font-size: 1.3rem;
+}
+
+.form-header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 .table-section {
@@ -129,6 +141,10 @@
 }
 
 .validator-section {
+  margin-bottom: 20px;
+}
+
+.quick-actions-section {
   margin-bottom: 20px;
 }
 
@@ -198,6 +214,57 @@
   border-top: 2px solid #e9ecef;
 }
 
+.advanced-charts-section {
+  margin-bottom: 30px;
+}
+
+/* 动画增强 */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.summary-card,
+.form-section,
+.table-section {
+  animation: slideIn 0.5s ease-out;
+}
+
+/* 过渡效果增强 */
+button, input, select, textarea {
+  transition: all 0.2s ease;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 5px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: #2d2d44;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5568d3;
+}
+
 @media (max-width: 968px) {
   .main-content {
     grid-template-columns: 1fr;
@@ -205,6 +272,35 @@
   
   .app-header h1 {
     font-size: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    padding: 15px;
+    border-radius: 15px;
+  }
+  
+  .summary-section {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .table-wrapper {
+    max-height: 400px;
+  }
+  
+  table {
+    font-size: 0.8rem;
+  }
+  
+  thead th,
+  tbody td {
+    padding: 8px;
+  }
+  
+  .header-actions {
+    flex-wrap: wrap;
   }
 }
 

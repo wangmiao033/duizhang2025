@@ -24,10 +24,20 @@ import CSVExport from './components/CSVExport.jsx'
 import StatisticsReport from './components/StatisticsReport.jsx'
 import DataComparison from './components/DataComparison.jsx'
 import Settings from './components/Settings.jsx'
+import UserGuide from './components/UserGuide.jsx'
+import QuickActions from './components/QuickActions.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
+import ThemeToggle from './components/ThemeToggle.jsx'
+import AdvancedCharts from './components/AdvancedCharts.jsx'
+import PDFExport from './components/PDFExport.jsx'
+import QuickFill from './components/QuickFill.jsx'
+import NotificationCenter, { showNotification } from './components/NotificationCenter.jsx'
+import { useTheme } from './contexts/ThemeContext.jsx'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js'
 import { addHistoryItem } from './utils/history.js'
 
 function App() {
+  const { theme } = useTheme()
   const [records, setRecords] = useState([])
   const [partyA, setPartyA] = useState({
     invoiceTitle: '厦门巴掌互动科技有限公司',
@@ -52,6 +62,7 @@ function App() {
   const [showBatchDeleteConfirm, setShowBatchDeleteConfirm] = useState(false)
   const [filterOptions, setFilterOptions] = useState({})
   const [sortOptions, setSortOptions] = useState({ field: '', order: 'desc' })
+  const [quickFillData, setQuickFillData] = useState(null)
 
   // 从localStorage加载数据
   useEffect(() => {
@@ -193,6 +204,11 @@ function App() {
     showToast('记录已复制', 'success')
   }
 
+  const handleReorder = (newRecords) => {
+    setRecords(newRecords)
+    showToast('记录顺序已调整', 'success')
+  }
+
   const handleRestoreFromHistory = (data) => {
     if (data.records) setRecords(data.records)
     if (data.partyA) setPartyA(data.partyA)
@@ -227,6 +243,7 @@ function App() {
 
   const showToast = (message, type = 'success') => {
     setToast({ isVisible: true, message, type })
+    showNotification(message, type, 3000)
   }
 
   const hideToast = () => {
@@ -335,15 +352,44 @@ function App() {
     }
   })
 
+  const handleClearAll = () => {
+    setRecords([])
+    showToast('所有记录已清空', 'success')
+  }
+
+  const handleExportAll = () => {
+    const data = {
+      records,
+      partyA,
+      partyB,
+      settlementMonth,
+      exportDate: new Date().toISOString()
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `全部数据备份_${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    showToast('数据导出成功！', 'success')
+  }
+
   return (
-    <div className="app">
-      <header className="app-header">
+    <ErrorBoundary>
+      <div className="app">
+        <header className="app-header">
         <div className="header-content">
           <div>
             <h1>对账管理系统</h1>
             <p>生成标准格式的对账单</p>
           </div>
           <div className="header-actions">
+            <NotificationCenter />
+            <ThemeToggle />
+            <UserGuide />
             <Settings onSettingsChange={(settings) => {
               // 可以在这里应用设置
               console.log('设置已更新', settings)
@@ -365,6 +411,18 @@ function App() {
               style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ddd', width: '200px' }}
             />
           </div>
+        </div>
+
+        <div className="quick-actions-section">
+          <QuickActions
+            onClearAll={handleClearAll}
+            onExportAll={handleExportAll}
+            onImportData={() => {
+              const backupBtn = document.querySelector('.import-btn')
+              if (backupBtn) backupBtn.click()
+            }}
+            recordCount={records.length}
+          />
         </div>
 
         <div className="summary-section">
@@ -412,6 +470,10 @@ function App() {
           <StatisticsChart records={records} />
         </div>
 
+        <div className="advanced-charts-section">
+          <AdvancedCharts records={records} />
+        </div>
+
         <div className="report-section">
           <StatisticsReport records={records} />
         </div>
@@ -424,12 +486,19 @@ function App() {
           <div className="form-section">
             <div className="form-header">
               <h3>添加对账记录</h3>
-              <TemplatePresets onApplyTemplate={handleApplyTemplate} />
+              <div className="form-header-actions">
+                <QuickFill onFill={(data) => {
+                  setQuickFillData(data)
+                  showNotification('快速填充模板已应用', 'success')
+                }} />
+                <TemplatePresets onApplyTemplate={handleApplyTemplate} />
+              </div>
             </div>
             <DataForm
               onAddRecord={addRecord}
               settlementMonth={settlementMonth}
               onError={(msg) => showToast(msg, 'error')}
+              quickFillData={quickFillData}
             />
           </div>
 
@@ -454,6 +523,7 @@ function App() {
               onSelectRecord={handleSelectRecord}
               onBatchDelete={handleBatchDelete}
               onCopyRecord={handleCopyRecord}
+              onReorder={handleReorder}
             />
           </div>
         </div>
@@ -492,6 +562,13 @@ function App() {
             />
             <CSVExport
               records={records}
+              statistics={statistics}
+            />
+            <PDFExport
+              records={records}
+              partyA={partyA}
+              partyB={partyB}
+              settlementMonth={settlementMonth}
               statistics={statistics}
             />
             <PrintButton
@@ -534,7 +611,8 @@ function App() {
         type={toast.type}
         onClose={hideToast}
       />
-    </div>
+      </div>
+    </ErrorBoundary>
   )
 }
 

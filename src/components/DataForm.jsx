@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import './DataForm.css'
 
-function DataForm({ onAddRecord, settlementMonth, onError }) {
+function DataForm({ onAddRecord, settlementMonth, onError, quickFillData }) {
   const [formData, setFormData] = useState({
     settlementMonth: settlementMonth || '',
     partner: '',
@@ -19,6 +19,18 @@ function DataForm({ onAddRecord, settlementMonth, onError }) {
   React.useEffect(() => {
     setFormData(prev => ({ ...prev, settlementMonth: settlementMonth || '' }))
   }, [settlementMonth])
+
+  React.useEffect(() => {
+    if (quickFillData) {
+      setFormData(prev => ({
+        ...prev,
+        channelFeeRate: quickFillData.channelFeeRate || prev.channelFeeRate,
+        taxPoint: quickFillData.taxPoint || prev.taxPoint,
+        revenueShareRatio: quickFillData.revenueShareRatio || prev.revenueShareRatio,
+        discount: quickFillData.discount || prev.discount
+      }))
+    }
+  }, [quickFillData])
 
   const validateForm = () => {
     if (!formData.game || !formData.gameFlow) {

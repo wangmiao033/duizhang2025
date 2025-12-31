@@ -1,0 +1,49 @@
+.drag-sort-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #e7f3ff;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #0066cc;
+  margin-bottom: 10px;
+}
+
+[data-theme="dark"] .drag-sort-hint {
+  background: #1a3a5c;
+  color: #66b3ff;
+}
+
+.drag-icon {
+  font-size: 1rem;
+}
+
+.draggable-row {
+  cursor: move;
+  user-select: none;
+}
+
+.draggable-row.dragging {
+  opacity: 0.5;
+}
+
+.draggable-row.drag-over {
+  border-top: 3px solid #667eea;
+}
+
+.drag-handle {
+  cursor: grab;
+  padding: 0 8px;
+  color: #6c757d;
+  font-size: 1.2rem;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle:hover {
+  color: #667eea;
+}
+
