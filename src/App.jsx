@@ -28,6 +28,7 @@ import UserGuide from './components/UserGuide.jsx'
 import QuickActions from './components/QuickActions.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import ThemeToggle from './components/ThemeToggle.jsx'
+import AdvancedCharts from './components/AdvancedCharts.jsx'
 import { useTheme } from './contexts/ThemeContext.jsx'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js'
 import { addHistoryItem } from './utils/history.js'
@@ -456,6 +457,10 @@ function App() {
 
         <div className="statistics-section">
           <StatisticsChart records={records} />
+        </div>
+
+        <div className="advanced-charts-section">
+          <AdvancedCharts records={records} />
         </div>
 
         <div className="report-section">
