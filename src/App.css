@@ -100,6 +100,12 @@
   font-size: 1.3rem;
 }
 
+.form-header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
 .table-section {
   background: #f8f9fa;
   border-radius: 15px;

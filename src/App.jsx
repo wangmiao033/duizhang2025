@@ -29,6 +29,9 @@ import QuickActions from './components/QuickActions.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import ThemeToggle from './components/ThemeToggle.jsx'
 import AdvancedCharts from './components/AdvancedCharts.jsx'
+import PDFExport from './components/PDFExport.jsx'
+import QuickFill from './components/QuickFill.jsx'
+import NotificationCenter, { showNotification } from './components/NotificationCenter.jsx'
 import { useTheme } from './contexts/ThemeContext.jsx'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js'
 import { addHistoryItem } from './utils/history.js'
@@ -59,6 +62,7 @@ function App() {
   const [showBatchDeleteConfirm, setShowBatchDeleteConfirm] = useState(false)
   const [filterOptions, setFilterOptions] = useState({})
   const [sortOptions, setSortOptions] = useState({ field: '', order: 'desc' })
+  const [quickFillData, setQuickFillData] = useState(null)
 
   // 从localStorage加载数据
   useEffect(() => {
@@ -200,6 +204,11 @@ function App() {
     showToast('记录已复制', 'success')
   }
 
+  const handleReorder = (newRecords) => {
+    setRecords(newRecords)
+    showToast('记录顺序已调整', 'success')
+  }
+
   const handleRestoreFromHistory = (data) => {
     if (data.records) setRecords(data.records)
     if (data.partyA) setPartyA(data.partyA)
@@ -234,6 +243,7 @@ function App() {
 
   const showToast = (message, type = 'success') => {
     setToast({ isVisible: true, message, type })
+    showNotification(message, type, 3000)
   }
 
   const hideToast = () => {
@@ -377,6 +387,7 @@ function App() {
             <p>生成标准格式的对账单</p>
           </div>
           <div className="header-actions">
+            <NotificationCenter />
             <ThemeToggle />
             <UserGuide />
             <Settings onSettingsChange={(settings) => {
@@ -475,12 +486,19 @@ function App() {
           <div className="form-section">
             <div className="form-header">
               <h3>添加对账记录</h3>
-              <TemplatePresets onApplyTemplate={handleApplyTemplate} />
+              <div className="form-header-actions">
+                <QuickFill onFill={(data) => {
+                  setQuickFillData(data)
+                  showNotification('快速填充模板已应用', 'success')
+                }} />
+                <TemplatePresets onApplyTemplate={handleApplyTemplate} />
+              </div>
             </div>
             <DataForm
               onAddRecord={addRecord}
               settlementMonth={settlementMonth}
               onError={(msg) => showToast(msg, 'error')}
+              quickFillData={quickFillData}
             />
           </div>
 
@@ -505,6 +523,7 @@ function App() {
               onSelectRecord={handleSelectRecord}
               onBatchDelete={handleBatchDelete}
               onCopyRecord={handleCopyRecord}
+              onReorder={handleReorder}
             />
           </div>
         </div>
@@ -543,6 +562,13 @@ function App() {
             />
             <CSVExport
               records={records}
+              statistics={statistics}
+            />
+            <PDFExport
+              records={records}
+              partyA={partyA}
+              partyB={partyB}
+              settlementMonth={settlementMonth}
               statistics={statistics}
             />
             <PrintButton

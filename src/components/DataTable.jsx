@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import DragSort from './DragSort.jsx'
 import './DataTable.css'
 
 function DataTable({ 
@@ -11,10 +12,13 @@ function DataTable({
   onSelectAll,
   onSelectRecord,
   onBatchDelete,
-  onCopyRecord
+  onCopyRecord,
+  onReorder
 }) {
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({})
+  const [draggedIndex, setDraggedIndex] = useState(null)
+  const [dragOverIndex, setDragOverIndex] = useState(null)
 
   const startEdit = (record) => {
     setEditingId(record.id)
@@ -39,6 +43,40 @@ function DataTable({
   const allSelected = records.length > 0 && selectedIds.length === records.length
   const someSelected = selectedIds.length > 0 && selectedIds.length < records.length
 
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverIndex(index)
+  }
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === dropIndex || !onReorder) {
+      setDraggedIndex(null)
+      setDragOverIndex(null)
+      return
+    }
+
+    const newRecords = [...records]
+    const draggedItem = newRecords[draggedIndex]
+    newRecords.splice(draggedIndex, 1)
+    newRecords.splice(dropIndex, 0, draggedItem)
+
+    onReorder(newRecords)
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
   return (
     <div className="data-table">
       <div className="table-header">
@@ -52,6 +90,7 @@ function DataTable({
           </div>
         )}
       </div>
+      {onReorder && <DragSort records={records} onReorder={onReorder} />}
       <div className="table-wrapper">
         <table>
           <thead>
@@ -89,8 +128,16 @@ function DataTable({
                 <td colSpan="14" className="empty-message">暂无对账记录</td>
               </tr>
             ) : (
-              records.map((record) => (
-                <tr key={record.id} className={selectedIds.includes(record.id) ? 'selected-row' : ''}>
+              records.map((record, index) => (
+                <tr 
+                  key={record.id} 
+                  className={`${selectedIds.includes(record.id) ? 'selected-row' : ''} ${draggedIndex === index ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''}`}
+                  draggable={!!onReorder}
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                >
                   {editingId === record.id ? (
                     <>
                       <td>
@@ -208,6 +255,9 @@ function DataTable({
                   ) : (
                     <>
                       <td>
+                        {onReorder && (
+                          <span className="drag-handle" title="拖拽调整顺序">↕️</span>
+                        )}
                         <input
                           type="checkbox"
                           checked={selectedIds.includes(record.id)}
