@@ -146,6 +146,33 @@
   transform: translateY(0);
 }
 
+.form-preview {
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.preview-card {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: white;
+  padding: 16px 20px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.preview-label {
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
+
+.preview-amount {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
 @media (max-width: 900px) {
   .form-grid {
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

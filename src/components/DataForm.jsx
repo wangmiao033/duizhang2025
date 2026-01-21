@@ -111,6 +111,31 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData }) {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
+  // 实时计算结算金额预览
+  const calculatePreviewAmount = () => {
+    const gameFlow = parseFloat(formData.gameFlow || 0)
+    const testingFee = parseFloat(formData.testingFee || 0)
+    const voucher = parseFloat(formData.voucher || 0)
+    const channelFeeRate = parseFloat(formData.channelFeeRate || 0) / 100
+    const taxPoint = parseFloat(formData.taxPoint || 0) / 100
+    const revenueShareRatio = parseFloat(formData.revenueShareRatio || 0) / 100
+    const discount = parseFloat(formData.discount || 1)
+    const refund = parseFloat(formData.refund || 0)
+
+    if (gameFlow <= 0) return 0
+
+    const baseAmount = gameFlow - testingFee - voucher
+    const afterChannelFee = baseAmount * (1 - channelFeeRate)
+    const afterTax = afterChannelFee * (1 - taxPoint)
+    const afterShare = afterTax * revenueShareRatio
+    const afterDiscount = afterShare * discount
+    const finalAmount = afterDiscount - refund
+
+    return Math.max(0, finalAmount)
+  }
+
+  const previewAmount = calculatePreviewAmount()
+
   return (
     <div className="data-form">
       <form onSubmit={handleSubmit} className="form">
@@ -246,6 +271,13 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData }) {
                 className="number-input"
               />
             </div>
+          </div>
+        </div>
+
+        <div className="form-preview">
+          <div className="preview-card">
+            <span className="preview-label">预计结算金额：</span>
+            <span className="preview-amount">¥{previewAmount.toFixed(2)}</span>
           </div>
         </div>
 

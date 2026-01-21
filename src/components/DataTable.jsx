@@ -41,6 +41,31 @@ function DataTable({
     }
   }
 
+  // 快捷键支持
+  React.useEffect(() => {
+    if (!editingId) return
+    
+    const handleKeyDown = (e) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault()
+        const settlementAmount = calculateSettlementAmount(editForm)
+        onUpdateRecord(editingId, { ...editForm, settlementAmount: settlementAmount.toFixed(2) })
+        setEditingId(null)
+        setEditForm({})
+        if (onUpdateSuccess) {
+          onUpdateSuccess()
+        }
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        setEditingId(null)
+        setEditForm({})
+      }
+    }
+    
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [editingId, editForm, calculateSettlementAmount, onUpdateRecord, onUpdateSuccess])
+
   const allSelected = records.length > 0 && selectedIds.length === records.length
   const someSelected = selectedIds.length > 0 && selectedIds.length < records.length
 
