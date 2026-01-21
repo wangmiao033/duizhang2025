@@ -60,6 +60,9 @@
   padding: 30px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   transition: background 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 [data-theme="dark"] .app-container {
@@ -166,6 +169,30 @@
   gap: 15px;
   justify-content: center;
   align-items: center;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.settings-card {
+  min-height: 100%;
+}
+
+.settings-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.section-title {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+  color: #333;
 }
 
 @media (max-width: 768px) {

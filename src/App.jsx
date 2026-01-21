@@ -35,6 +35,7 @@ import NotificationCenter, { showNotification } from './components/NotificationC
 import { useTheme } from './contexts/ThemeContext.jsx'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js'
 import { addHistoryItem } from './utils/history.js'
+import Navigation from './components/Navigation.jsx'
 
 function App() {
   const { theme } = useTheme()
@@ -63,6 +64,7 @@ function App() {
   const [filterOptions, setFilterOptions] = useState({})
   const [sortOptions, setSortOptions] = useState({ field: '', order: 'desc' })
   const [quickFillData, setQuickFillData] = useState(null)
+  const [activeTab, setActiveTab] = useState('dashboard')
 
   // 从localStorage加载数据
   useEffect(() => {
@@ -381,6 +383,199 @@ function App() {
     showToast(message, 'error')
   }
 
+  const renderDashboard = () => (
+    <>
+      <div className="summary-section">
+        <SummaryCard title="记录总数" value={records.length} icon="📋" />
+        <SummaryCard title="游戏流水总额" value={`¥${statistics.totalGameFlow.toFixed(2)}`} icon="💰" />
+        <SummaryCard title="代金券总额" value={`¥${statistics.totalVoucher.toFixed(2)}`} icon="🎫" />
+        <SummaryCard title="结算金额总额" value={`¥${statistics.totalSettlementAmount.toFixed(2)}`} icon="💵" />
+      </div>
+      <div className="validator-section">
+        <DataValidator records={records} />
+      </div>
+      <div className="statistics-section">
+        <StatisticsChart records={records} />
+      </div>
+      <div className="advanced-charts-section">
+        <AdvancedCharts records={records} />
+      </div>
+      <div className="report-section">
+        <StatisticsReport records={records} />
+      </div>
+    </>
+  )
+
+  const renderRecords = () => (
+    <>
+      <div className="config-section">
+        <div className="config-item">
+          <label>结算月份：</label>
+          <input
+            type="text"
+            value={settlementMonth}
+            onChange={(e) => setSettlementMonth(e.target.value)}
+            placeholder="如：2025年9月"
+            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ddd', width: '200px' }}
+          />
+        </div>
+      </div>
+
+      <div className="quick-actions-section">
+        <QuickActions
+          onClearAll={handleClearAll}
+          onExportAll={handleExportAll}
+          onImportData={() => {
+            const backupBtn = document.querySelector('.import-btn')
+            if (backupBtn) backupBtn.click()
+          }}
+          recordCount={records.length}
+        />
+      </div>
+
+      <div className="toolbar-section">
+        <SearchFilter 
+          searchTerm={searchTerm} 
+          onSearchChange={setSearchTerm}
+          resultCount={filteredRecords.length}
+          totalCount={records.length}
+        />
+        <div className="toolbar-buttons">
+          <FilterSort
+            onFilterChange={setFilterOptions}
+            onSortChange={(field, order) => setSortOptions({ field, order })}
+          />
+          <HistoryPanel onRestore={handleRestoreFromHistory} />
+          <ExcelImport onImport={handleExcelImport} />
+          <DataBackup 
+            records={records}
+            partyA={partyA}
+            partyB={partyB}
+            settlementMonth={settlementMonth}
+            onImport={(data) => {
+              if (data.records) setRecords(data.records)
+              if (data.partyA) setPartyA(data.partyA)
+              if (data.partyB) setPartyB(data.partyB)
+              if (data.settlementMonth) setSettlementMonth(data.settlementMonth)
+              showToast('数据导入成功！', 'success')
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="main-content">
+        <div className="form-section">
+          <div className="form-header">
+            <h3>添加对账记录</h3>
+            <div className="form-header-actions">
+              <QuickFill onFill={(data) => {
+                setQuickFillData(data)
+                showNotification('快速填充模板已应用', 'success')
+              }} />
+              <TemplatePresets onApplyTemplate={handleApplyTemplate} />
+            </div>
+          </div>
+          <DataForm
+            onAddRecord={addRecord}
+            settlementMonth={settlementMonth}
+            onError={(msg) => showToast(msg, 'error')}
+            quickFillData={quickFillData}
+          />
+        </div>
+
+        <div className="table-section">
+          <div className="table-actions">
+            {selectedIds.length > 0 && (
+              <BatchEdit
+                selectedIds={selectedIds}
+                records={records}
+                onBatchUpdate={handleBatchUpdate}
+              />
+            )}
+          </div>
+          <DataTable
+            records={filteredRecords}
+            onUpdateRecord={updateRecord}
+            onDeleteRecord={deleteRecord}
+            calculateSettlementAmount={calculateSettlementAmount}
+            onUpdateSuccess={() => showToast('记录更新成功！', 'success')}
+            selectedIds={selectedIds}
+            onSelectAll={handleSelectAll}
+            onSelectRecord={handleSelectRecord}
+            onBatchDelete={handleBatchDelete}
+            onCopyRecord={handleCopyRecord}
+            onReorder={handleReorder}
+          />
+        </div>
+      </div>
+
+      <div className="comparison-section">
+        <DataComparison records={records} />
+      </div>
+    </>
+  )
+
+  const renderAnalysis = () => (
+    <>
+      <div className="statistics-section">
+        <StatisticsChart records={records} />
+      </div>
+      <div className="advanced-charts-section">
+        <AdvancedCharts records={records} />
+      </div>
+      <div className="comparison-section">
+        <DataComparison records={records} />
+      </div>
+      <div className="report-section">
+        <StatisticsReport records={records} />
+      </div>
+    </>
+  )
+
+  const renderSettings = () => (
+    <div className="settings-grid">
+      <div className="config-section settings-card">
+        <h3 className="section-title">公司信息</h3>
+        <CompanyInfo
+          partyA={partyA}
+          partyB={partyB}
+          onUpdatePartyA={setPartyA}
+          onUpdatePartyB={setPartyB}
+        />
+      </div>
+      <div className="config-section settings-card">
+        <h3 className="section-title">账单模板管理</h3>
+        <BillManager
+          records={records}
+          partyA={partyA}
+          partyB={partyB}
+          settlementMonth={settlementMonth}
+          onLoadBill={handleLoadBill}
+        />
+      </div>
+      <div className="config-section settings-card">
+        <h3 className="section-title">数据备份与导入</h3>
+        <div className="settings-tools">
+          <DataBackup 
+            records={records}
+            partyA={partyA}
+            partyB={partyB}
+            settlementMonth={settlementMonth}
+            onImport={(data) => {
+              if (data.records) setRecords(data.records)
+              if (data.partyA) setPartyA(data.partyA)
+              if (data.partyB) setPartyB(data.partyB)
+              if (data.settlementMonth) setSettlementMonth(data.settlementMonth)
+              showToast('数据导入成功！', 'success')
+            }}
+          />
+          <ExcelImport onImport={handleExcelImport} />
+          <HistoryPanel onRestore={handleRestoreFromHistory} />
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <ErrorBoundary>
       <div className="app">
@@ -404,152 +599,21 @@ function App() {
       </header>
 
       <div className="app-container">
-        <div className="config-section">
-          <div className="config-item">
-            <label>结算月份：</label>
-            <input
-              type="text"
-              value={settlementMonth}
-              onChange={(e) => setSettlementMonth(e.target.value)}
-              placeholder="如：2025年9月"
-              style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ddd', width: '200px' }}
-            />
-          </div>
-        </div>
+        <Navigation
+          activeTab={activeTab}
+          onChange={setActiveTab}
+          items={[
+            { key: 'dashboard', label: '总览' },
+            { key: 'records', label: '录入与列表' },
+            { key: 'analysis', label: '分析报表' },
+            { key: 'settings', label: '配置与资料' }
+          ]}
+        />
 
-        <div className="quick-actions-section">
-          <QuickActions
-            onClearAll={handleClearAll}
-            onExportAll={handleExportAll}
-            onImportData={() => {
-              const backupBtn = document.querySelector('.import-btn')
-              if (backupBtn) backupBtn.click()
-            }}
-            recordCount={records.length}
-          />
-        </div>
-
-        <div className="summary-section">
-          <SummaryCard title="记录总数" value={records.length} icon="📋" />
-          <SummaryCard title="游戏流水总额" value={`¥${statistics.totalGameFlow.toFixed(2)}`} icon="💰" />
-          <SummaryCard title="代金券总额" value={`¥${statistics.totalVoucher.toFixed(2)}`} icon="🎫" />
-          <SummaryCard title="结算金额总额" value={`¥${statistics.totalSettlementAmount.toFixed(2)}`} icon="💵" />
-        </div>
-
-        <div className="toolbar-section">
-          <SearchFilter 
-            searchTerm={searchTerm} 
-            onSearchChange={setSearchTerm}
-            resultCount={filteredRecords.length}
-            totalCount={records.length}
-          />
-          <div className="toolbar-buttons">
-            <FilterSort
-              onFilterChange={setFilterOptions}
-              onSortChange={(field, order) => setSortOptions({ field, order })}
-            />
-            <HistoryPanel onRestore={handleRestoreFromHistory} />
-            <ExcelImport onImport={handleExcelImport} />
-            <DataBackup 
-              records={records}
-              partyA={partyA}
-              partyB={partyB}
-              settlementMonth={settlementMonth}
-              onImport={(data) => {
-                if (data.records) setRecords(data.records)
-                if (data.partyA) setPartyA(data.partyA)
-                if (data.partyB) setPartyB(data.partyB)
-                if (data.settlementMonth) setSettlementMonth(data.settlementMonth)
-                showToast('数据导入成功！', 'success')
-              }}
-            />
-          </div>
-        </div>
-
-        <div className="validator-section">
-          <DataValidator records={records} />
-        </div>
-
-        <div className="statistics-section">
-          <StatisticsChart records={records} />
-        </div>
-
-        <div className="advanced-charts-section">
-          <AdvancedCharts records={records} />
-        </div>
-
-        <div className="report-section">
-          <StatisticsReport records={records} />
-        </div>
-
-        <div className="comparison-section">
-          <DataComparison records={records} />
-        </div>
-
-        <div className="main-content">
-          <div className="form-section">
-            <div className="form-header">
-              <h3>添加对账记录</h3>
-              <div className="form-header-actions">
-                <QuickFill onFill={(data) => {
-                  setQuickFillData(data)
-                  showNotification('快速填充模板已应用', 'success')
-                }} />
-                <TemplatePresets onApplyTemplate={handleApplyTemplate} />
-              </div>
-            </div>
-            <DataForm
-              onAddRecord={addRecord}
-              settlementMonth={settlementMonth}
-              onError={(msg) => showToast(msg, 'error')}
-              quickFillData={quickFillData}
-            />
-          </div>
-
-          <div className="table-section">
-            <div className="table-actions">
-              {selectedIds.length > 0 && (
-                <BatchEdit
-                  selectedIds={selectedIds}
-                  records={records}
-                  onBatchUpdate={handleBatchUpdate}
-                />
-              )}
-            </div>
-            <DataTable
-              records={filteredRecords}
-              onUpdateRecord={updateRecord}
-              onDeleteRecord={deleteRecord}
-              calculateSettlementAmount={calculateSettlementAmount}
-              onUpdateSuccess={() => showToast('记录更新成功！', 'success')}
-              selectedIds={selectedIds}
-              onSelectAll={handleSelectAll}
-              onSelectRecord={handleSelectRecord}
-              onBatchDelete={handleBatchDelete}
-              onCopyRecord={handleCopyRecord}
-              onReorder={handleReorder}
-            />
-          </div>
-        </div>
-
-        <div className="company-info-section">
-          <CompanyInfo
-            partyA={partyA}
-            partyB={partyB}
-            onUpdatePartyA={setPartyA}
-            onUpdatePartyB={setPartyB}
-          />
-        </div>
-
-        <div className="bill-manager-section">
-          <BillManager
-            records={records}
-            partyA={partyA}
-            partyB={partyB}
-            settlementMonth={settlementMonth}
-            onLoadBill={handleLoadBill}
-          />
-        </div>
+        {activeTab === 'dashboard' && renderDashboard()}
+        {activeTab === 'records' && renderRecords()}
+        {activeTab === 'analysis' && renderAnalysis()}
+        {activeTab === 'settings' && renderSettings()}
 
         <div className="export-section">
           <div className="export-buttons">
