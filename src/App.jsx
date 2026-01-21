@@ -92,6 +92,7 @@ function App() {
   // 保存数据到localStorage
   useEffect(() => {
     localStorage.setItem('reconciliationRecords', JSON.stringify(records))
+    setLastSaveTime(new Date())
   }, [records])
 
   useEffect(() => {
@@ -346,11 +347,21 @@ function App() {
 
   // 计算统计数据（使用useMemo优化）
   const statistics = useMemo(() => {
+    const totalGameFlow = records.reduce((sum, r) => sum + (parseFloat(r.gameFlow) || 0), 0)
+    const totalTestingFee = records.reduce((sum, r) => sum + (parseFloat(r.testingFee) || 0), 0)
+    const totalVoucher = records.reduce((sum, r) => sum + (parseFloat(r.voucher) || 0), 0)
+    const totalSettlementAmount = records.reduce((sum, r) => sum + (parseFloat(r.settlementAmount) || 0), 0)
+    const totalRefund = records.reduce((sum, r) => sum + (parseFloat(r.refund) || 0), 0)
+    
     return {
-      totalGameFlow: records.reduce((sum, r) => sum + (parseFloat(r.gameFlow) || 0), 0),
-      totalTestingFee: records.reduce((sum, r) => sum + (parseFloat(r.testingFee) || 0), 0),
-      totalVoucher: records.reduce((sum, r) => sum + (parseFloat(r.voucher) || 0), 0),
-      totalSettlementAmount: records.reduce((sum, r) => sum + (parseFloat(r.settlementAmount) || 0), 0)
+      totalGameFlow,
+      totalTestingFee,
+      totalVoucher,
+      totalSettlementAmount,
+      totalRefund,
+      recordCount: records.length,
+      avgSettlementAmount: records.length > 0 ? totalSettlementAmount / records.length : 0,
+      avgGameFlow: records.length > 0 ? totalGameFlow / records.length : 0
     }
   }, [records])
 
@@ -403,6 +414,67 @@ function App() {
 
   const handleExportError = (message = '导出失败，请稍后重试') => {
     showToast(message, 'error')
+  }
+
+  // 导出当前筛选结果
+  const handleExportFiltered = () => {
+    if (filteredRecords.length === 0) {
+      showToast('没有可导出的数据', 'error')
+      return
+    }
+    
+    const data = {
+      records: filteredRecords,
+      partyA,
+      partyB,
+      settlementMonth,
+      exportDate: new Date().toISOString(),
+      filterInfo: {
+        searchTerm,
+        filterOptions,
+        sortOptions,
+        totalRecords: records.length,
+        filteredRecords: filteredRecords.length
+      }
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `筛选结果_${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    showToast(`成功导出 ${filteredRecords.length} 条筛选记录！`, 'success')
+  }
+
+  // 导出选中记录
+  const handleExportSelected = () => {
+    if (selectedIds.length === 0) {
+      showToast('请先选择要导出的记录', 'error')
+      return
+    }
+    
+    const selectedRecords = records.filter(r => selectedIds.includes(r.id))
+    const data = {
+      records: selectedRecords,
+      partyA,
+      partyB,
+      settlementMonth,
+      exportDate: new Date().toISOString(),
+      selectedCount: selectedIds.length
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `选中记录_${selectedIds.length}条_${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    showToast(`成功导出 ${selectedIds.length} 条选中记录！`, 'success')
   }
 
   const handleAddInvoice = (e) => {
@@ -659,11 +731,20 @@ function App() {
   )
   const renderDashboard = () => (
     <>
+      {lastSaveTime && (
+        <div className="save-indicator">
+          <span className="save-time">💾 数据已自动保存：{lastSaveTime.toLocaleTimeString('zh-CN')}</span>
+        </div>
+      )}
       <div className="summary-section">
-        <SummaryCard title="记录总数" value={records.length} icon="📋" />
+        <SummaryCard title="记录总数" value={statistics.recordCount} icon="📋" />
         <SummaryCard title="游戏流水总额" value={`¥${statistics.totalGameFlow.toFixed(2)}`} icon="💰" />
         <SummaryCard title="代金券总额" value={`¥${statistics.totalVoucher.toFixed(2)}`} icon="🎫" />
         <SummaryCard title="结算金额总额" value={`¥${statistics.totalSettlementAmount.toFixed(2)}`} icon="💵" />
+        <SummaryCard title="平均结算金额" value={`¥${statistics.avgSettlementAmount.toFixed(2)}`} icon="📊" />
+        <SummaryCard title="退款总额" value={`¥${statistics.totalRefund.toFixed(2)}`} icon="↩️" />
+        <SummaryCard title="测试费总额" value={`¥${statistics.totalTestingFee.toFixed(2)}`} icon="🧪" />
+        <SummaryCard title="平均游戏流水" value={`¥${statistics.avgGameFlow.toFixed(2)}`} icon="📈" />
       </div>
       <div className="validator-section">
         <DataValidator records={records} />
@@ -707,6 +788,24 @@ function App() {
             onFilterChange={setFilterOptions}
             onSortChange={(field, order) => setSortOptions({ field, order })}
           />
+          {filteredRecords.length < records.length && (
+            <button 
+              className="export-filtered-btn" 
+              onClick={handleExportFiltered}
+              title="导出当前筛选结果"
+            >
+              📤 导出筛选结果 ({filteredRecords.length})
+            </button>
+          )}
+          {selectedIds.length > 0 && (
+            <button 
+              className="export-selected-btn" 
+              onClick={handleExportSelected}
+              title="导出选中记录"
+            >
+              📥 导出选中 ({selectedIds.length})
+            </button>
+          )}
           <HistoryPanel onRestore={handleRestoreFromHistory} />
           <ExcelImport onImport={handleExcelImport} />
           <DataBackup 
