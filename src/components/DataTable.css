@@ -36,15 +36,15 @@
 
 .table-wrapper {
   overflow-x: auto;
-  /* 取消内部垂直滚动，使用页面滚动 */
-  overflow-y: visible;
-  max-height: none;
+  overflow-y: hidden;
+  max-height: 560px;
   position: relative;
   background: #f7f8fc;
   border: 1px solid #e8ecf5;
   border-radius: 14px;
   padding: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  width: 100%;
 }
 
 .table-wrapper::-webkit-scrollbar {
@@ -72,7 +72,7 @@ table {
   background: white;
   border-radius: 8px;
   overflow: hidden;
-  min-width: 1180px;
+  min-width: 1100px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
 }
 
