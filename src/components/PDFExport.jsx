@@ -1,25 +1,31 @@
 import React from 'react'
 import './PDFExport.css'
 
-function PDFExport({ records, partyA, partyB, settlementMonth, statistics }) {
+function PDFExport({ records, partyA, partyB, settlementMonth, statistics, onExportSuccess, onExportError }) {
   const exportToPDF = () => {
-    if (records.length === 0) {
-      alert('没有可导出的数据！')
+    if (!records || records.length === 0) {
+      onExportError?.('没有可导出的记录')
       return
     }
 
-    // 创建打印窗口
-    const printWindow = window.open('', '_blank')
-    const printContent = generatePDFContent(records, partyA, partyB, settlementMonth, statistics)
-    
-    printWindow.document.write(printContent)
-    printWindow.document.close()
-    printWindow.focus()
-    
-    // 等待内容加载后打印或保存为PDF
-    setTimeout(() => {
-      printWindow.print()
-    }, 250)
+    try {
+      // 创建打印窗口
+      const printWindow = window.open('', '_blank')
+      const printContent = generatePDFContent(records, partyA, partyB, settlementMonth, statistics)
+      
+      printWindow.document.write(printContent)
+      printWindow.document.close()
+      printWindow.focus()
+      
+      // 等待内容加载后打印或保存为PDF
+      setTimeout(() => {
+        printWindow.print()
+        onExportSuccess?.()
+      }, 250)
+    } catch (error) {
+      console.error('PDF export failed', error)
+      onExportError?.('PDF 导出失败，请重试')
+    }
   }
 
   const generatePDFContent = (records, partyA, partyB, settlementMonth, statistics) => {

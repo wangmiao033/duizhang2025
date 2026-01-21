@@ -377,6 +377,10 @@ function App() {
     showToast('数据导出成功！', 'success')
   }
 
+  const handleExportError = (message = '导出失败，请稍后重试') => {
+    showToast(message, 'error')
+  }
+
   return (
     <ErrorBoundary>
       <div className="app">
@@ -559,10 +563,13 @@ function App() {
               totalVoucher={statistics.totalVoucher}
               totalSettlementAmount={statistics.totalSettlementAmount}
               onExportSuccess={() => showToast('对账单导出成功！', 'success')}
+              onExportError={handleExportError}
             />
             <CSVExport
               records={records}
               statistics={statistics}
+              onExportSuccess={() => showToast('CSV 导出成功！', 'success')}
+              onExportError={handleExportError}
             />
             <PDFExport
               records={records}
@@ -570,6 +577,8 @@ function App() {
               partyB={partyB}
               settlementMonth={settlementMonth}
               statistics={statistics}
+              onExportSuccess={() => showToast('PDF 导出成功！', 'success')}
+              onExportError={handleExportError}
             />
             <PrintButton
               records={records}
