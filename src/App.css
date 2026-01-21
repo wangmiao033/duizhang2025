@@ -4,8 +4,8 @@
 }
 
 .app-header {
-  color: white;
-  margin-bottom: 30px;
+  color: #1f2937;
+  margin-bottom: 26px;
 }
 
 .header-content {
@@ -28,16 +28,20 @@
 }
 
 .app-header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  font-size: 2.4rem;
+  margin-bottom: 6px;
+  font-weight: 700;
+  text-shadow: none;
+  letter-spacing: 0.5px;
   text-align: left;
+  color: #0f172a;
 }
 
 .app-header p {
-  font-size: 1.1rem;
+  font-size: 1rem;
   opacity: 0.9;
   text-align: left;
+  color: #475569;
 }
 
 @media (max-width: 768px) {
@@ -176,6 +180,21 @@
   gap: 15px;
   justify-content: center;
   align-items: center;
+}
+
+/* 顶部导航按钮更清晰的状态色 */
+.nav-bar {
+  background: linear-gradient(90deg, #4f46e5, #7c3aed);
+}
+
+.nav-item {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+}
+
+.nav-item.active {
+  background: #ffffff;
+  color: #4f46e5;
 }
 
 .settings-grid {
