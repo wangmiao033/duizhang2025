@@ -573,18 +573,6 @@ function App() {
         </div>
       </div>
 
-      <div className="quick-actions-section">
-        <QuickActions
-          onClearAll={handleClearAll}
-          onExportAll={handleExportAll}
-          onImportData={() => {
-            const backupBtn = document.querySelector('.import-btn')
-            if (backupBtn) backupBtn.click()
-          }}
-          recordCount={records.length}
-        />
-      </div>
-
       <div className="toolbar-section">
         <SearchFilter 
           searchTerm={searchTerm} 
