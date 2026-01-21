@@ -65,6 +65,15 @@ function App() {
   const [sortOptions, setSortOptions] = useState({ field: '', order: 'desc' })
   const [quickFillData, setQuickFillData] = useState(null)
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [invoiceForm, setInvoiceForm] = useState({
+    title: '',
+    taxNo: '',
+    amount: '',
+    status: '未开',
+    issueDate: '',
+    remark: ''
+  })
+  const [invoiceRecords, setInvoiceRecords] = useState([])
 
   // 从localStorage加载数据
   useEffect(() => {
@@ -383,6 +392,149 @@ function App() {
     showToast(message, 'error')
   }
 
+  const handleAddInvoice = (e) => {
+    e.preventDefault()
+    if (!invoiceForm.title) {
+      showToast('请填写发票抬头', 'error')
+      return
+    }
+    if (!invoiceForm.taxNo) {
+      showToast('请填写税号', 'error')
+      return
+    }
+    const newItem = {
+      ...invoiceForm,
+      id: Date.now(),
+      amount: parseFloat(invoiceForm.amount || 0).toFixed(2)
+    }
+    setInvoiceRecords([newItem, ...invoiceRecords])
+    setInvoiceForm({
+      title: '',
+      taxNo: '',
+      amount: '',
+      status: '未开',
+      issueDate: '',
+      remark: ''
+    })
+    showToast('发票记录已添加', 'success')
+  }
+
+  const handleDeleteInvoice = (id) => {
+    setInvoiceRecords(invoiceRecords.filter(item => item.id !== id))
+    showToast('发票记录已删除', 'success')
+  }
+
+  const renderInvoice = () => (
+    <div className="invoice-section">
+      <div className="invoice-grid">
+        <form className="invoice-form" onSubmit={handleAddInvoice}>
+          <h3>发票信息</h3>
+          <div className="invoice-row">
+            <label>发票抬头 *</label>
+            <input
+              type="text"
+              value={invoiceForm.title}
+              onChange={(e) => setInvoiceForm({ ...invoiceForm, title: e.target.value })}
+              placeholder="公司名称"
+            />
+          </div>
+          <div className="invoice-row">
+            <label>税号 *</label>
+            <input
+              type="text"
+              value={invoiceForm.taxNo}
+              onChange={(e) => setInvoiceForm({ ...invoiceForm, taxNo: e.target.value })}
+              placeholder="纳税人识别号"
+            />
+          </div>
+          <div className="invoice-row two-col">
+            <div>
+              <label>开票金额(元)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={invoiceForm.amount}
+                onChange={(e) => setInvoiceForm({ ...invoiceForm, amount: e.target.value })}
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <label>开票日期</label>
+              <input
+                type="date"
+                value={invoiceForm.issueDate}
+                onChange={(e) => setInvoiceForm({ ...invoiceForm, issueDate: e.target.value })}
+              />
+            </div>
+          </div>
+          <div className="invoice-row two-col">
+            <div>
+              <label>状态</label>
+              <select
+                value={invoiceForm.status}
+                onChange={(e) => setInvoiceForm({ ...invoiceForm, status: e.target.value })}
+              >
+                <option value="未开">未开</option>
+                <option value="已开">已开</option>
+                <option value="作废">作废</option>
+              </select>
+            </div>
+            <div>
+              <label>备注</label>
+              <input
+                type="text"
+                value={invoiceForm.remark}
+                onChange={(e) => setInvoiceForm({ ...invoiceForm, remark: e.target.value })}
+                placeholder="可填写收件人、邮箱等"
+              />
+            </div>
+          </div>
+          <button type="submit" className="submit-btn">保存发票记录</button>
+        </form>
+
+        <div className="invoice-list">
+          <div className="list-header">
+            <h3>发票列表</h3>
+            <span className="muted">共 {invoiceRecords.length} 条</span>
+          </div>
+          {invoiceRecords.length === 0 ? (
+            <div className="empty-invoice">暂无发票记录</div>
+          ) : (
+            <div className="invoice-table">
+              <div className="invoice-table-head">
+                <span>抬头</span>
+                <span>税号</span>
+                <span>金额</span>
+                <span>状态</span>
+                <span>开票日期</span>
+                <span>备注</span>
+                <span>操作</span>
+              </div>
+              {invoiceRecords.map(item => (
+                <div className="invoice-table-row" key={item.id}>
+                  <span title={item.title}>{item.title || '-'}</span>
+                  <span title={item.taxNo}>{item.taxNo || '-'}</span>
+                  <span>¥{item.amount || '0.00'}</span>
+                  <span className={`tag tag-${item.status}`}>{item.status}</span>
+                  <span>{item.issueDate || '-'}</span>
+                  <span title={item.remark}>{item.remark || '-'}</span>
+                  <span>
+                    <button
+                      type="button"
+                      className="delete-btn"
+                      onClick={() => handleDeleteInvoice(item.id)}
+                    >
+                      删除
+                    </button>
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
   const renderDashboard = () => (
     <>
       <div className="summary-section">
@@ -606,7 +758,8 @@ function App() {
             { key: 'dashboard', label: '总览' },
             { key: 'records', label: '录入与列表' },
             { key: 'analysis', label: '分析报表' },
-            { key: 'settings', label: '配置与资料' }
+            { key: 'settings', label: '配置与资料' },
+            { key: 'invoice', label: '发票' }
           ]}
         />
 
@@ -614,6 +767,7 @@ function App() {
         {activeTab === 'records' && renderRecords()}
         {activeTab === 'analysis' && renderAnalysis()}
         {activeTab === 'settings' && renderSettings()}
+        {activeTab === 'invoice' && renderInvoice()}
 
         <div className="export-section">
           <div className="export-buttons">
