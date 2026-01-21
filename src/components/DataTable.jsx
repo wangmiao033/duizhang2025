@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import DragSort from './DragSort.jsx'
+import CopyRecord from './CopyRecord.jsx'
 import './DataTable.css'
 
 function DataTable({ 
