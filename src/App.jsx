@@ -75,6 +75,7 @@ function App() {
   })
   const [invoiceRecords, setInvoiceRecords] = useState([])
   const [invoiceFilter, setInvoiceFilter] = useState({ keyword: '', status: '全部' })
+  const [lastSaveTime, setLastSaveTime] = useState(null)
 
   // 从localStorage加载数据
   useEffect(() => {
