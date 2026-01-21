@@ -36,8 +36,9 @@
 
 .table-wrapper {
   overflow-x: auto;
-  overflow-y: auto;
-  max-height: 560px;
+  /* 取消内部垂直滚动，使用页面滚动 */
+  overflow-y: visible;
+  max-height: none;
   position: relative;
   background: #f7f8fc;
   border: 1px solid #e8ecf5;

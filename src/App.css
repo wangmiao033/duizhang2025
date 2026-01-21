@@ -56,13 +56,14 @@
 
 .app-container {
   background: white;
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 18px;
+  padding: 26px;
+  box-shadow: 0 16px 40px rgba(30, 41, 59, 0.08);
+  border: 1px solid #eef1f7;
+  transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 22px;
 }
 
 [data-theme="dark"] .app-container {
@@ -85,9 +86,11 @@
 }
 
 .form-section {
-  background: #f8f9fa;
-  border-radius: 15px;
-  padding: 25px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 22px;
+  border: 1px solid #eef1f7;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.05);
 }
 
 .form-header {
@@ -110,18 +113,22 @@
 }
 
 .table-section {
-  background: #f8f9fa;
-  border-radius: 15px;
-  padding: 25px;
-  max-height: 600px;
-  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 22px;
+  max-height: none;
+  overflow: visible;
+  border: 1px solid #eef1f7;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.05);
 }
 
 .config-section {
-  background: #f8f9fa;
-  border-radius: 15px;
-  padding: 20px;
-  margin-bottom: 20px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 18px;
+  border: 1px solid #eef1f7;
+  box-shadow: 0 6px 22px rgba(15, 23, 42, 0.04);
 }
 
 .toolbar-section {
@@ -129,7 +136,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 15px;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
   flex-wrap: wrap;
 }
 
