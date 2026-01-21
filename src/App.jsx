@@ -74,6 +74,7 @@ function App() {
     remark: ''
   })
   const [invoiceRecords, setInvoiceRecords] = useState([])
+  const [invoiceFilter, setInvoiceFilter] = useState({ keyword: '', status: '全部' })
 
   // 从localStorage加载数据
   useEffect(() => {
@@ -104,6 +105,18 @@ function App() {
   useEffect(() => {
     localStorage.setItem('settlementMonth', settlementMonth)
   }, [settlementMonth])
+
+  // 发票记录持久化
+  useEffect(() => {
+    const savedInvoices = localStorage.getItem('invoiceRecords')
+    if (savedInvoices) {
+      setInvoiceRecords(JSON.parse(savedInvoices))
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('invoiceRecords', JSON.stringify(invoiceRecords))
+  }, [invoiceRecords])
 
   // 计算结算金额
   const calculateSettlementAmount = (record) => {
@@ -424,6 +437,86 @@ function App() {
     showToast('发票记录已删除', 'success')
   }
 
+  const filteredInvoices = useMemo(() => {
+    return invoiceRecords.filter(item => {
+      const matchStatus = invoiceFilter.status === '全部' || item.status === invoiceFilter.status
+      const kw = (invoiceFilter.keyword || '').trim().toLowerCase()
+      const matchKeyword = !kw || `${item.title || ''} ${item.taxNo || ''} ${item.remark || ''}`.toLowerCase().includes(kw)
+      return matchStatus && matchKeyword
+    })
+  }, [invoiceRecords, invoiceFilter])
+
+  const handleExportInvoiceJSON = () => {
+    const blob = new Blob([JSON.stringify(invoiceRecords, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `发票记录_${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    showToast('发票记录已导出 (JSON)', 'success')
+  }
+
+  const handleExportInvoiceCSV = () => {
+    if (invoiceRecords.length === 0) {
+      showToast('暂无发票记录可导出', 'error')
+      return
+    }
+    const headers = ['抬头', '税号', '金额', '状态', '开票日期', '备注']
+    const rows = invoiceRecords.map(r => [
+      `"${r.title || ''}"`,
+      `"${r.taxNo || ''}"`,
+      r.amount || '0.00',
+      r.status || '',
+      r.issueDate || '',
+      `"${r.remark || ''}"`
+    ])
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
+    const BOM = '\uFEFF'
+    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `发票记录_${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    showToast('发票记录已导出 (CSV)', 'success')
+  }
+
+  const handleImportInvoiceJSON = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result)
+        if (Array.isArray(data)) {
+          const normalized = data.map(item => ({
+            ...item,
+            id: item.id || Date.now() + Math.random(),
+            amount: parseFloat(item.amount || 0).toFixed(2),
+            status: item.status || '未开'
+          }))
+          setInvoiceRecords(normalized)
+          showToast('发票记录已导入', 'success')
+        } else {
+          showToast('文件格式不正确', 'error')
+        }
+      } catch (err) {
+        console.error(err)
+        showToast('导入失败，文件格式错误', 'error')
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
+
+  const invoiceFileInputRef = React.useRef(null)
+
   const renderInvoice = () => (
     <div className="invoice-section">
       <div className="invoice-grid">
@@ -494,10 +587,39 @@ function App() {
 
         <div className="invoice-list">
           <div className="list-header">
-            <h3>发票列表</h3>
-            <span className="muted">共 {invoiceRecords.length} 条</span>
+            <div className="list-title">
+              <h3>发票列表</h3>
+              <span className="muted">共 {filteredInvoices.length} 条</span>
+            </div>
+            <div className="invoice-toolbar">
+              <input
+                type="text"
+                placeholder="搜索抬头/税号/备注"
+                value={invoiceFilter.keyword}
+                onChange={(e) => setInvoiceFilter({ ...invoiceFilter, keyword: e.target.value })}
+              />
+              <select
+                value={invoiceFilter.status}
+                onChange={(e) => setInvoiceFilter({ ...invoiceFilter, status: e.target.value })}
+              >
+                <option value="全部">全部</option>
+                <option value="未开">未开</option>
+                <option value="已开">已开</option>
+                <option value="作废">作废</option>
+              </select>
+              <button type="button" className="secondary-btn" onClick={handleExportInvoiceJSON}>导出 JSON</button>
+              <button type="button" className="secondary-btn" onClick={handleExportInvoiceCSV}>导出 CSV</button>
+              <button type="button" className="secondary-btn" onClick={() => invoiceFileInputRef.current?.click()}>导入</button>
+              <input
+                ref={invoiceFileInputRef}
+                type="file"
+                accept=".json"
+                style={{ display: 'none' }}
+                onChange={handleImportInvoiceJSON}
+              />
+            </div>
           </div>
-          {invoiceRecords.length === 0 ? (
+          {filteredInvoices.length === 0 ? (
             <div className="empty-invoice">暂无发票记录</div>
           ) : (
             <div className="invoice-table">
@@ -510,7 +632,7 @@ function App() {
                 <span>备注</span>
                 <span>操作</span>
               </div>
-              {invoiceRecords.map(item => (
+              {filteredInvoices.map(item => (
                 <div className="invoice-table-row" key={item.id}>
                   <span title={item.title}>{item.title || '-'}</span>
                   <span title={item.taxNo}>{item.taxNo || '-'}</span>

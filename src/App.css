@@ -303,6 +303,43 @@
   justify-content: space-between;
 }
 
+.list-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.invoice-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.invoice-toolbar input,
+.invoice-toolbar select {
+  padding: 8px 10px;
+  border: 1px solid #dfe3ee;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.secondary-btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #dfe3ee;
+  background: #ffffff;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.secondary-btn:hover {
+  border-color: #4f46e5;
+  color: #4f46e5;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
+}
+
 .muted {
   color: #94a3b8;
   font-size: 0.9rem;
