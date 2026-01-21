@@ -37,8 +37,13 @@
 .table-wrapper {
   overflow-x: auto;
   overflow-y: auto;
-  max-height: 600px;
+  max-height: 560px;
   position: relative;
+  background: #f7f8fc;
+  border: 1px solid #e8ecf5;
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 .table-wrapper::-webkit-scrollbar {
@@ -66,7 +71,8 @@ table {
   background: white;
   border-radius: 8px;
   overflow: hidden;
-  min-width: 1200px;
+  min-width: 1000px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
 }
 
 thead {
@@ -76,12 +82,12 @@ thead {
 }
 
 thead {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #5b67df 0%, #7a5be7 100%);
   color: white;
 }
 
 thead th {
-  padding: 15px;
+  padding: 12px;
   text-align: left;
   font-weight: 600;
   font-size: 0.95rem;
@@ -93,13 +99,14 @@ tbody tr {
 }
 
 tbody tr:hover {
-  background-color: #f8f9fa;
+  background-color: #f3f6ff;
 }
 
 tbody td {
-  padding: 15px;
+  padding: 12px;
   color: #495057;
   font-size: 0.9rem;
+  vertical-align: middle;
 }
 
 .empty-message {
@@ -112,6 +119,7 @@ tbody td {
 .amount-cell {
   font-weight: 600;
   color: #28a745;
+  text-align: right;
 }
 
 .type-badge {
@@ -158,6 +166,7 @@ tbody td {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  gap: 10px;
 }
 
 .data-table h3 {
@@ -306,3 +315,41 @@ tr[draggable="true"]:hover {
   background-color: #2a2a3e !important;
 }
 
+/* 列对齐：数值右对齐，操作居中 */
+thead th:nth-child(1),
+tbody td:nth-child(1) {
+  text-align: center;
+}
+
+thead th:nth-child(5),
+thead th:nth-child(6),
+thead th:nth-child(7),
+thead th:nth-child(8),
+thead th:nth-child(9),
+thead th:nth-child(10),
+thead th:nth-child(11),
+thead th:nth-child(12) {
+  text-align: right;
+}
+
+tbody td:nth-child(5),
+tbody td:nth-child(6),
+tbody td:nth-child(7),
+tbody td:nth-child(8),
+tbody td:nth-child(9),
+tbody td:nth-child(10),
+tbody td:nth-child(11),
+tbody td:nth-child(12) {
+  text-align: right;
+}
+
+thead th:last-child,
+tbody td:last-child {
+  text-align: center;
+}
+
+.table-actions-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
