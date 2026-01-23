@@ -38,6 +38,9 @@ import { addHistoryItem } from './utils/history.js'
 import PartnerManager from './components/PartnerManager.jsx'
 import Navigation from './components/Navigation.jsx'
 import DeliveryCenter from './components/DeliveryCenter.jsx'
+import TagManager from './components/TagManager.jsx'
+import ReminderManager from './components/ReminderManager.jsx'
+import ImportTemplateGenerator from './components/ImportTemplateGenerator.jsx'
 
 function App() {
   const { theme } = useTheme()
@@ -80,6 +83,9 @@ function App() {
   const [lastSaveTime, setLastSaveTime] = useState(null)
   const [partners, setPartners] = useState([])
   const [deliveries, setDeliveries] = useState([])
+  const [showTagManager, setShowTagManager] = useState(false)
+  const [showReminderManager, setShowReminderManager] = useState(false)
+  const [showTemplateGenerator, setShowTemplateGenerator] = useState(false)
 
   // 从localStorage加载数据
   useEffect(() => {
@@ -784,6 +790,44 @@ function App() {
           </span>
         </div>
       )}
+      <div className="quick-actions-section">
+        <QuickActions
+          onClearAll={handleClearAll}
+          onExportAll={handleExportAll}
+          onImportData={() => {
+            const fileInput = document.createElement('input')
+            fileInput.type = 'file'
+            fileInput.accept = '.json,.xlsx,.xls'
+            fileInput.onchange = (e) => {
+              const file = e.target.files?.[0]
+              if (file) {
+                if (file.name.endsWith('.json')) {
+                  // 处理JSON导入
+                  const reader = new FileReader()
+                  reader.onload = (ev) => {
+                    try {
+                      const data = JSON.parse(ev.target.result)
+                      if (data.records) setRecords(data.records)
+                      showToast('数据导入成功！', 'success')
+                    } catch (err) {
+                      showToast('导入失败：文件格式错误', 'error')
+                    }
+                  }
+                  reader.readAsText(file)
+                } else {
+                  showToast('请使用Excel导入功能', 'info')
+                }
+              }
+            }
+            fileInput.click()
+          }}
+          onGenerateTemplate={() => setShowTemplateGenerator(true)}
+          onShowTags={() => setActiveTab('tags')}
+          onShowReminders={() => setActiveTab('reminders')}
+          recordCount={records.length}
+          statistics={statistics}
+        />
+      </div>
       <div className="summary-section">
         <SummaryCard title="记录总数" value={statistics.recordCount} icon="📋" />
         <SummaryCard title="游戏流水总额" value={`¥${statistics.totalGameFlow.toFixed(2)}`} icon="💰" />
@@ -795,7 +839,14 @@ function App() {
         <SummaryCard title="平均游戏流水" value={`¥${statistics.avgGameFlow.toFixed(2)}`} icon="📈" />
       </div>
       <div className="validator-section">
-        <DataValidator records={records} />
+        <DataValidator 
+          records={records} 
+          onIssueClick={(recordId) => {
+            // 可以在这里实现跳转到记录的功能
+            setActiveTab('records')
+            showToast('请手动查找并修复该记录', 'info')
+          }}
+        />
       </div>
       <div className="statistics-section">
         <StatisticsChart records={records} />
@@ -1002,6 +1053,32 @@ function App() {
           <HistoryPanel onRestore={handleRestoreFromHistory} />
         </div>
       </div>
+      <div className="config-section settings-card">
+        <h3 className="section-title">导入模板生成器</h3>
+        <ImportTemplateGenerator 
+          onTemplateGenerated={(type, fileName) => {
+            showToast(`模板 ${fileName} 已生成`, 'success')
+          }}
+        />
+      </div>
+      <div className="config-section settings-card">
+        <h3 className="section-title">标签管理</h3>
+        <TagManager 
+          records={records}
+          onTagChange={(recordId, updates) => {
+            updateRecord(recordId, updates)
+            showToast('标签已更新', 'success')
+          }}
+        />
+      </div>
+      <div className="config-section settings-card">
+        <h3 className="section-title">提醒事项</h3>
+        <ReminderManager 
+          onReminderAdd={(reminder) => {
+            showToast(`提醒"${reminder.title}"已添加`, 'success')
+          }}
+        />
+      </div>
     </div>
   )
 
@@ -1038,7 +1115,9 @@ function App() {
             { key: 'delivery', label: '快递中心' },
             { key: 'analysis', label: '分析报表' },
             { key: 'settings', label: '配置与资料' },
-            { key: 'invoice', label: '发票' }
+            { key: 'invoice', label: '发票' },
+            { key: 'tags', label: '标签管理' },
+            { key: 'reminders', label: '提醒事项' }
           ]}
         />
 
@@ -1049,6 +1128,26 @@ function App() {
         {activeTab === 'analysis' && renderAnalysis()}
         {activeTab === 'settings' && renderSettings()}
         {activeTab === 'invoice' && renderInvoice()}
+        {activeTab === 'tags' && (
+          <div className="tags-page">
+            <TagManager 
+              records={records}
+              onTagChange={(recordId, updates) => {
+                updateRecord(recordId, updates)
+                showToast('标签已更新', 'success')
+              }}
+            />
+          </div>
+        )}
+        {activeTab === 'reminders' && (
+          <div className="reminders-page">
+            <ReminderManager 
+              onReminderAdd={(reminder) => {
+                showToast(`提醒"${reminder.title}"已添加`, 'success')
+              }}
+            />
+          </div>
+        )}
 
         <div className="export-section">
           <div className="export-buttons">
