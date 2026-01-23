@@ -9,8 +9,6 @@ function PartnerManager({ partners, onPartnersChange }) {
     category: '游戏研发商',
     tag2: '',
     taxRegistrationNo: '',
-    address: '',
-    phone: '',
     bankName: '',
     bankAccount: '',
     invoiceContent: '',
@@ -35,8 +33,6 @@ function PartnerManager({ partners, onPartnersChange }) {
       category: formData.category,
       tag2: formData.tag2.trim(),
       taxRegistrationNo: formData.taxRegistrationNo.trim(),
-      address: formData.address.trim(),
-      phone: formData.phone.trim(),
       bankName: formData.bankName.trim(),
       bankAccount: formData.bankAccount.trim(),
       invoiceContent: formData.invoiceContent.trim(),
@@ -52,8 +48,6 @@ function PartnerManager({ partners, onPartnersChange }) {
       category: '游戏研发商', 
       tag2: '',
       taxRegistrationNo: '',
-      address: '',
-      phone: '',
       bankName: '',
       bankAccount: '',
       invoiceContent: '',
@@ -71,8 +65,6 @@ function PartnerManager({ partners, onPartnersChange }) {
       category: partner.category || '游戏研发商',
       tag2: partner.tag2 || '',
       taxRegistrationNo: partner.taxRegistrationNo || '',
-      address: partner.address || '',
-      phone: partner.phone || '',
       bankName: partner.bankName || '',
       bankAccount: partner.bankAccount || '',
       invoiceContent: partner.invoiceContent || '',
@@ -97,8 +89,6 @@ function PartnerManager({ partners, onPartnersChange }) {
             category: formData.category, 
             tag2: formData.tag2.trim(),
             taxRegistrationNo: formData.taxRegistrationNo.trim(),
-            address: formData.address.trim(),
-            phone: formData.phone.trim(),
             bankName: formData.bankName.trim(),
             bankAccount: formData.bankAccount.trim(),
             invoiceContent: formData.invoiceContent.trim(),
@@ -136,8 +126,6 @@ function PartnerManager({ partners, onPartnersChange }) {
       category: '游戏研发商', 
       tag2: '',
       taxRegistrationNo: '',
-      address: '',
-      phone: '',
       bankName: '',
       bankAccount: '',
       invoiceContent: '',
@@ -236,30 +224,6 @@ function PartnerManager({ partners, onPartnersChange }) {
               </div>
             </div>
             
-            <div className="form-section-contact">
-              <h5>联系信息</h5>
-              <div className="partner-form-grid">
-                <div className="form-group full-width">
-                  <label>地址</label>
-                  <input
-                    type="text"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    placeholder="公司地址"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>电话</label>
-                  <input
-                    type="text"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="联系电话"
-                  />
-                </div>
-              </div>
-            </div>
-
             <div className="form-section-bank">
               <h5>银行信息</h5>
               <div className="partner-form-grid">
@@ -385,18 +349,6 @@ function PartnerManager({ partners, onPartnersChange }) {
                       <div className="detail-item">
                         <span className="detail-label">税务登记号：</span>
                         <span className="detail-value">{partner.taxRegistrationNo}</span>
-                      </div>
-                    )}
-                    {partner.address && (
-                      <div className="detail-item">
-                        <span className="detail-label">地址：</span>
-                        <span className="detail-value">{partner.address}</span>
-                      </div>
-                    )}
-                    {partner.phone && (
-                      <div className="detail-item">
-                        <span className="detail-label">电话：</span>
-                        <span className="detail-value">{partner.phone}</span>
                       </div>
                     )}
                     {partner.bankName && (

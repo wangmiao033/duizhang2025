@@ -63,7 +63,6 @@
 }
 
 .form-section-basic,
-.form-section-contact,
 .form-section-bank,
 .form-section-invoice,
 .form-section-recipient {
@@ -74,7 +73,6 @@
 }
 
 .form-section-basic h5,
-.form-section-contact h5,
 .form-section-bank h5,
 .form-section-invoice h5,
 .form-section-recipient h5 {
