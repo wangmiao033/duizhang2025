@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import './DataBackup.css'
 
-function DataBackup({ records, partyA, partyB, settlementMonth, partners, onImport }) {
+function DataBackup({ records, partyA, partyB, settlementMonth, partners, deliveries, onImport }) {
   const fileInputRef = useRef(null)
 
   const exportData = () => {
@@ -11,6 +11,7 @@ function DataBackup({ records, partyA, partyB, settlementMonth, partners, onImpo
       partyB,
       settlementMonth,
       partners,
+      deliveries,
       exportDate: new Date().toISOString()
     }
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })

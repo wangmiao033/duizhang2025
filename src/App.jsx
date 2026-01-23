@@ -37,6 +37,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js'
 import { addHistoryItem } from './utils/history.js'
 import PartnerManager from './components/PartnerManager.jsx'
 import Navigation from './components/Navigation.jsx'
+import DeliveryCenter from './components/DeliveryCenter.jsx'
 
 function App() {
   const { theme } = useTheme()
@@ -78,6 +79,7 @@ function App() {
   const [invoiceFilter, setInvoiceFilter] = useState({ keyword: '', status: '全部' })
   const [lastSaveTime, setLastSaveTime] = useState(null)
   const [partners, setPartners] = useState([])
+  const [deliveries, setDeliveries] = useState([])
 
   // 从localStorage加载数据
   useEffect(() => {
@@ -86,12 +88,14 @@ function App() {
     const savedPartyB = localStorage.getItem('partyB')
     const savedMonth = localStorage.getItem('settlementMonth')
     const savedPartners = localStorage.getItem('partners')
+    const savedDeliveries = localStorage.getItem('deliveries')
     
     if (savedRecords) setRecords(JSON.parse(savedRecords))
     if (savedPartyA) setPartyA(JSON.parse(savedPartyA))
     if (savedPartyB) setPartyB(JSON.parse(savedPartyB))
     if (savedMonth) setSettlementMonth(savedMonth)
     if (savedPartners) setPartners(JSON.parse(savedPartners))
+    if (savedDeliveries) setDeliveries(JSON.parse(savedDeliveries))
   }, [])
 
   // 保存数据到localStorage
@@ -115,6 +119,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem('partners', JSON.stringify(partners))
   }, [partners])
+
+  useEffect(() => {
+    localStorage.setItem('deliveries', JSON.stringify(deliveries))
+  }, [deliveries])
 
   // 发票记录持久化
   useEffect(() => {
@@ -408,6 +416,7 @@ function App() {
       partyB,
       settlementMonth,
       partners,
+      deliveries,
       exportDate: new Date().toISOString()
     }
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -752,6 +761,19 @@ function App() {
     </div>
   )
 
+  const renderDelivery = () => (
+    <div className="delivery-page">
+      <DeliveryCenter 
+        deliveries={deliveries}
+        onDeliveriesChange={(newDeliveries) => {
+          setDeliveries(newDeliveries)
+          showToast('快递记录已更新', 'success')
+        }}
+        partners={partners}
+      />
+    </div>
+  )
+
   const renderDashboard = () => (
     <>
       {lastSaveTime && (
@@ -840,12 +862,14 @@ function App() {
             partyB={partyB}
             settlementMonth={settlementMonth}
             partners={partners}
+            deliveries={deliveries}
             onImport={(data) => {
               if (data.records) setRecords(data.records)
               if (data.partyA) setPartyA(data.partyA)
               if (data.partyB) setPartyB(data.partyB)
               if (data.settlementMonth) setSettlementMonth(data.settlementMonth)
               if (data.partners) setPartners(data.partners)
+              if (data.deliveries) setDeliveries(data.deliveries)
               showToast('数据导入成功！', 'success')
             }}
           />
@@ -963,12 +987,14 @@ function App() {
             partyB={partyB}
             settlementMonth={settlementMonth}
             partners={partners}
+            deliveries={deliveries}
             onImport={(data) => {
               if (data.records) setRecords(data.records)
               if (data.partyA) setPartyA(data.partyA)
               if (data.partyB) setPartyB(data.partyB)
               if (data.settlementMonth) setSettlementMonth(data.settlementMonth)
               if (data.partners) setPartners(data.partners)
+              if (data.deliveries) setDeliveries(data.deliveries)
               showToast('数据导入成功！', 'success')
             }}
           />
@@ -1009,6 +1035,7 @@ function App() {
             { key: 'dashboard', label: '总览' },
             { key: 'records', label: '录入与列表' },
             { key: 'partners', label: '客户管理' },
+            { key: 'delivery', label: '快递中心' },
             { key: 'analysis', label: '分析报表' },
             { key: 'settings', label: '配置与资料' },
             { key: 'invoice', label: '发票' }
@@ -1018,6 +1045,7 @@ function App() {
         {activeTab === 'dashboard' && renderDashboard()}
         {activeTab === 'records' && renderRecords()}
         {activeTab === 'partners' && renderPartners()}
+        {activeTab === 'delivery' && renderDelivery()}
         {activeTab === 'analysis' && renderAnalysis()}
         {activeTab === 'settings' && renderSettings()}
         {activeTab === 'invoice' && renderInvoice()}

@@ -7,7 +7,13 @@ function PartnerManager({ partners, onPartnersChange }) {
   const [formData, setFormData] = useState({
     name: '',
     category: '游戏研发商',
-    tag2: ''
+    tag2: '',
+    taxRegistrationNo: '',
+    address: '',
+    phone: '',
+    bankName: '',
+    bankAccount: '',
+    invoiceContent: ''
   })
   const [filterCategory, setFilterCategory] = useState('全部')
   const [searchTerm, setSearchTerm] = useState('')
@@ -25,20 +31,42 @@ function PartnerManager({ partners, onPartnersChange }) {
       name: formData.name.trim(),
       category: formData.category,
       tag2: formData.tag2.trim(),
+      taxRegistrationNo: formData.taxRegistrationNo.trim(),
+      address: formData.address.trim(),
+      phone: formData.phone.trim(),
+      bankName: formData.bankName.trim(),
+      bankAccount: formData.bankAccount.trim(),
+      invoiceContent: formData.invoiceContent.trim(),
       createdAt: new Date().toISOString()
     }
     
     onPartnersChange([...partners, newPartner])
-    setFormData({ name: '', category: '游戏研发商', tag2: '' })
+    setFormData({ 
+      name: '', 
+      category: '游戏研发商', 
+      tag2: '',
+      taxRegistrationNo: '',
+      address: '',
+      phone: '',
+      bankName: '',
+      bankAccount: '',
+      invoiceContent: ''
+    })
     setShowAddForm(false)
   }
 
   const handleEdit = (partner) => {
     setEditingId(partner.id)
     setFormData({
-      name: partner.name,
-      category: partner.category,
-      tag2: partner.tag2 || ''
+      name: partner.name || '',
+      category: partner.category || '游戏研发商',
+      tag2: partner.tag2 || '',
+      taxRegistrationNo: partner.taxRegistrationNo || '',
+      address: partner.address || '',
+      phone: partner.phone || '',
+      bankName: partner.bankName || '',
+      bankAccount: partner.bankAccount || '',
+      invoiceContent: partner.invoiceContent || ''
     })
     setShowAddForm(true)
   }
@@ -51,11 +79,32 @@ function PartnerManager({ partners, onPartnersChange }) {
     
     const updated = partners.map(p => 
       p.id === editingId 
-        ? { ...p, name: formData.name.trim(), category: formData.category, tag2: formData.tag2.trim() }
+        ? { 
+            ...p, 
+            name: formData.name.trim(), 
+            category: formData.category, 
+            tag2: formData.tag2.trim(),
+            taxRegistrationNo: formData.taxRegistrationNo.trim(),
+            address: formData.address.trim(),
+            phone: formData.phone.trim(),
+            bankName: formData.bankName.trim(),
+            bankAccount: formData.bankAccount.trim(),
+            invoiceContent: formData.invoiceContent.trim()
+          }
         : p
     )
     onPartnersChange(updated)
-    setFormData({ name: '', category: '游戏研发商', tag2: '' })
+    setFormData({ 
+      name: '', 
+      category: '游戏研发商', 
+      tag2: '',
+      taxRegistrationNo: '',
+      address: '',
+      phone: '',
+      bankName: '',
+      bankAccount: '',
+      invoiceContent: ''
+    })
     setEditingId(null)
     setShowAddForm(false)
   }
@@ -67,7 +116,17 @@ function PartnerManager({ partners, onPartnersChange }) {
   }
 
   const handleCancel = () => {
-    setFormData({ name: '', category: '游戏研发商', tag2: '' })
+    setFormData({ 
+      name: '', 
+      category: '游戏研发商', 
+      tag2: '',
+      taxRegistrationNo: '',
+      address: '',
+      phone: '',
+      bankName: '',
+      bankAccount: '',
+      invoiceContent: ''
+    })
     setEditingId(null)
     setShowAddForm(false)
   }
@@ -90,7 +149,17 @@ function PartnerManager({ partners, onPartnersChange }) {
           onClick={() => {
             setShowAddForm(true)
             setEditingId(null)
-            setFormData({ name: '', category: '游戏研发商', tag2: '' })
+            setFormData({ 
+              name: '', 
+              category: '游戏研发商', 
+              tag2: '',
+              taxRegistrationNo: '',
+              address: '',
+              phone: '',
+              bankName: '',
+              bankAccount: '',
+              invoiceContent: ''
+            })
           }}
         >
           ➕ 添加客户
@@ -100,37 +169,115 @@ function PartnerManager({ partners, onPartnersChange }) {
       {showAddForm && (
         <div className="partner-form-card">
           <h4>{editingId ? '编辑客户' : '添加客户'}</h4>
-          <div className="partner-form">
-            <div className="form-group">
-              <label>客户名称 *</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="请输入客户名称"
-                autoFocus
-              />
+          <div className="partner-form-sections">
+            <div className="form-section-basic">
+              <h5>基本信息</h5>
+              <div className="partner-form-grid">
+                <div className="form-group">
+                  <label>客户名称 *</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="请输入客户名称"
+                    autoFocus
+                  />
+                </div>
+                <div className="form-group">
+                  <label>客户类型 *</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  >
+                    {categories.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>备注标签</label>
+                  <input
+                    type="text"
+                    value={formData.tag2}
+                    onChange={(e) => setFormData({ ...formData, tag2: e.target.value })}
+                    placeholder="可填写其他标签（选填）"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>税务登记号</label>
+                  <input
+                    type="text"
+                    value={formData.taxRegistrationNo}
+                    onChange={(e) => setFormData({ ...formData, taxRegistrationNo: e.target.value })}
+                    placeholder="如：91440101MA59GGLP3X"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="form-group">
-              <label>客户类型 *</label>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              >
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
+            
+            <div className="form-section-contact">
+              <h5>联系信息</h5>
+              <div className="partner-form-grid">
+                <div className="form-group full-width">
+                  <label>地址</label>
+                  <input
+                    type="text"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    placeholder="公司地址"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>电话</label>
+                  <input
+                    type="text"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="联系电话"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="form-group">
-              <label>备注标签</label>
-              <input
-                type="text"
-                value={formData.tag2}
-                onChange={(e) => setFormData({ ...formData, tag2: e.target.value })}
-                placeholder="可填写其他标签（选填）"
-              />
+
+            <div className="form-section-bank">
+              <h5>银行信息</h5>
+              <div className="partner-form-grid">
+                <div className="form-group full-width">
+                  <label>开户行名称</label>
+                  <input
+                    type="text"
+                    value={formData.bankName}
+                    onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
+                    placeholder="如：中国工商银行广州天河工业园支行"
+                  />
+                </div>
+                <div className="form-group full-width">
+                  <label>银行账号</label>
+                  <input
+                    type="text"
+                    value={formData.bankAccount}
+                    onChange={(e) => setFormData({ ...formData, bankAccount: e.target.value })}
+                    placeholder="银行账号"
+                  />
+                </div>
+              </div>
             </div>
+
+            <div className="form-section-invoice">
+              <h5>开票信息</h5>
+              <div className="partner-form-grid">
+                <div className="form-group full-width">
+                  <label>开票内容</label>
+                  <input
+                    type="text"
+                    value={formData.invoiceContent}
+                    onChange={(e) => setFormData({ ...formData, invoiceContent: e.target.value })}
+                    placeholder="如：信息服务费"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="form-actions">
               <button className="save-btn" onClick={editingId ? handleUpdate : handleAdd}>
                 {editingId ? '更新' : '添加'}
@@ -177,6 +324,44 @@ function PartnerManager({ partners, onPartnersChange }) {
                     <span className="tag tag-category">{partner.category}</span>
                     {partner.tag2 && (
                       <span className="tag tag-secondary">{partner.tag2}</span>
+                    )}
+                  </div>
+                  <div className="partner-details">
+                    {partner.taxRegistrationNo && (
+                      <div className="detail-item">
+                        <span className="detail-label">税务登记号：</span>
+                        <span className="detail-value">{partner.taxRegistrationNo}</span>
+                      </div>
+                    )}
+                    {partner.address && (
+                      <div className="detail-item">
+                        <span className="detail-label">地址：</span>
+                        <span className="detail-value">{partner.address}</span>
+                      </div>
+                    )}
+                    {partner.phone && (
+                      <div className="detail-item">
+                        <span className="detail-label">电话：</span>
+                        <span className="detail-value">{partner.phone}</span>
+                      </div>
+                    )}
+                    {partner.bankName && (
+                      <div className="detail-item">
+                        <span className="detail-label">开户行：</span>
+                        <span className="detail-value">{partner.bankName}</span>
+                      </div>
+                    )}
+                    {partner.bankAccount && (
+                      <div className="detail-item">
+                        <span className="detail-label">银行账号：</span>
+                        <span className="detail-value">{partner.bankAccount}</span>
+                      </div>
+                    )}
+                    {partner.invoiceContent && (
+                      <div className="detail-item">
+                        <span className="detail-label">开票内容：</span>
+                        <span className="detail-value">{partner.invoiceContent}</span>
+                      </div>
                     )}
                   </div>
                 </div>
