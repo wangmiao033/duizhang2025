@@ -1,0 +1,402 @@
+.data-table {
+  width: 100%;
+}
+
+.table-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.table-tabs button {
+  padding: 12px 24px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #6c757d;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s;
+}
+
+.table-tabs button:hover {
+  color: #667eea;
+}
+
+.table-tabs button.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+  font-weight: 600;
+}
+
+.table-content {
+  padding-top: 20px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-height: 560px;
+  position: relative;
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.8) 100%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  width: 100%;
+}
+
+.table-wrapper::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  overflow: hidden;
+  min-width: 1100px;
+  box-shadow: 0 2px 12px rgba(79, 70, 229, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+thead {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+}
+
+thead th {
+  padding: 14px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.3px;
+  text-transform: none;
+}
+
+tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s;
+}
+
+tbody tr:hover {
+  background: linear-gradient(90deg, rgba(79, 70, 229, 0.05) 0%, rgba(124, 58, 237, 0.05) 50%, rgba(236, 72, 153, 0.05) 100%);
+  transform: scale(1.01);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
+  transition: all 0.2s ease;
+}
+
+tbody td {
+  padding: 12px;
+  color: #334155;
+  font-size: 0.875rem;
+  vertical-align: middle;
+  white-space: nowrap;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.empty-message {
+  text-align: center;
+  color: #6c757d;
+  padding: 40px !important;
+  font-style: italic;
+}
+
+.amount-cell {
+  font-weight: 600;
+  color: #28a745;
+  text-align: right;
+}
+
+.type-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.type-badge.income {
+  background: #d4edda;
+  color: #155724;
+}
+
+.type-badge.expense {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.status-badge.unused {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.used {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.expired {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+.data-table h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.3rem;
+}
+
+.batch-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.selected-count {
+  color: #667eea;
+  font-weight: 500;
+}
+
+.batch-delete-btn {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.batch-delete-btn:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+}
+
+.selected-row {
+  background-color: #e7f3ff !important;
+}
+
+.selected-row:hover {
+  background-color: #d0e7ff !important;
+}
+
+.edit-input {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.edit-btn, .save-btn, .cancel-btn, .delete-btn {
+  padding: 8px 16px;
+  margin: 0 4px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.edit-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+.edit-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.save-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.save-btn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.cancel-btn {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+}
+
+.delete-btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.delete-btn:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.settlement-amount {
+  color: #007bff !important;
+  font-weight: 700;
+}
+
+.total-row {
+  background: #f8f9fa;
+  font-weight: 600;
+}
+
+.total-row td {
+  border-top: 2px solid #667eea;
+}
+
+.dragging {
+  opacity: 0.5;
+}
+
+.drag-over {
+  border-top: 3px solid #667eea !important;
+}
+
+.drag-handle {
+  cursor: grab;
+  padding: 0 8px;
+  color: #6c757d;
+  font-size: 1rem;
+  user-select: none;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle:hover {
+  color: #667eea;
+}
+
+tr[draggable="true"] {
+  cursor: move;
+}
+
+tr[draggable="true"]:hover {
+  background-color: #f0f4ff !important;
+}
+
+[data-theme="dark"] tr[draggable="true"]:hover {
+  background-color: #2a2a3e !important;
+}
+
+/* 表内输入框统一宽度和样式，避免挤压 */
+.data-table td input[type="text"],
+.data-table td input[type="number"],
+.data-table td select {
+  min-width: 88px;
+  padding: 8px 10px;
+  height: 36px;
+  border: 1px solid #dfe3ee;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+/* 不影响复选框等小控件 */
+.data-table td input[type="checkbox"] {
+  min-width: auto;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+}
+
+/* 列对齐：数值右对齐，操作居中 */
+thead th:nth-child(1),
+tbody td:nth-child(1) {
+  text-align: center;
+}
+
+thead th:nth-child(5),
+thead th:nth-child(6),
+thead th:nth-child(7),
+thead th:nth-child(8),
+thead th:nth-child(9),
+thead th:nth-child(10),
+thead th:nth-child(11),
+thead th:nth-child(12) {
+  text-align: right;
+}
+
+tbody td:nth-child(5),
+tbody td:nth-child(6),
+tbody td:nth-child(7),
+tbody td:nth-child(8),
+tbody td:nth-child(9),
+tbody td:nth-child(10),
+tbody td:nth-child(11),
+tbody td:nth-child(12) {
+  text-align: right;
+}
+
+thead th:last-child,
+tbody td:last-child {
+  text-align: center;
+}
+
+.table-actions-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
