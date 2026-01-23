@@ -13,7 +13,10 @@ function PartnerManager({ partners, onPartnersChange }) {
     phone: '',
     bankName: '',
     bankAccount: '',
-    invoiceContent: ''
+    invoiceContent: '',
+    recipient: '',
+    recipientPhone: '',
+    mailingAddress: ''
   })
   const [filterCategory, setFilterCategory] = useState('全部')
   const [searchTerm, setSearchTerm] = useState('')
@@ -37,6 +40,9 @@ function PartnerManager({ partners, onPartnersChange }) {
       bankName: formData.bankName.trim(),
       bankAccount: formData.bankAccount.trim(),
       invoiceContent: formData.invoiceContent.trim(),
+      recipient: formData.recipient.trim(),
+      recipientPhone: formData.recipientPhone.trim(),
+      mailingAddress: formData.mailingAddress.trim(),
       createdAt: new Date().toISOString()
     }
     
@@ -50,7 +56,10 @@ function PartnerManager({ partners, onPartnersChange }) {
       phone: '',
       bankName: '',
       bankAccount: '',
-      invoiceContent: ''
+      invoiceContent: '',
+      recipient: '',
+      recipientPhone: '',
+      mailingAddress: ''
     })
     setShowAddForm(false)
   }
@@ -66,7 +75,10 @@ function PartnerManager({ partners, onPartnersChange }) {
       phone: partner.phone || '',
       bankName: partner.bankName || '',
       bankAccount: partner.bankAccount || '',
-      invoiceContent: partner.invoiceContent || ''
+      invoiceContent: partner.invoiceContent || '',
+      recipient: partner.recipient || '',
+      recipientPhone: partner.recipientPhone || '',
+      mailingAddress: partner.mailingAddress || ''
     })
     setShowAddForm(true)
   }
@@ -89,7 +101,10 @@ function PartnerManager({ partners, onPartnersChange }) {
             phone: formData.phone.trim(),
             bankName: formData.bankName.trim(),
             bankAccount: formData.bankAccount.trim(),
-            invoiceContent: formData.invoiceContent.trim()
+            invoiceContent: formData.invoiceContent.trim(),
+            recipient: formData.recipient.trim(),
+            recipientPhone: formData.recipientPhone.trim(),
+            mailingAddress: formData.mailingAddress.trim()
           }
         : p
     )
@@ -125,7 +140,10 @@ function PartnerManager({ partners, onPartnersChange }) {
       phone: '',
       bankName: '',
       bankAccount: '',
-      invoiceContent: ''
+      invoiceContent: '',
+      recipient: '',
+      recipientPhone: '',
+      mailingAddress: ''
     })
     setEditingId(null)
     setShowAddForm(false)
@@ -158,7 +176,10 @@ function PartnerManager({ partners, onPartnersChange }) {
               phone: '',
               bankName: '',
               bankAccount: '',
-              invoiceContent: ''
+              invoiceContent: '',
+              recipient: '',
+              recipientPhone: '',
+              mailingAddress: ''
             })
           }}
         >
@@ -278,6 +299,39 @@ function PartnerManager({ partners, onPartnersChange }) {
               </div>
             </div>
 
+            <div className="form-section-recipient">
+              <h5>收件信息（用于快递账单）</h5>
+              <div className="partner-form-grid">
+                <div className="form-group">
+                  <label>收件人</label>
+                  <input
+                    type="text"
+                    value={formData.recipient}
+                    onChange={(e) => setFormData({ ...formData, recipient: e.target.value })}
+                    placeholder="收件人姓名"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>收件人电话</label>
+                  <input
+                    type="text"
+                    value={formData.recipientPhone}
+                    onChange={(e) => setFormData({ ...formData, recipientPhone: e.target.value })}
+                    placeholder="手机号码"
+                  />
+                </div>
+                <div className="form-group full-width">
+                  <label>邮寄地址</label>
+                  <input
+                    type="text"
+                    value={formData.mailingAddress}
+                    onChange={(e) => setFormData({ ...formData, mailingAddress: e.target.value })}
+                    placeholder="详细邮寄地址"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="form-actions">
               <button className="save-btn" onClick={editingId ? handleUpdate : handleAdd}>
                 {editingId ? '更新' : '添加'}
@@ -361,6 +415,29 @@ function PartnerManager({ partners, onPartnersChange }) {
                       <div className="detail-item">
                         <span className="detail-label">开票内容：</span>
                         <span className="detail-value">{partner.invoiceContent}</span>
+                      </div>
+                    )}
+                    {(partner.recipient || partner.recipientPhone || partner.mailingAddress) && (
+                      <div className="detail-section">
+                        <div className="detail-section-title">📦 收件信息</div>
+                        {partner.recipient && (
+                          <div className="detail-item">
+                            <span className="detail-label">收件人：</span>
+                            <span className="detail-value">{partner.recipient}</span>
+                          </div>
+                        )}
+                        {partner.recipientPhone && (
+                          <div className="detail-item">
+                            <span className="detail-label">收件电话：</span>
+                            <span className="detail-value">{partner.recipientPhone}</span>
+                          </div>
+                        )}
+                        {partner.mailingAddress && (
+                          <div className="detail-item">
+                            <span className="detail-label">邮寄地址：</span>
+                            <span className="detail-value">{partner.mailingAddress}</span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

@@ -207,7 +207,16 @@ function DeliveryCenter({ deliveries, onDeliveriesChange, partners = [] }) {
                   <label>关联客户</label>
                   <select
                     value={formData.partnerId}
-                    onChange={(e) => setFormData({ ...formData, partnerId: e.target.value })}
+                    onChange={(e) => {
+                      const selectedPartner = partners.find(p => p.id === parseInt(e.target.value))
+                      setFormData({ 
+                        ...formData, 
+                        partnerId: e.target.value,
+                        recipient: selectedPartner ? (selectedPartner.recipient || '') : formData.recipient,
+                        recipientPhone: selectedPartner ? (selectedPartner.recipientPhone || '') : formData.recipientPhone,
+                        address: selectedPartner ? (selectedPartner.mailingAddress || '') : formData.address
+                      })
+                    }}
                   >
                     <option value="">不关联</option>
                     {partners.map(p => (

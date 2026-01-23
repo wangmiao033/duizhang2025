@@ -65,7 +65,8 @@
 .form-section-basic,
 .form-section-contact,
 .form-section-bank,
-.form-section-invoice {
+.form-section-invoice,
+.form-section-recipient {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
@@ -75,7 +76,8 @@
 .form-section-basic h5,
 .form-section-contact h5,
 .form-section-bank h5,
-.form-section-invoice h5 {
+.form-section-invoice h5,
+.form-section-recipient h5 {
   margin: 0 0 12px 0;
   color: #0f172a;
   font-size: 1rem;
@@ -264,6 +266,19 @@
   color: #334155;
   flex: 1;
   word-break: break-word;
+}
+
+.detail-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 2px solid #e2e8f0;
+}
+
+.detail-section-title {
+  font-weight: 600;
+  color: #4f46e5;
+  font-size: 0.875rem;
+  margin-bottom: 8px;
 }
 
 .partner-tags {
