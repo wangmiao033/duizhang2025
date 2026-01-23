@@ -41,7 +41,7 @@ function TagManager({ records, onTagChange }) {
     
     const tagExists = tags.find(t => t.name.toLowerCase() === newTag.name.toLowerCase())
     if (tagExists) {
-      alert('标签已存在')
+      window.alert('标签已存在')
       return
     }
 
@@ -58,17 +58,18 @@ function TagManager({ records, onTagChange }) {
   }
 
   const deleteTag = (tagId) => {
-    if (confirm('删除标签不会删除记录，只会移除标签关联。确定删除吗？')) {
-      setTags(tags.filter(t => t.id !== tagId))
-      // 从所有记录中移除该标签
-      if (onTagChange) {
+    if (window.confirm('删除标签不会删除记录，只会移除标签关联。确定删除吗？')) {
+      const tagToDelete = tags.find(t => t.id === tagId)
+      if (tagToDelete && onTagChange) {
+        // 从所有记录中移除该标签
         records.forEach(record => {
-          if (record.tags && record.tags.includes(tags.find(t => t.id === tagId)?.name)) {
-            const updatedTags = record.tags.filter(t => t !== tags.find(t => t.id === tagId)?.name)
-            onTagChange(record.id, { tags: updatedTags })
+          if (record.tags && Array.isArray(record.tags) && record.tags.includes(tagToDelete.name)) {
+            const updatedTags = record.tags.filter(t => t !== tagToDelete.name)
+            onTagChange(record.id, { ...record, tags: updatedTags })
           }
         })
       }
+      setTags(tags.filter(t => t.id !== tagId))
     }
   }
 
@@ -137,7 +138,7 @@ function TagManager({ records, onTagChange }) {
                 <button
                   className="edit-tag-btn"
                   onClick={() => {
-                    const newName = prompt('输入新名称:', tag.name)
+                    const newName = window.prompt('输入新名称:', tag.name)
                     if (newName && newName.trim()) {
                       editTag(tag.id, { name: newName.trim() })
                     }

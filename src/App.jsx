@@ -83,9 +83,6 @@ function App() {
   const [lastSaveTime, setLastSaveTime] = useState(null)
   const [partners, setPartners] = useState([])
   const [deliveries, setDeliveries] = useState([])
-  const [showTagManager, setShowTagManager] = useState(false)
-  const [showReminderManager, setShowReminderManager] = useState(false)
-  const [showTemplateGenerator, setShowTemplateGenerator] = useState(false)
 
   // 从localStorage加载数据
   useEffect(() => {
@@ -821,7 +818,7 @@ function App() {
             }
             fileInput.click()
           }}
-          onGenerateTemplate={() => setShowTemplateGenerator(true)}
+          onGenerateTemplate={() => setActiveTab('settings')}
           onShowTags={() => setActiveTab('tags')}
           onShowReminders={() => setActiveTab('reminders')}
           recordCount={records.length}
@@ -1065,9 +1062,11 @@ function App() {
         <h3 className="section-title">标签管理</h3>
         <TagManager 
           records={records}
-          onTagChange={(recordId, updates) => {
-            updateRecord(recordId, updates)
-            showToast('标签已更新', 'success')
+          onTagChange={(recordId, updatedRecord) => {
+            if (updatedRecord && recordId) {
+              updateRecord(recordId, updatedRecord)
+              showToast('标签已更新', 'success')
+            }
           }}
         />
       </div>
@@ -1132,9 +1131,11 @@ function App() {
           <div className="tags-page">
             <TagManager 
               records={records}
-              onTagChange={(recordId, updates) => {
-                updateRecord(recordId, updates)
-                showToast('标签已更新', 'success')
+              onTagChange={(recordId, updatedRecord) => {
+                if (updatedRecord && recordId) {
+                  updateRecord(recordId, updatedRecord)
+                  showToast('标签已更新', 'success')
+                }
               }}
             />
           </div>

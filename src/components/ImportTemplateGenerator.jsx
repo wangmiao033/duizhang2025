@@ -58,17 +58,8 @@ function ImportTemplateGenerator({ onTemplateGenerated }) {
     const colWidths = template.columns.map(() => ({ wch: 15 }))
     worksheet['!cols'] = colWidths
     
-    // 设置第一行样式（标题行）
-    const range = XLSX.utils.decode_range(worksheet['!ref'])
-    for (let col = range.s.c; col <= range.e.c; col++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col })
-      if (!worksheet[cellAddress]) continue
-      worksheet[cellAddress].s = {
-        font: { bold: true, color: { rgb: 'FFFFFF' } },
-        fill: { fgColor: { rgb: '4F46E5' } },
-        alignment: { horizontal: 'center', vertical: 'center' }
-      }
-    }
+    // 注意：XLSX 库的免费版本不支持样式设置
+    // 如果需要样式，需要使用 xlsx-style 或其他支持样式的库
     
     XLSX.utils.book_append_sheet(workbook, worksheet, template.label)
     

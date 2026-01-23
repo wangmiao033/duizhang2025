@@ -54,7 +54,7 @@ function ReminderManager({ onReminderAdd }) {
 
   const addReminder = () => {
     if (!newReminder.title.trim() || !newReminder.dueDate) {
-      alert('请填写标题和到期日期')
+      window.alert('请填写标题和到期日期')
       return
     }
 
@@ -87,7 +87,7 @@ function ReminderManager({ onReminderAdd }) {
   }
 
   const deleteReminder = (id) => {
-    if (confirm('确定删除这个提醒吗？')) {
+    if (window.confirm('确定删除这个提醒吗？')) {
       setReminders(reminders.filter(r => r.id !== id))
     }
   }
