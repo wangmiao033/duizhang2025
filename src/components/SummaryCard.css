@@ -1,28 +1,31 @@
 .summary-card {
   background: white;
-  border-radius: 15px;
-  padding: 25px;
+  border-radius: 12px;
+  padding: 18px;
   display: flex;
   align-items: center;
-  gap: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s, box-shadow 0.3s;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  border: 1px solid #f1f5f9;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
 }
 
 .summary-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12);
+  border-color: #e0e7ff;
 }
 
 .card-icon {
-  font-size: 3rem;
-  width: 80px;
-  height: 80px;
+  font-size: 2.2rem;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 15px;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  border-radius: 12px;
+  flex-shrink: 0;
 }
 
 .card-content {
@@ -30,16 +33,18 @@
 }
 
 .card-content h3 {
-  color: #6c757d;
-  font-size: 0.95rem;
-  margin-bottom: 8px;
+  color: #64748b;
+  font-size: 0.875rem;
+  margin-bottom: 6px;
   font-weight: 500;
+  letter-spacing: 0.3px;
 }
 
 .card-value {
-  color: #333;
-  font-size: 1.8rem;
+  color: #0f172a;
+  font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
+  letter-spacing: -0.5px;
 }
 

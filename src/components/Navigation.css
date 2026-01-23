@@ -1,9 +1,9 @@
 .nav-bar {
   background: linear-gradient(90deg, #4f46e5, #7c3aed);
-  padding: 12px 16px;
-  border-radius: 14px;
-  margin-bottom: 20px;
-  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.25);
+  padding: 10px 14px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
 }
 
 .nav-items {
@@ -15,14 +15,15 @@
 .nav-item {
   position: relative;
   border: none;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.1);
   color: #fff;
-  padding: 12px 14px;
-  border-radius: 12px;
-  font-size: 0.95rem;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
+  font-weight: 500;
 }
 
 .nav-item:hover {

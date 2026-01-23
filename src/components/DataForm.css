@@ -59,13 +59,13 @@
 }
 
 .form-section {
-  background: #f7f8fc;
-  border: 1px solid #e8ecf5;
-  border-radius: 12px;
-  padding: 14px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .section-title {
@@ -96,18 +96,21 @@
 .form-group select,
 .form-group textarea {
   padding: 10px 12px;
-  border: 2px solid #e9ecef;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s, box-shadow 0.2s;
+  font-size: 0.9375rem;
+  background: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
+
 
 .form-group textarea {
   resize: vertical;
@@ -125,16 +128,17 @@
 }
 
 .submit-btn {
-  padding: 12px 22px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  margin-top: 10px;
+  margin-top: 8px;
+  letter-spacing: 0.3px;
 }
 
 .submit-btn:hover {
@@ -154,12 +158,12 @@
 .preview-card {
   background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
   color: white;
-  padding: 16px 20px;
-  border-radius: 12px;
+  padding: 14px 18px;
+  border-radius: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
 
 .preview-label {

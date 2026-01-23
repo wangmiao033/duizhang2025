@@ -39,11 +39,11 @@
   overflow-y: hidden;
   max-height: 560px;
   position: relative;
-  background: #f7f8fc;
-  border: 1px solid #e8ecf5;
-  border-radius: 14px;
-  padding: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
   width: 100%;
 }
 
@@ -70,10 +70,10 @@ table {
   width: 100%;
   border-collapse: collapse;
   background: white;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
   min-width: 1100px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
 thead {
@@ -88,10 +88,12 @@ thead {
 }
 
 thead th {
-  padding: 12px;
+  padding: 14px 12px;
   text-align: left;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.3px;
+  text-transform: none;
 }
 
 tbody tr {
@@ -105,10 +107,11 @@ tbody tr:hover {
 
 tbody td {
   padding: 12px;
-  color: #495057;
-  font-size: 0.9rem;
+  color: #334155;
+  font-size: 0.875rem;
   vertical-align: middle;
   white-space: nowrap;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .empty-message {
