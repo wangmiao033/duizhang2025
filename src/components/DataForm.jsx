@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import './DataForm.css'
 
-function DataForm({ onAddRecord, settlementMonth, onError, quickFillData }) {
+function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partners = [], onAddPartner }) {
   const [formData, setFormData] = useState({
     settlementMonth: settlementMonth || '',
     partner: '',
@@ -159,12 +159,42 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData }) {
             </div>
             <div className="form-group">
               <label>合作方</label>
-              <input
-                type="text"
-                value={formData.partner}
-                onChange={(e) => handleChange('partner', e.target.value)}
-                placeholder="如：熊动"
-              />
+              <div className="partner-select-wrapper">
+                <input
+                  type="text"
+                  list="partner-list"
+                  value={formData.partner}
+                  onChange={(e) => handleChange('partner', e.target.value)}
+                  placeholder="选择或输入合作方名称"
+                  className="partner-input"
+                />
+                <datalist id="partner-list">
+                  {partners.map(p => (
+                    <option key={p.id} value={p.name}>
+                      {p.name} {p.category ? `(${p.category})` : ''}
+                    </option>
+                  ))}
+                </datalist>
+                {formData.partner && !partners.find(p => p.name === formData.partner) && (
+                  <button
+                    type="button"
+                    className="add-partner-quick-btn"
+                    onClick={() => {
+                      if (onAddPartner && formData.partner.trim()) {
+                        onAddPartner(formData.partner.trim())
+                      }
+                    }}
+                    title="添加到客户库"
+                  >
+                    ➕
+                  </button>
+                )}
+              </div>
+              {formData.partner && !partners.find(p => p.name === formData.partner) && (
+                <div className="partner-hint">
+                  <span>💡 此客户不在客户库中，点击 ➕ 可快速添加</span>
+                </div>
+              )}
             </div>
             <div className="form-group">
               <label>游戏 *</label>

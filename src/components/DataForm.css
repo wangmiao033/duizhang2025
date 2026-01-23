@@ -121,6 +121,41 @@
   text-align: right;
 }
 
+.partner-select-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.partner-input {
+  flex: 1;
+}
+
+.add-partner-quick-btn {
+  padding: 10px 14px;
+  background: #e0e7ff;
+  color: #4f46e5;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.add-partner-quick-btn:hover {
+  background: #c7d2fe;
+}
+
+.partner-hint {
+  margin-top: 4px;
+  font-size: 0.8125rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;

@@ -35,6 +35,7 @@ import NotificationCenter, { showNotification } from './components/NotificationC
 import { useTheme } from './contexts/ThemeContext.jsx'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js'
 import { addHistoryItem } from './utils/history.js'
+import PartnerManager from './components/PartnerManager.jsx'
 import Navigation from './components/Navigation.jsx'
 
 function App() {
@@ -76,6 +77,7 @@ function App() {
   const [invoiceRecords, setInvoiceRecords] = useState([])
   const [invoiceFilter, setInvoiceFilter] = useState({ keyword: '', status: '全部' })
   const [lastSaveTime, setLastSaveTime] = useState(null)
+  const [partners, setPartners] = useState([])
 
   // 从localStorage加载数据
   useEffect(() => {
@@ -83,11 +85,13 @@ function App() {
     const savedPartyA = localStorage.getItem('partyA')
     const savedPartyB = localStorage.getItem('partyB')
     const savedMonth = localStorage.getItem('settlementMonth')
+    const savedPartners = localStorage.getItem('partners')
     
     if (savedRecords) setRecords(JSON.parse(savedRecords))
     if (savedPartyA) setPartyA(JSON.parse(savedPartyA))
     if (savedPartyB) setPartyB(JSON.parse(savedPartyB))
     if (savedMonth) setSettlementMonth(savedMonth)
+    if (savedPartners) setPartners(JSON.parse(savedPartners))
   }, [])
 
   // 保存数据到localStorage
@@ -107,6 +111,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem('settlementMonth', settlementMonth)
   }, [settlementMonth])
+
+  useEffect(() => {
+    localStorage.setItem('partners', JSON.stringify(partners))
+  }, [partners])
 
   // 发票记录持久化
   useEffect(() => {
@@ -399,6 +407,7 @@ function App() {
       partyA,
       partyB,
       settlementMonth,
+      partners,
       exportDate: new Date().toISOString()
     }
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -730,6 +739,19 @@ function App() {
       </div>
     </div>
   )
+
+  const renderPartners = () => (
+    <div className="partner-page">
+      <PartnerManager 
+        partners={partners}
+        onPartnersChange={(newPartners) => {
+          setPartners(newPartners)
+          showToast('客户库已更新', 'success')
+        }}
+      />
+    </div>
+  )
+
   const renderDashboard = () => (
     <>
       {lastSaveTime && (
@@ -817,11 +839,13 @@ function App() {
             partyA={partyA}
             partyB={partyB}
             settlementMonth={settlementMonth}
+            partners={partners}
             onImport={(data) => {
               if (data.records) setRecords(data.records)
               if (data.partyA) setPartyA(data.partyA)
               if (data.partyB) setPartyB(data.partyB)
               if (data.settlementMonth) setSettlementMonth(data.settlementMonth)
+              if (data.partners) setPartners(data.partners)
               showToast('数据导入成功！', 'success')
             }}
           />
@@ -845,6 +869,18 @@ function App() {
             settlementMonth={settlementMonth}
             onError={(msg) => showToast(msg, 'error')}
             quickFillData={quickFillData}
+            partners={partners}
+            onAddPartner={(name) => {
+              const newPartner = {
+                id: Date.now(),
+                name: name,
+                category: '游戏研发商',
+                tag2: '',
+                createdAt: new Date().toISOString()
+              }
+              setPartners([...partners, newPartner])
+              showToast(`客户"${name}"已添加到客户库`, 'success')
+            }}
           />
         </div>
 
@@ -926,11 +962,13 @@ function App() {
             partyA={partyA}
             partyB={partyB}
             settlementMonth={settlementMonth}
+            partners={partners}
             onImport={(data) => {
               if (data.records) setRecords(data.records)
               if (data.partyA) setPartyA(data.partyA)
               if (data.partyB) setPartyB(data.partyB)
               if (data.settlementMonth) setSettlementMonth(data.settlementMonth)
+              if (data.partners) setPartners(data.partners)
               showToast('数据导入成功！', 'success')
             }}
           />
@@ -970,6 +1008,7 @@ function App() {
           items={[
             { key: 'dashboard', label: '总览' },
             { key: 'records', label: '录入与列表' },
+            { key: 'partners', label: '客户管理' },
             { key: 'analysis', label: '分析报表' },
             { key: 'settings', label: '配置与资料' },
             { key: 'invoice', label: '发票' }
@@ -978,6 +1017,7 @@ function App() {
 
         {activeTab === 'dashboard' && renderDashboard()}
         {activeTab === 'records' && renderRecords()}
+        {activeTab === 'partners' && renderPartners()}
         {activeTab === 'analysis' && renderAnalysis()}
         {activeTab === 'settings' && renderSettings()}
         {activeTab === 'invoice' && renderInvoice()}
