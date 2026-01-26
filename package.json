@@ -1,6 +1,7 @@
 {
   "name": "duizhang2025",
-  "version": "1.0.0",
+  "version": "1.2.0",
+  "description": "现代化的对账管理系统，支持研发对账、渠道对账、发票管理、客户管理等全流程业务管理",
   "type": "module",
   "scripts": {
     "dev": "vite",
