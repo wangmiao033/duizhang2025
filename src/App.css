@@ -293,6 +293,10 @@
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 
+.project-profit-section {
+  margin-bottom: 30px;
+}
+
 .statistics-section {
   margin-bottom: 30px;
 }

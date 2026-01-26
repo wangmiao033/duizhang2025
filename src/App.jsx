@@ -42,6 +42,7 @@ import TagManager from './components/TagManager.jsx'
 import ReminderManager from './components/ReminderManager.jsx'
 import ImportTemplateGenerator from './components/ImportTemplateGenerator.jsx'
 import Calendar from './components/Calendar.jsx'
+import ProjectProfit from './components/ProjectProfit.jsx'
 
 function App() {
   const { theme } = useTheme()
@@ -991,6 +992,9 @@ function App() {
 
   const renderAnalysis = () => (
     <>
+      <div className="project-profit-section">
+        <ProjectProfit records={records} />
+      </div>
       <div className="statistics-section">
         <StatisticsChart records={records} />
       </div>
