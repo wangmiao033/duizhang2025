@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import './DataForm.css'
+import { findGamePreset } from './GamePresets.jsx'
+import GamePresets from './GamePresets.jsx'
 
 function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partners = [], onAddPartner }) {
   const [formData, setFormData] = useState({
@@ -9,12 +11,13 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
     gameFlow: '',
     testingFee: '0',
     voucher: '0',
-    channelFeeRate: '5',
+    channelFeeRate: '0',
     taxPoint: '0',
-    revenueShareRatio: '30',
-    discount: '0.005',
+    revenueShareRatio: '15',
+    discount: '1',
     refund: '0'
   })
+  const [lastMatchedPreset, setLastMatchedPreset] = useState(null)
 
   React.useEffect(() => {
     setFormData(prev => ({ ...prev, settlementMonth: settlementMonth || '' }))
@@ -27,10 +30,46 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
         channelFeeRate: quickFillData.channelFeeRate || prev.channelFeeRate,
         taxPoint: quickFillData.taxPoint || prev.taxPoint,
         revenueShareRatio: quickFillData.revenueShareRatio || prev.revenueShareRatio,
-        discount: quickFillData.discount || prev.discount
+        discount: quickFillData.discount || prev.discount,
+        testingFee: quickFillData.testingFee || prev.testingFee
       }))
     }
   }, [quickFillData])
+
+  // 根据游戏名称自动匹配预设
+  useEffect(() => {
+    if (formData.game && formData.game.trim()) {
+      const matchedPreset = findGamePreset(formData.game)
+      if (matchedPreset && matchedPreset.id !== lastMatchedPreset?.id) {
+        // 自动应用匹配的预设参数
+        setFormData(prev => ({
+          ...prev,
+          channelFeeRate: matchedPreset.channelFeeRate || prev.channelFeeRate,
+          taxPoint: matchedPreset.taxPoint || prev.taxPoint,
+          revenueShareRatio: matchedPreset.revenueShareRatio || prev.revenueShareRatio,
+          discount: matchedPreset.discount || prev.discount,
+          testingFee: matchedPreset.testingFee || prev.testingFee
+        }))
+        setLastMatchedPreset(matchedPreset)
+      } else if (!matchedPreset && lastMatchedPreset) {
+        setLastMatchedPreset(null)
+      }
+    } else if (lastMatchedPreset) {
+      setLastMatchedPreset(null)
+    }
+  }, [formData.game])
+
+  // 应用游戏预设
+  const handleApplyGamePreset = (presetData) => {
+    setFormData(prev => ({
+      ...prev,
+      channelFeeRate: presetData.channelFeeRate || prev.channelFeeRate,
+      taxPoint: presetData.taxPoint || prev.taxPoint,
+      revenueShareRatio: presetData.revenueShareRatio || prev.revenueShareRatio,
+      discount: presetData.discount || prev.discount,
+      testingFee: presetData.testingFee || prev.testingFee
+    }))
+  }
 
   const validateForm = () => {
     if (!formData.game || !formData.gameFlow) {
@@ -99,12 +138,13 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
       gameFlow: '',
       testingFee: '0',
       voucher: '0',
-      channelFeeRate: '5',
+      channelFeeRate: '0',
       taxPoint: '0',
-      revenueShareRatio: '30',
-      discount: '0.005',
+      revenueShareRatio: '15',
+      discount: '1',
       refund: '0'
     })
+    setLastMatchedPreset(null)
   }
 
   const handleChange = (field, value) => {
@@ -140,9 +180,21 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
     <div className="data-form">
       <form onSubmit={handleSubmit} className="form">
         <div className="form-header-row">
-          <h3>添加对账记录</h3>
-          <span className="form-hint">必填项已标 *</span>
+          <div>
+            <h3>添加对账记录</h3>
+            <span className="form-hint">必填项已标 *</span>
+          </div>
+          <GamePresets 
+            onApplyPreset={handleApplyGamePreset}
+            currentGameName={formData.game}
+          />
         </div>
+        {lastMatchedPreset && (
+          <div className="preset-matched-hint">
+            ✅ 已自动匹配预设：<strong>{lastMatchedPreset.gameName}</strong>
+            {lastMatchedPreset.description && ` (${lastMatchedPreset.description})`}
+          </div>
+        )}
 
         <div className="form-section">
           <div className="section-title">基础信息</div>
