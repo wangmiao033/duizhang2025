@@ -106,9 +106,9 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
       return '分成比例必须在0-100%之间！'
     }
 
-    const discount = parseFloat(formData.discount || 0)
+    const discount = parseFloat(formData.discount || 1)
     if (isNaN(discount) || discount < 0 || discount > 1) {
-      return '折扣必须在0-1之间！'
+      return '折扣必须在0-1之间！支持0折(0)、0.05折(0.0005)、0.1折(0.001)、1折(1)等'
     }
 
     const refund = parseFloat(formData.refund || 0)
@@ -159,7 +159,7 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
     const channelFeeRate = parseFloat(formData.channelFeeRate || 0) / 100
     const taxPoint = parseFloat(formData.taxPoint || 0) / 100
     const revenueShareRatio = parseFloat(formData.revenueShareRatio || 0) / 100
-    const discount = parseFloat(formData.discount || 1)
+    const discount = parseFloat(formData.discount || 1) // 默认1，表示无折扣
     const refund = parseFloat(formData.refund || 0)
 
     if (gameFlow <= 0) return 0
@@ -171,7 +171,8 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
     const afterDiscount = afterShare * discount
     const finalAmount = afterDiscount - refund
 
-    return Math.max(0, finalAmount)
+    // 使用四舍五入确保精度，与Excel保持一致
+    return Math.max(0, Math.round(finalAmount * 100) / 100)
   }
 
   const previewAmount = calculatePreviewAmount()
@@ -336,11 +337,16 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
               <input
                 type="number"
                 step="0.001"
+                min="0"
+                max="1"
                 value={formData.discount}
                 onChange={(e) => handleChange('discount', e.target.value)}
-                placeholder="0.005"
+                placeholder="1（无折扣）"
                 className="number-input"
               />
+              <small className="field-hint">
+                支持：0折(0)、0.05折(0.0005)、0.1折(0.001)、1折(1)等
+              </small>
             </div>
             <div className="form-group">
               <label>退款(元)</label>
@@ -359,7 +365,7 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
         <div className="form-preview">
           <div className="preview-card">
             <span className="preview-label">预计结算金额：</span>
-            <span className="preview-amount">¥{previewAmount.toFixed(2)}</span>
+            <span className="preview-amount">¥{Math.round(previewAmount * 100) / 100}</span>
           </div>
         </div>
 

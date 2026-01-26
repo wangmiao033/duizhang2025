@@ -162,7 +162,7 @@ function App() {
     const channelFeeRate = parseFloat(record.channelFeeRate || 0) / 100
     const taxPoint = parseFloat(record.taxPoint || 0) / 100
     const revenueShareRatio = parseFloat(record.revenueShareRatio || 0) / 100
-    const discount = parseFloat(record.discount || 0)
+    const discount = parseFloat(record.discount || 1) // 默认1，表示无折扣
     const refund = parseFloat(record.refund || 0)
 
     // 结算金额 = (游戏流水 - 测试费 - 代金券) * (1 - 通道费率) * (1 - 税点) * 分成比例 * 折扣 - 退款
@@ -173,15 +173,18 @@ function App() {
     const afterDiscount = afterShare * discount
     const finalAmount = afterDiscount - refund
 
-    return Math.max(0, finalAmount)
+    // 使用四舍五入确保精度，避免浮点数误差
+    return Math.max(0, Math.round(finalAmount * 100) / 100)
   }
 
   const addRecord = (record) => {
     const settlementAmount = calculateSettlementAmount(record)
+    // 确保四舍五入到两位小数
+    const roundedAmount = Math.round(settlementAmount * 100) / 100
     const newRecords = [...records, { 
       ...record, 
       id: Date.now(),
-      settlementAmount: settlementAmount.toFixed(2)
+      settlementAmount: roundedAmount.toFixed(2)
     }]
     setRecords(newRecords)
     addHistoryItem('添加记录', { records: newRecords, partyA, partyB, settlementMonth })
@@ -190,9 +193,11 @@ function App() {
 
   const updateRecord = (id, updatedRecord) => {
     const settlementAmount = calculateSettlementAmount(updatedRecord)
+    // 确保四舍五入到两位小数
+    const roundedAmount = Math.round(settlementAmount * 100) / 100
     setRecords(records.map(r => 
       r.id === id 
-        ? { ...updatedRecord, id, settlementAmount: settlementAmount.toFixed(2) }
+        ? { ...updatedRecord, id, settlementAmount: roundedAmount.toFixed(2) }
         : r
     ))
   }
@@ -248,9 +253,10 @@ function App() {
     setRecords(records.map(r => {
       if (ids.includes(r.id)) {
         const updated = { ...r, ...updates }
-        // 重新计算结算金额
+        // 重新计算结算金额，使用四舍五入确保精度
         const settlementAmount = calculateSettlementAmount(updated)
-        return { ...updated, settlementAmount: settlementAmount.toFixed(2) }
+        const roundedAmount = Math.round(settlementAmount * 100) / 100
+        return { ...updated, settlementAmount: roundedAmount.toFixed(2) }
       }
       return r
     }))
@@ -260,7 +266,9 @@ function App() {
 
   const handleCopyRecord = (newRecord) => {
     const settlementAmount = calculateSettlementAmount(newRecord)
-    setRecords([...records, { ...newRecord, settlementAmount: settlementAmount.toFixed(2) }])
+    // 使用四舍五入确保精度
+    const roundedAmount = Math.round(settlementAmount * 100) / 100
+    setRecords([...records, { ...newRecord, settlementAmount: roundedAmount.toFixed(2) }])
     showToast('记录已复制', 'success')
   }
 

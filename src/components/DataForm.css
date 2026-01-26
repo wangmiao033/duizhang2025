@@ -136,6 +136,15 @@
   font-size: 0.9rem;
 }
 
+.form-group .field-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: #6c757d;
+  font-style: italic;
+  line-height: 1.4;
+}
+
 .form-group input,
 .form-group select,
 .form-group textarea {

@@ -33,7 +33,9 @@ function DataTable({
 
   const saveEdit = () => {
     const settlementAmount = calculateSettlementAmount(editForm)
-    onUpdateRecord(editingId, { ...editForm, settlementAmount: settlementAmount.toFixed(2) })
+    // 使用四舍五入确保精度，与Excel保持一致
+    const roundedAmount = Math.round(settlementAmount * 100) / 100
+    onUpdateRecord(editingId, { ...editForm, settlementAmount: roundedAmount.toFixed(2) })
     setEditingId(null)
     setEditForm({})
     if (onUpdateSuccess) {
@@ -49,7 +51,9 @@ function DataTable({
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault()
         const settlementAmount = calculateSettlementAmount(editForm)
-        onUpdateRecord(editingId, { ...editForm, settlementAmount: settlementAmount.toFixed(2) })
+        // 使用四舍五入确保精度，与Excel保持一致
+        const roundedAmount = Math.round(settlementAmount * 100) / 100
+        onUpdateRecord(editingId, { ...editForm, settlementAmount: roundedAmount.toFixed(2) })
         setEditingId(null)
         setEditForm({})
         if (onUpdateSuccess) {
@@ -271,7 +275,7 @@ function DataTable({
                         />
                       </td>
                       <td className="amount-cell">
-                        ¥{parseFloat(calculateSettlementAmount(editForm) || 0).toFixed(2)}
+                        ¥{(Math.round(calculateSettlementAmount(editForm) * 100) / 100).toFixed(2)}
                       </td>
                       <td>
                         <button className="save-btn" onClick={saveEdit}>保存</button>
