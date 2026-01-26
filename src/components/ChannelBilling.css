@@ -531,3 +531,243 @@
 [data-theme="dark"] .channel-table tfoot td {
   color: #e2e8f0;
 }
+
+/* 视图切换 */
+.view-toggle {
+  display: flex;
+  background: rgba(226, 232, 240, 0.5);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.toggle-btn {
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-btn.active {
+  background: white;
+  color: #4f46e5;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 游戏列表 */
+.games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.empty-games {
+  text-align: center;
+  padding: 60px 20px;
+  color: #94a3b8;
+  font-size: 1rem;
+}
+
+/* 游戏卡片 */
+.game-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.game-card:hover {
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+}
+
+.game-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.03) 0%, rgba(124, 58, 237, 0.03) 100%);
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.game-card-header:hover {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.06) 0%, rgba(124, 58, 237, 0.06) 100%);
+}
+
+.game-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.expand-icon {
+  color: #4f46e5;
+  font-size: 0.8rem;
+  width: 16px;
+}
+
+.game-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.channel-badge {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: white;
+  border-radius: 20px;
+}
+
+.game-stats {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.game-stats .stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.game-stats .label {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.game-stats .value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.game-stats .value.settlement {
+  color: #10b981;
+}
+
+.game-stats .value.positive {
+  color: #10b981;
+}
+
+.game-stats .value.negative {
+  color: #ef4444;
+}
+
+/* 游戏渠道详情 */
+.game-channels {
+  padding: 16px;
+  background: rgba(248, 250, 252, 0.8);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+.channel-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.channel-detail-table th {
+  padding: 10px 12px;
+  text-align: left;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.channel-detail-table th:first-child {
+  border-radius: 8px 0 0 0;
+}
+
+.channel-detail-table th:last-child {
+  border-radius: 0 8px 0 0;
+}
+
+.channel-detail-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  color: #475569;
+}
+
+.channel-detail-table tbody tr:hover {
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.channel-detail-table tfoot {
+  background: rgba(226, 232, 240, 0.3);
+}
+
+.channel-detail-table tfoot td {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* 暗色模式 - 游戏卡片 */
+[data-theme="dark"] .game-card {
+  background: rgba(30, 30, 46, 0.95);
+  border-color: rgba(77, 77, 108, 0.5);
+}
+
+[data-theme="dark"] .game-card-header {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+}
+
+[data-theme="dark"] .game-title {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .game-stats .value {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .game-channels {
+  background: rgba(45, 45, 68, 0.8);
+}
+
+[data-theme="dark"] .channel-detail-table td {
+  border-color: rgba(77, 77, 108, 0.5);
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .channel-detail-table tfoot {
+  background: rgba(30, 30, 46, 0.8);
+}
+
+[data-theme="dark"] .channel-detail-table tfoot td {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .toggle-btn {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .toggle-btn.active {
+  background: rgba(79, 70, 229, 0.3);
+  color: #a5b4fc;
+}
+
+[data-theme="dark"] .view-toggle {
+  background: rgba(77, 77, 108, 0.5);
+}

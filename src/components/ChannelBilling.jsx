@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import './ChannelBilling.css'
 
 function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteRecord }) {
   const [formData, setFormData] = useState({
-    gameName: '',           // 游戏名称
+    gameName: '',           // 游戏名称（项目）
     channelName: '',        // 渠道
     flow: '',               // 流水
     discountType: '否',     // 是否0.1折/0.05折
@@ -23,6 +23,9 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
     settlementAmount: '',   // 结算金额
     remark: ''
   })
+  
+  const [expandedGames, setExpandedGames] = useState({})
+  const [viewMode, setViewMode] = useState('byGame') // 'byGame' or 'list'
   const [editingId, setEditingId] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -194,6 +197,49 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
       totalVoucherCost: acc.totalVoucherCost + (parseFloat(record.voucherCost) || 0)
     }), { totalFlow: 0, totalSettlement: 0, totalServerCost: 0, totalVoucherCost: 0 })
   }, [filteredRecords])
+
+  // 按游戏分组
+  const groupedByGame = useMemo(() => {
+    const grouped = {}
+    
+    filteredRecords.forEach(record => {
+      const gameName = record.gameName || '未命名游戏'
+      if (!grouped[gameName]) {
+        grouped[gameName] = {
+          gameName,
+          records: [],
+          totalFlow: 0,
+          totalSettlement: 0,
+          totalServerCost: 0,
+          totalVoucherCost: 0,
+          channels: new Set()
+        }
+      }
+      grouped[gameName].records.push(record)
+      grouped[gameName].totalFlow += parseFloat(record.flow) || 0
+      grouped[gameName].totalSettlement += parseFloat(record.settlementAmount) || 0
+      grouped[gameName].totalServerCost += parseFloat(record.serverCost) || 0
+      grouped[gameName].totalVoucherCost += parseFloat(record.voucherCost) || 0
+      grouped[gameName].channels.add(record.channelName)
+    })
+
+    // 计算每个游戏的业务毛利率
+    return Object.values(grouped).map(game => ({
+      ...game,
+      channelCount: game.channels.size,
+      channels: Array.from(game.channels),
+      profitRate: game.totalFlow > 0 
+        ? ((game.totalSettlement / game.totalFlow) * 100).toFixed(1)
+        : 0
+    })).sort((a, b) => b.totalSettlement - a.totalSettlement)
+  }, [filteredRecords])
+
+  const toggleGameExpand = (gameName) => {
+    setExpandedGames(prev => ({
+      ...prev,
+      [gameName]: !prev[gameName]
+    }))
+  }
 
   const formatMoney = (amount) => {
     if (amount >= 100000000) {
@@ -501,8 +547,22 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
 
         <div className="channel-list-section">
           <div className="list-header">
-            <h3>渠道记录列表</h3>
+            <h3>📦 游戏项目列表</h3>
             <div className="list-tools">
+              <div className="view-toggle">
+                <button 
+                  className={`toggle-btn ${viewMode === 'byGame' ? 'active' : ''}`}
+                  onClick={() => setViewMode('byGame')}
+                >
+                  按游戏
+                </button>
+                <button 
+                  className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+                  onClick={() => setViewMode('list')}
+                >
+                  列表
+                </button>
+              </div>
               <input
                 type="text"
                 className="search-input"
@@ -510,74 +570,166 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <span className="record-count">共 {filteredRecords.length} 条</span>
+              <span className="record-count">{groupedByGame.length} 个游戏 / {filteredRecords.length} 条</span>
             </div>
           </div>
 
-          <div className="channel-table-wrapper">
-            <table className="channel-table">
-              <thead>
-                <tr>
-                  <th>游戏</th>
-                  <th>渠道</th>
-                  <th>流水</th>
-                  <th>折扣</th>
-                  <th>渠道费</th>
-                  <th>研发分成</th>
-                  <th>业务毛利</th>
-                  <th>服务器</th>
-                  <th>代金券</th>
-                  <th>结算金额</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRecords.length === 0 ? (
-                  <tr>
-                    <td colSpan="11" className="empty-row">
-                      暂无渠道记录
-                    </td>
-                  </tr>
-                ) : (
-                  filteredRecords.map(record => (
-                    <tr key={record.id}>
-                      <td className="game-name" title={record.gameName}>{record.gameName}</td>
-                      <td className="channel-name">{record.channelName}</td>
-                      <td>{formatMoney(parseFloat(record.flow) || 0)}</td>
-                      <td>{record.discountType}</td>
-                      <td>{record.channelFeeRate}%</td>
-                      <td>{record.devShareRate}%</td>
-                      <td>
-                        <span className={`profit-badge ${record.profitRate >= 0 ? 'positive' : 'negative'}`}>
-                          {record.profitRate?.toFixed(1) || 0}%
+          {viewMode === 'byGame' ? (
+            <div className="games-list">
+              {groupedByGame.length === 0 ? (
+                <div className="empty-games">暂无游戏记录</div>
+              ) : (
+                groupedByGame.map(game => (
+                  <div key={game.gameName} className="game-card">
+                    <div 
+                      className="game-card-header"
+                      onClick={() => toggleGameExpand(game.gameName)}
+                    >
+                      <div className="game-info">
+                        <span className="expand-icon">
+                          {expandedGames[game.gameName] ? '▼' : '▶'}
                         </span>
-                      </td>
-                      <td>{record.serverCost || '-'}</td>
-                      <td>{record.voucherCost || '-'}</td>
-                      <td className="settlement">{formatMoney(parseFloat(record.settlementAmount) || 0)}</td>
-                      <td className="actions">
-                        <button className="edit-btn" onClick={() => handleEdit(record)}>编辑</button>
-                        <button className="delete-btn" onClick={() => handleDelete(record.id)}>删除</button>
+                        <h4 className="game-title">{game.gameName}</h4>
+                        <span className="channel-badge">{game.channelCount} 个渠道</span>
+                      </div>
+                      <div className="game-stats">
+                        <span className="stat">
+                          <span className="label">流水</span>
+                          <span className="value">{formatMoney(game.totalFlow)}</span>
+                        </span>
+                        <span className="stat">
+                          <span className="label">结算</span>
+                          <span className="value settlement">{formatMoney(game.totalSettlement)}</span>
+                        </span>
+                        <span className="stat">
+                          <span className="label">毛利率</span>
+                          <span className={`value ${parseFloat(game.profitRate) >= 0 ? 'positive' : 'negative'}`}>
+                            {game.profitRate}%
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {expandedGames[game.gameName] && (
+                      <div className="game-channels">
+                        <table className="channel-detail-table">
+                          <thead>
+                            <tr>
+                              <th>渠道</th>
+                              <th>流水</th>
+                              <th>折扣</th>
+                              <th>渠道费</th>
+                              <th>研发分成</th>
+                              <th>服务器</th>
+                              <th>代金券</th>
+                              <th>结算金额</th>
+                              <th>操作</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {game.records.map(record => (
+                              <tr key={record.id}>
+                                <td className="channel-name">{record.channelName}</td>
+                                <td>{formatMoney(parseFloat(record.flow) || 0)}</td>
+                                <td>{record.discountType}</td>
+                                <td>{record.channelFeeRate}%</td>
+                                <td>{record.devShareRate}%</td>
+                                <td>{record.serverCost || '-'}</td>
+                                <td>{record.voucherCost || '-'}</td>
+                                <td className="settlement">{formatMoney(parseFloat(record.settlementAmount) || 0)}</td>
+                                <td className="actions">
+                                  <button className="edit-btn" onClick={() => handleEdit(record)}>编辑</button>
+                                  <button className="delete-btn" onClick={() => handleDelete(record.id)}>删除</button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          <tfoot>
+                            <tr>
+                              <td className="total-label">合计</td>
+                              <td>{formatMoney(game.totalFlow)}</td>
+                              <td colSpan="4"></td>
+                              <td>{formatMoney(game.totalVoucherCost)}</td>
+                              <td className="settlement">{formatMoney(game.totalSettlement)}</td>
+                              <td></td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          ) : (
+            <div className="channel-table-wrapper">
+              <table className="channel-table">
+                <thead>
+                  <tr>
+                    <th>游戏</th>
+                    <th>渠道</th>
+                    <th>流水</th>
+                    <th>折扣</th>
+                    <th>渠道费</th>
+                    <th>研发分成</th>
+                    <th>业务毛利</th>
+                    <th>服务器</th>
+                    <th>代金券</th>
+                    <th>结算金额</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRecords.length === 0 ? (
+                    <tr>
+                      <td colSpan="11" className="empty-row">
+                        暂无渠道记录
                       </td>
                     </tr>
+                  ) : (
+                    filteredRecords.map(record => (
+                      <tr key={record.id}>
+                        <td className="game-name" title={record.gameName}>{record.gameName}</td>
+                        <td className="channel-name">{record.channelName}</td>
+                        <td>{formatMoney(parseFloat(record.flow) || 0)}</td>
+                        <td>{record.discountType}</td>
+                        <td>{record.channelFeeRate}%</td>
+                        <td>{record.devShareRate}%</td>
+                        <td>
+                          <span className={`profit-badge ${record.profitRate >= 0 ? 'positive' : 'negative'}`}>
+                            {record.profitRate?.toFixed(1) || 0}%
+                          </span>
+                        </td>
+                        <td>{record.serverCost || '-'}</td>
+                        <td>{record.voucherCost || '-'}</td>
+                        <td className="settlement">{formatMoney(parseFloat(record.settlementAmount) || 0)}</td>
+                        <td className="actions">
+                          <button className="edit-btn" onClick={() => handleEdit(record)}>编辑</button>
+                          <button className="delete-btn" onClick={() => handleDelete(record.id)}>删除</button>
+                        </td>
+                      </tr>
                   ))
                 )}
               </tbody>
-              {filteredRecords.length > 0 && (
-                <tfoot>
-                  <tr>
-                    <td colSpan="2" className="total-label">合计</td>
-                    <td>{formatMoney(statistics.totalFlow)}</td>
-                    <td colSpan="4"></td>
-                    <td>{formatMoney(statistics.totalServerCost)}</td>
-                    <td>{formatMoney(statistics.totalVoucherCost)}</td>
-                    <td className="settlement">{formatMoney(statistics.totalSettlement)}</td>
-                    <td></td>
-                  </tr>
-                </tfoot>
-              )}
-            </table>
-          </div>
+                    ))
+                  )}
+                </tbody>
+                {filteredRecords.length > 0 && (
+                  <tfoot>
+                    <tr>
+                      <td colSpan="2" className="total-label">合计</td>
+                      <td>{formatMoney(statistics.totalFlow)}</td>
+                      <td colSpan="4"></td>
+                      <td>{formatMoney(statistics.totalServerCost)}</td>
+                      <td>{formatMoney(statistics.totalVoucherCost)}</td>
+                      <td className="settlement">{formatMoney(statistics.totalSettlement)}</td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>
