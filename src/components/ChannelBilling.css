@@ -327,14 +327,19 @@
 /* 表格 */
 .channel-table-wrapper {
   overflow-x: auto;
+  overflow-y: visible;
   border-radius: 12px;
   border: 1px solid rgba(226, 232, 240, 0.6);
+  width: 100%;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 .channel-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 700px;
+  min-width: 1100px;
+  table-layout: auto;
 }
 
 .channel-table thead {
@@ -348,6 +353,32 @@
   font-weight: 600;
   font-size: 0.9rem;
   white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.channel-table th:nth-child(1),
+.channel-table th:nth-child(2) {
+  min-width: 120px;
+}
+
+.channel-table th:nth-child(3),
+.channel-table th:nth-child(4),
+.channel-table th:nth-child(5),
+.channel-table th:nth-child(6),
+.channel-table th:nth-child(7),
+.channel-table th:nth-child(8),
+.channel-table th:nth-child(9),
+.channel-table th:nth-child(10) {
+  min-width: 100px;
+}
+
+.channel-table th:nth-child(11) {
+  min-width: 120px;
+  position: sticky;
+  right: 0;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
 .channel-table tbody tr {
@@ -363,6 +394,26 @@
   padding: 12px;
   font-size: 0.9rem;
   color: #475569;
+  white-space: nowrap;
+}
+
+.channel-table td:nth-child(1),
+.channel-table td:nth-child(2) {
+  min-width: 120px;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.channel-table td:nth-child(11) {
+  position: sticky;
+  right: 0;
+  background: white;
+  z-index: 5;
+}
+
+.channel-table tbody tr:hover td:nth-child(11) {
+  background: rgba(16, 185, 129, 0.05);
 }
 
 .channel-table .channel-name {
@@ -457,18 +508,21 @@
 /* 操作按钮 */
 .actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
+  flex-wrap: nowrap;
 }
 
 .edit-btn,
 .delete-btn {
-  padding: 6px 12px;
+  padding: 4px 10px;
   border: none;
   border-radius: 6px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
+  min-width: 50px;
 }
 
 .edit-btn {
@@ -497,6 +551,13 @@
 .channel-table tfoot td {
   font-weight: 600;
   color: #0f172a;
+}
+
+.channel-table tfoot td:nth-child(11) {
+  position: sticky;
+  right: 0;
+  background: rgba(248, 250, 252, 0.8);
+  z-index: 5;
 }
 
 .total-label {
@@ -559,6 +620,30 @@
 
 [data-theme="dark"] .channel-table tfoot td {
   color: #e2e8f0;
+}
+
+[data-theme="dark"] .channel-table td:nth-child(11) {
+  background: rgba(30, 30, 46, 0.95);
+}
+
+[data-theme="dark"] .channel-table tbody tr:hover td:nth-child(11) {
+  background: rgba(16, 185, 129, 0.05);
+}
+
+[data-theme="dark"] .channel-table tfoot td:nth-child(11) {
+  background: rgba(45, 45, 68, 0.8);
+}
+
+[data-theme="dark"] .channel-detail-table td:nth-child(10) {
+  background: rgba(30, 30, 46, 0.95);
+}
+
+[data-theme="dark"] .channel-detail-table tbody tr:hover td:nth-child(10) {
+  background: rgba(16, 185, 129, 0.05);
+}
+
+[data-theme="dark"] .channel-detail-table tfoot td:nth-child(10) {
+  background: rgba(30, 30, 46, 0.8);
 }
 
 /* 视图切换 */
@@ -698,6 +783,9 @@
   padding: 16px;
   background: rgba(248, 250, 252, 0.8);
   animation: slideDown 0.3s ease;
+  overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
 }
 
 @keyframes slideDown {
@@ -715,6 +803,8 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
+  min-width: 1000px;
+  table-layout: auto;
 }
 
 .channel-detail-table th {
@@ -724,6 +814,34 @@
   color: white;
   font-weight: 600;
   white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.channel-detail-table th:nth-child(1) {
+  min-width: 150px;
+}
+
+.channel-detail-table th:nth-child(2),
+.channel-detail-table th:nth-child(4),
+.channel-detail-table th:nth-child(5),
+.channel-detail-table th:nth-child(6),
+.channel-detail-table th:nth-child(7),
+.channel-detail-table th:nth-child(8),
+.channel-detail-table th:nth-child(9) {
+  min-width: 100px;
+}
+
+.channel-detail-table th:nth-child(3) {
+  min-width: 80px;
+}
+
+.channel-detail-table th:nth-child(10) {
+  min-width: 120px;
+  position: sticky;
+  right: 0;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
 .channel-detail-table th:first-child {
@@ -738,6 +856,25 @@
   padding: 10px 12px;
   border-bottom: 1px solid rgba(226, 232, 240, 0.6);
   color: #475569;
+  white-space: nowrap;
+}
+
+.channel-detail-table td:nth-child(1) {
+  min-width: 150px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.channel-detail-table td:nth-child(10) {
+  position: sticky;
+  right: 0;
+  background: white;
+  z-index: 5;
+}
+
+.channel-detail-table tbody tr:hover td:nth-child(10) {
+  background: rgba(16, 185, 129, 0.05);
 }
 
 .channel-detail-table tbody tr:hover {
@@ -751,6 +888,13 @@
 .channel-detail-table tfoot td {
   font-weight: 600;
   color: #0f172a;
+}
+
+.channel-detail-table tfoot td:nth-child(10) {
+  position: sticky;
+  right: 0;
+  background: rgba(226, 232, 240, 0.3);
+  z-index: 5;
 }
 
 /* 暗色模式 - 游戏卡片 */
