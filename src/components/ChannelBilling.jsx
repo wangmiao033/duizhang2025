@@ -198,46 +198,48 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
     }), { totalFlow: 0, totalSettlement: 0, totalServerCost: 0, totalVoucherCost: 0 })
   }, [filteredRecords])
 
-  // 按游戏分组
-  const groupedByGame = useMemo(() => {
+  // 按渠道分组（一个渠道下有多个游戏）
+  const groupedByChannel = useMemo(() => {
     const grouped = {}
     
     filteredRecords.forEach(record => {
-      const gameName = record.gameName || '未命名游戏'
-      if (!grouped[gameName]) {
-        grouped[gameName] = {
-          gameName,
+      const channelName = record.channelName || '未命名渠道'
+      if (!grouped[channelName]) {
+        grouped[channelName] = {
+          channelName,
           records: [],
           totalFlow: 0,
           totalSettlement: 0,
           totalServerCost: 0,
           totalVoucherCost: 0,
-          channels: new Set()
+          totalTestCost: 0,
+          games: new Set()
         }
       }
-      grouped[gameName].records.push(record)
-      grouped[gameName].totalFlow += parseFloat(record.flow) || 0
-      grouped[gameName].totalSettlement += parseFloat(record.settlementAmount) || 0
-      grouped[gameName].totalServerCost += parseFloat(record.serverCost) || 0
-      grouped[gameName].totalVoucherCost += parseFloat(record.voucherCost) || 0
-      grouped[gameName].channels.add(record.channelName)
+      grouped[channelName].records.push(record)
+      grouped[channelName].totalFlow += parseFloat(record.flow) || 0
+      grouped[channelName].totalSettlement += parseFloat(record.settlementAmount) || 0
+      grouped[channelName].totalServerCost += parseFloat(record.serverCost) || 0
+      grouped[channelName].totalVoucherCost += parseFloat(record.voucherCost) || 0
+      grouped[channelName].totalTestCost += parseFloat(record.testCost) || 0
+      grouped[channelName].games.add(record.gameName)
     })
 
-    // 计算每个游戏的业务毛利率
-    return Object.values(grouped).map(game => ({
-      ...game,
-      channelCount: game.channels.size,
-      channels: Array.from(game.channels),
-      profitRate: game.totalFlow > 0 
-        ? ((game.totalSettlement / game.totalFlow) * 100).toFixed(1)
+    // 计算每个渠道的统计
+    return Object.values(grouped).map(channel => ({
+      ...channel,
+      gameCount: channel.games.size,
+      games: Array.from(channel.games),
+      profitRate: channel.totalFlow > 0 
+        ? ((channel.totalSettlement / channel.totalFlow) * 100).toFixed(1)
         : 0
     })).sort((a, b) => b.totalSettlement - a.totalSettlement)
   }, [filteredRecords])
 
-  const toggleGameExpand = (gameName) => {
+  const toggleChannelExpand = (channelName) => {
     setExpandedGames(prev => ({
       ...prev,
-      [gameName]: !prev[gameName]
+      [channelName]: !prev[channelName]
     }))
   }
 
@@ -547,14 +549,14 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
 
         <div className="channel-list-section">
           <div className="list-header">
-            <h3>📦 游戏项目列表</h3>
+            <h3>📋 渠道对账列表</h3>
             <div className="list-tools">
               <div className="view-toggle">
                 <button 
                   className={`toggle-btn ${viewMode === 'byGame' ? 'active' : ''}`}
                   onClick={() => setViewMode('byGame')}
                 >
-                  按游戏
+                  按渠道
                 </button>
                 <button 
                   className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
@@ -570,72 +572,74 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <span className="record-count">{groupedByGame.length} 个游戏 / {filteredRecords.length} 条</span>
+              <span className="record-count">{groupedByChannel.length} 个渠道 / {filteredRecords.length} 条</span>
             </div>
           </div>
 
           {viewMode === 'byGame' ? (
             <div className="games-list">
-              {groupedByGame.length === 0 ? (
-                <div className="empty-games">暂无游戏记录</div>
+              {groupedByChannel.length === 0 ? (
+                <div className="empty-games">暂无渠道记录</div>
               ) : (
-                groupedByGame.map(game => (
-                  <div key={game.gameName} className="game-card">
+                groupedByChannel.map(channel => (
+                  <div key={channel.channelName} className="game-card channel-card">
                     <div 
                       className="game-card-header"
-                      onClick={() => toggleGameExpand(game.gameName)}
+                      onClick={() => toggleChannelExpand(channel.channelName)}
                     >
                       <div className="game-info">
                         <span className="expand-icon">
-                          {expandedGames[game.gameName] ? '▼' : '▶'}
+                          {expandedGames[channel.channelName] ? '▼' : '▶'}
                         </span>
-                        <h4 className="game-title">{game.gameName}</h4>
-                        <span className="channel-badge">{game.channelCount} 个渠道</span>
+                        <h4 className="game-title">{channel.channelName}</h4>
+                        <span className="channel-badge">{channel.gameCount} 个游戏</span>
                       </div>
                       <div className="game-stats">
                         <span className="stat">
                           <span className="label">流水</span>
-                          <span className="value">{formatMoney(game.totalFlow)}</span>
+                          <span className="value">{formatMoney(channel.totalFlow)}</span>
                         </span>
                         <span className="stat">
                           <span className="label">结算</span>
-                          <span className="value settlement">{formatMoney(game.totalSettlement)}</span>
+                          <span className="value settlement">{formatMoney(channel.totalSettlement)}</span>
                         </span>
                         <span className="stat">
-                          <span className="label">毛利率</span>
-                          <span className={`value ${parseFloat(game.profitRate) >= 0 ? 'positive' : 'negative'}`}>
-                            {game.profitRate}%
+                          <span className="label">分成率</span>
+                          <span className={`value ${parseFloat(channel.profitRate) >= 0 ? 'positive' : 'negative'}`}>
+                            {channel.profitRate}%
                           </span>
                         </span>
                       </div>
                     </div>
                     
-                    {expandedGames[game.gameName] && (
+                    {expandedGames[channel.channelName] && (
                       <div className="game-channels">
                         <table className="channel-detail-table">
                           <thead>
                             <tr>
-                              <th>渠道</th>
-                              <th>流水</th>
-                              <th>折扣</th>
-                              <th>渠道费</th>
-                              <th>研发分成</th>
-                              <th>服务器</th>
+                              <th>游戏名称</th>
+                              <th>后台流水</th>
                               <th>代金券</th>
+                              <th>测试费</th>
+                              <th>计费金额</th>
+                              <th>分成比例</th>
+                              <th>分成金额</th>
+                              <th>税率</th>
                               <th>结算金额</th>
                               <th>操作</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {game.records.map(record => (
+                            {channel.records.map(record => (
                               <tr key={record.id}>
-                                <td className="channel-name">{record.channelName}</td>
+                                <td className="game-name-cell">{record.gameName}</td>
                                 <td>{formatMoney(parseFloat(record.flow) || 0)}</td>
-                                <td>{record.discountType}</td>
-                                <td>{record.channelFeeRate}%</td>
-                                <td>{record.devShareRate}%</td>
-                                <td>{record.serverCost || '-'}</td>
-                                <td>{record.voucherCost || '-'}</td>
+                                <td>{record.voucherCost || 0}</td>
+                                <td>{record.testCost || 0}</td>
+                                <td>{formatMoney(parseFloat(record.flow) - (parseFloat(record.voucherCost) || 0))}</td>
+                                <td>{record.cfChannelRate}%</td>
+                                <td>{formatMoney((parseFloat(record.flow) - (parseFloat(record.voucherCost) || 0)) * (parseFloat(record.cfChannelRate) || 0) / 100)}</td>
+                                <td>{record.taxRate}%</td>
                                 <td className="settlement">{formatMoney(parseFloat(record.settlementAmount) || 0)}</td>
                                 <td className="actions">
                                   <button className="edit-btn" onClick={() => handleEdit(record)}>编辑</button>
@@ -647,10 +651,14 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
                           <tfoot>
                             <tr>
                               <td className="total-label">合计</td>
-                              <td>{formatMoney(game.totalFlow)}</td>
-                              <td colSpan="4"></td>
-                              <td>{formatMoney(game.totalVoucherCost)}</td>
-                              <td className="settlement">{formatMoney(game.totalSettlement)}</td>
+                              <td>{formatMoney(channel.totalFlow)}</td>
+                              <td>{formatMoney(channel.totalVoucherCost)}</td>
+                              <td>{formatMoney(channel.totalTestCost)}</td>
+                              <td>{formatMoney(channel.totalFlow - channel.totalVoucherCost)}</td>
+                              <td>-</td>
+                              <td>-</td>
+                              <td>-</td>
+                              <td className="settlement">{formatMoney(channel.totalSettlement)}</td>
                               <td></td>
                             </tr>
                           </tfoot>

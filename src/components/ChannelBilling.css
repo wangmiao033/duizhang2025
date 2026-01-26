@@ -425,6 +425,28 @@
   text-overflow: ellipsis;
 }
 
+.game-name-cell {
+  font-weight: 600;
+  color: #0f172a;
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 渠道卡片特殊样式 */
+.channel-card .game-card-header {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, rgba(5, 150, 105, 0.03) 100%);
+}
+
+.channel-card .game-card-header:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(5, 150, 105, 0.06) 100%);
+}
+
+.channel-card .channel-badge {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
 /* 操作按钮 */
 .actions {
   display: flex;
