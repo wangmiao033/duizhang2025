@@ -22,16 +22,19 @@
   align-items: center;
   max-width: 1400px;
   margin: 0 auto;
+  gap: 20px;
 }
 
-.header-calendar {
-  flex-shrink: 0;
+.header-brand {
+  flex: 1;
+  min-width: 0;
 }
 
 .header-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .report-section,
@@ -61,8 +64,8 @@
   letter-spacing: 0.2px;
 }
 
-@media (max-width: 1200px) {
-  .header-calendar {
+@media (max-width: 900px) {
+  .header-actions .calendar-compact {
     display: none;
   }
 }
@@ -70,8 +73,12 @@
 @media (max-width: 768px) {
   .header-content {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
+    align-items: stretch;
+    gap: 16px;
+  }
+  
+  .header-brand {
+    text-align: center;
   }
   
   .app-header h1,
@@ -80,8 +87,9 @@
     width: 100%;
   }
   
-  .header-calendar {
-    display: none;
+  .header-actions {
+    justify-content: center;
+    flex-wrap: wrap;
   }
 }
 

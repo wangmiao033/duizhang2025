@@ -1,17 +1,32 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import dayjs from 'dayjs'
 import './Calendar.css'
 
 // 免费节假日 API: https://timor.tech/api/holiday
 // 备用方案：使用本地节假日数据
 
-function Calendar({ onDateSelect, reminders = [] }) {
+function Calendar({ onDateSelect, reminders = [], compact = false }) {
   const [currentDate, setCurrentDate] = useState(dayjs())
   const [selectedDate, setSelectedDate] = useState(dayjs())
   const [holidays, setHolidays] = useState({})
   const [loading, setLoading] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const containerRef = useRef(null)
 
   const weekDays = ['日', '一', '二', '三', '四', '五', '六']
+
+  // 点击外部关闭
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false)
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isOpen])
 
   // 获取节假日数据
   useEffect(() => {
@@ -167,30 +182,131 @@ function Calendar({ onDateSelect, reminders = [] }) {
     return holidays[yearDate]
   }
 
+  const todayHoliday = getHolidayInfo(dayjs().format('YYYY-MM-DD'))
+
+  // 紧凑模式：显示日期按钮 + 下拉日历
+  if (compact) {
+    return (
+      <div className="calendar-compact" ref={containerRef}>
+        <button 
+          className="calendar-trigger"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <span className="trigger-icon">📅</span>
+          <span className="trigger-date">
+            <span className="trigger-day">{dayjs().date()}</span>
+            <span className="trigger-month">{dayjs().format('M月')}</span>
+          </span>
+          <span className="trigger-weekday">{dayjs().format('ddd')}</span>
+          {todayHoliday && (
+            <span className={`trigger-badge ${todayHoliday.isHoliday ? 'rest' : 'work'}`}>
+              {todayHoliday.isHoliday ? '休' : '班'}
+            </span>
+          )}
+        </button>
+        
+        {isOpen && (
+          <div className="calendar-dropdown">
+            <div className="calendar-widget">
+              <div className="calendar-header">
+                <button className="nav-btn" onClick={handlePrevMonth}>‹</button>
+                <div className="calendar-title">
+                  <span className="year">{currentDate.year()}</span>
+                  <span className="month">{currentDate.month() + 1}月</span>
+                </div>
+                <button className="nav-btn" onClick={handleNextMonth}>›</button>
+                <button className="today-btn" onClick={handleToday}>今天</button>
+              </div>
+
+              <div className="calendar-weekdays">
+                {weekDays.map((day, idx) => (
+                  <div key={day} className={`weekday ${idx === 0 || idx === 6 ? 'weekend' : ''}`}>
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              <div className="calendar-days">
+                {calendarDays.map((day, idx) => {
+                  const holidayInfo = getHolidayInfo(day.dateStr)
+                  const dayReminders = getRemindersForDate(day.dateStr)
+                  const isWeekend = day.date.day() === 0 || day.date.day() === 6
+                  const isSelected = day.date.isSame(selectedDate, 'day')
+
+                  return (
+                    <div
+                      key={idx}
+                      className={`calendar-day 
+                        ${!day.isCurrentMonth ? 'other-month' : ''} 
+                        ${day.isToday ? 'today' : ''} 
+                        ${isSelected ? 'selected' : ''}
+                        ${isWeekend ? 'weekend' : ''}
+                        ${holidayInfo?.isHoliday ? 'holiday' : ''}
+                        ${holidayInfo && !holidayInfo.isHoliday ? 'workday' : ''}
+                      `}
+                      onClick={() => handleDateClick(day)}
+                      title={holidayInfo?.name || ''}
+                    >
+                      <span className="day-number">{day.date.date()}</span>
+                      {holidayInfo && (
+                        <span className={`holiday-badge ${holidayInfo.isHoliday ? 'rest' : 'work'}`}>
+                          {holidayInfo.isHoliday ? '休' : '班'}
+                        </span>
+                      )}
+                      {dayReminders.length > 0 && (
+                        <span className="reminder-dot" title={`${dayReminders.length}个提醒`}>
+                          {dayReminders.length}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className="calendar-footer">
+                <div className="calendar-legend">
+                  <span className="legend-item"><span className="dot today-dot"></span>今天</span>
+                  <span className="legend-item"><span className="dot holiday-dot"></span>节假日</span>
+                  <span className="legend-item"><span className="dot workday-dot"></span>调休</span>
+                </div>
+                {loading && <span className="loading-text">加载中...</span>}
+              </div>
+
+              {selectedDate && (
+                <div className="selected-info">
+                  <div className="selected-date">
+                    {selectedDate.format('YYYY年MM月DD日')} {selectedDate.format('dddd')}
+                  </div>
+                  {getHolidayInfo(selectedDate.format('YYYY-MM-DD'))?.name && (
+                    <div className="holiday-name">
+                      🎉 {getHolidayInfo(selectedDate.format('YYYY-MM-DD')).name}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // 完整模式
   return (
     <div className="calendar-widget">
       <div className="calendar-header">
-        <button className="nav-btn" onClick={handlePrevMonth}>
-          ‹
-        </button>
+        <button className="nav-btn" onClick={handlePrevMonth}>‹</button>
         <div className="calendar-title">
           <span className="year">{currentDate.year()}</span>
           <span className="month">{currentDate.month() + 1}月</span>
         </div>
-        <button className="nav-btn" onClick={handleNextMonth}>
-          ›
-        </button>
-        <button className="today-btn" onClick={handleToday}>
-          今天
-        </button>
+        <button className="nav-btn" onClick={handleNextMonth}>›</button>
+        <button className="today-btn" onClick={handleToday}>今天</button>
       </div>
 
       <div className="calendar-weekdays">
         {weekDays.map((day, idx) => (
-          <div 
-            key={day} 
-            className={`weekday ${idx === 0 || idx === 6 ? 'weekend' : ''}`}
-          >
+          <div key={day} className={`weekday ${idx === 0 || idx === 6 ? 'weekend' : ''}`}>
             {day}
           </div>
         ))}
@@ -235,15 +351,9 @@ function Calendar({ onDateSelect, reminders = [] }) {
 
       <div className="calendar-footer">
         <div className="calendar-legend">
-          <span className="legend-item">
-            <span className="dot today-dot"></span>今天
-          </span>
-          <span className="legend-item">
-            <span className="dot holiday-dot"></span>节假日
-          </span>
-          <span className="legend-item">
-            <span className="dot workday-dot"></span>调休
-          </span>
+          <span className="legend-item"><span className="dot today-dot"></span>今天</span>
+          <span className="legend-item"><span className="dot holiday-dot"></span>节假日</span>
+          <span className="legend-item"><span className="dot workday-dot"></span>调休</span>
         </div>
         {loading && <span className="loading-text">加载中...</span>}
       </div>
@@ -251,8 +361,7 @@ function Calendar({ onDateSelect, reminders = [] }) {
       {selectedDate && (
         <div className="selected-info">
           <div className="selected-date">
-            {selectedDate.format('YYYY年MM月DD日')} 
-            {selectedDate.format('dddd').replace('day', '日')}
+            {selectedDate.format('YYYY年MM月DD日')} {selectedDate.format('dddd')}
           </div>
           {getHolidayInfo(selectedDate.format('YYYY-MM-DD'))?.name && (
             <div className="holiday-name">

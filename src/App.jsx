@@ -1086,30 +1086,28 @@ function App() {
     <ErrorBoundary>
       <div className="app">
         <header className="app-header">
-        <div className="header-content">
-          <div>
-            <h1>对账管理系统</h1>
-            <p>生成标准格式的对账单</p>
+          <div className="header-content">
+            <div className="header-brand">
+              <h1>对账管理系统</h1>
+              <p>生成标准格式的对账单</p>
+            </div>
+            <div className="header-actions">
+              <Calendar 
+                compact={true}
+                onDateSelect={(date, dateStr) => {
+                  console.log('选择日期:', dateStr)
+                }}
+              />
+              <NotificationCenter />
+              <ThemeToggle />
+              <UserGuide />
+              <Settings onSettingsChange={(settings) => {
+                console.log('设置已更新', settings)
+              }} />
+              <HelpTooltip />
+            </div>
           </div>
-          <div className="header-calendar">
-            <Calendar 
-              onDateSelect={(date, dateStr) => {
-                console.log('选择日期:', dateStr)
-              }}
-            />
-          </div>
-          <div className="header-actions">
-            <NotificationCenter />
-            <ThemeToggle />
-            <UserGuide />
-            <Settings onSettingsChange={(settings) => {
-              // 可以在这里应用设置
-              console.log('设置已更新', settings)
-            }} />
-            <HelpTooltip />
-          </div>
-        </div>
-      </header>
+        </header>
 
       <div className="app-container">
         <Navigation
