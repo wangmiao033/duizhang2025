@@ -2,6 +2,7 @@
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  overflow-x: hidden;
 }
 
 .app-header {
@@ -104,6 +105,9 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
 }
 
 .app-container:hover {
@@ -343,6 +347,9 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   align-items: start;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 @media (max-width: 900px) {
@@ -353,6 +360,8 @@
 
 .settings-card {
   height: fit-content;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .settings-tools {
