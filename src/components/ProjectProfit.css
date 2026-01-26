@@ -298,9 +298,16 @@
 }
 
 .record-item .settlement {
-  color: #10b981;
   font-weight: 600;
   text-align: right;
+}
+
+.record-item .settlement.positive {
+  color: #10b981;
+}
+
+.record-item .settlement.negative {
+  color: #ef4444;
 }
 
 .more-records {
@@ -308,6 +315,61 @@
   padding: 8px;
   color: #94a3b8;
   font-size: 0.85rem;
+}
+
+/* 记录数显示 */
+.record-counts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.channel-count {
+  font-size: 0.8rem;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.dev-count {
+  font-size: 0.8rem;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* 表格列样式 */
+.channel-income {
+  color: #10b981 !important;
+  font-weight: 600;
+}
+
+.dev-expense {
+  color: #f59e0b !important;
+  font-weight: 600;
+}
+
+/* 汇总项样式 */
+.summary-item.channel {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.summary-item.dev {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+/* 详情记录区分 */
+.channel-records {
+  border-left: 4px solid #10b981;
+}
+
+.dev-records {
+  border-left: 4px solid #f59e0b;
+  margin-top: 12px;
 }
 
 /* 响应式 */

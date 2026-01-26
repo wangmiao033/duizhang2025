@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import './ProjectProfit.css'
 
-function ProjectProfit({ records }) {
+function ProjectProfit({ records, channelRecords = [] }) {
   const [sortBy, setSortBy] = useState('profit')
   const [sortOrder, setSortOrder] = useState('desc')
   const [expandedProject, setExpandedProject] = useState(null)
@@ -10,25 +10,29 @@ function ProjectProfit({ records }) {
   const projectStats = useMemo(() => {
     const grouped = {}
 
+    // 处理研发对账（支出）
     records.forEach(record => {
       const gameName = record.gameName || '未命名项目'
       
       if (!grouped[gameName]) {
         grouped[gameName] = {
           name: gameName,
-          records: [],
+          devRecords: [],
+          channelRecords: [],
           totalGameFlow: 0,
-          totalSettlement: 0,
+          totalDevSettlement: 0, // 研发结算（我方支出给研发）
+          totalChannelSettlement: 0, // 渠道结算（渠道支付给我方）
           totalVoucher: 0,
           totalTestingFee: 0,
           totalRefund: 0,
-          partners: new Set()
+          partners: new Set(),
+          channels: new Set()
         }
       }
 
-      grouped[gameName].records.push(record)
+      grouped[gameName].devRecords.push(record)
       grouped[gameName].totalGameFlow += parseFloat(record.gameFlow || 0)
-      grouped[gameName].totalSettlement += parseFloat(record.settlementAmount || 0)
+      grouped[gameName].totalDevSettlement += parseFloat(record.settlementAmount || 0)
       grouped[gameName].totalVoucher += parseFloat(record.voucher || 0)
       grouped[gameName].totalTestingFee += parseFloat(record.testingFee || 0)
       grouped[gameName].totalRefund += parseFloat(record.refund || 0)
@@ -38,25 +42,59 @@ function ProjectProfit({ records }) {
       }
     })
 
+    // 处理渠道对账（收入）
+    channelRecords.forEach(record => {
+      const gameName = record.gameName || '未命名项目'
+      
+      if (!grouped[gameName]) {
+        grouped[gameName] = {
+          name: gameName,
+          devRecords: [],
+          channelRecords: [],
+          totalGameFlow: 0,
+          totalDevSettlement: 0,
+          totalChannelSettlement: 0,
+          totalVoucher: 0,
+          totalTestingFee: 0,
+          totalRefund: 0,
+          partners: new Set(),
+          channels: new Set()
+        }
+      }
+
+      grouped[gameName].channelRecords.push(record)
+      grouped[gameName].totalChannelSettlement += parseFloat(record.settlementAmount || 0)
+      
+      if (record.channelName) {
+        grouped[gameName].channels.add(record.channelName)
+      }
+    })
+
     // 计算利润和利润率
     return Object.values(grouped).map(project => ({
       ...project,
-      recordCount: project.records.length,
+      recordCount: project.devRecords.length + project.channelRecords.length,
+      devRecordCount: project.devRecords.length,
+      channelRecordCount: project.channelRecords.length,
       partnerCount: project.partners.size,
+      channelCount: project.channels.size,
       partners: Array.from(project.partners),
-      // 利润 = 结算金额（我方收入）
-      profit: project.totalSettlement,
-      // 成本 = 代金券 + 测试费 + 退款
-      cost: project.totalVoucher + project.totalTestingFee + project.totalRefund,
-      // 净利润 = 结算金额 - 成本
-      netProfit: project.totalSettlement - (project.totalVoucher + project.totalTestingFee + project.totalRefund),
-      // 利润率 = 净利润 / 游戏流水
-      profitRate: project.totalGameFlow > 0 
-        ? ((project.totalSettlement - project.totalVoucher - project.totalTestingFee - project.totalRefund) / project.totalGameFlow * 100)
+      channels: Array.from(project.channels),
+      // 渠道收入
+      channelIncome: project.totalChannelSettlement,
+      // 研发支出
+      devExpense: project.totalDevSettlement,
+      // 其他成本 = 代金券 + 测试费 + 退款
+      otherCost: project.totalVoucher + project.totalTestingFee + project.totalRefund,
+      // 净利润 = 渠道收入 - 研发支出 - 其他成本
+      netProfit: project.totalChannelSettlement - project.totalDevSettlement - (project.totalVoucher + project.totalTestingFee + project.totalRefund),
+      // 利润率 = 净利润 / 渠道收入
+      profitRate: project.totalChannelSettlement > 0 
+        ? ((project.totalChannelSettlement - project.totalDevSettlement - project.totalVoucher - project.totalTestingFee - project.totalRefund) / project.totalChannelSettlement * 100)
         : 0,
-      // 平均结算金额
-      avgSettlement: project.records.length > 0 
-        ? project.totalSettlement / project.records.length 
+      // 平均渠道收入
+      avgChannelIncome: project.channelRecords.length > 0 
+        ? project.totalChannelSettlement / project.channelRecords.length 
         : 0
     }))
   }, [records])
@@ -72,13 +110,13 @@ function ProjectProfit({ records }) {
           return sortOrder === 'asc' 
             ? aVal.localeCompare(bVal, 'zh-CN')
             : bVal.localeCompare(aVal, 'zh-CN')
-        case 'gameFlow':
-          aVal = a.totalGameFlow
-          bVal = b.totalGameFlow
+        case 'channelIncome':
+          aVal = a.channelIncome
+          bVal = b.channelIncome
           break
-        case 'settlement':
-          aVal = a.totalSettlement
-          bVal = b.totalSettlement
+        case 'devExpense':
+          aVal = a.devExpense
+          bVal = b.devExpense
           break
         case 'profit':
           aVal = a.netProfit
@@ -103,15 +141,15 @@ function ProjectProfit({ records }) {
   // 总计
   const totals = useMemo(() => {
     return projectStats.reduce((acc, project) => ({
-      totalGameFlow: acc.totalGameFlow + project.totalGameFlow,
-      totalSettlement: acc.totalSettlement + project.totalSettlement,
-      totalCost: acc.totalCost + project.cost,
+      totalChannelIncome: acc.totalChannelIncome + project.channelIncome,
+      totalDevExpense: acc.totalDevExpense + project.devExpense,
+      totalOtherCost: acc.totalOtherCost + project.otherCost,
       totalNetProfit: acc.totalNetProfit + project.netProfit,
       totalRecords: acc.totalRecords + project.recordCount
     }), {
-      totalGameFlow: 0,
-      totalSettlement: 0,
-      totalCost: 0,
+      totalChannelIncome: 0,
+      totalDevExpense: 0,
+      totalOtherCost: 0,
       totalNetProfit: 0,
       totalRecords: 0
     })
@@ -163,16 +201,16 @@ function ProjectProfit({ records }) {
             <span className="label">项目数</span>
             <span className="value">{projectStats.length}</span>
           </span>
-          <span className="summary-item">
-            <span className="label">总流水</span>
-            <span className="value">{formatMoney(totals.totalGameFlow)}</span>
+          <span className="summary-item channel">
+            <span className="label">渠道收入</span>
+            <span className="value positive">{formatMoney(totals.totalChannelIncome)}</span>
           </span>
-          <span className="summary-item">
-            <span className="label">总结算</span>
-            <span className="value">{formatMoney(totals.totalSettlement)}</span>
+          <span className="summary-item dev">
+            <span className="label">研发支出</span>
+            <span className="value negative">{formatMoney(totals.totalDevExpense)}</span>
           </span>
           <span className="summary-item highlight">
-            <span className="label">总利润</span>
+            <span className="label">净利润</span>
             <span className={`value ${totals.totalNetProfit >= 0 ? 'positive' : 'negative'}`}>
               {formatMoney(totals.totalNetProfit)}
             </span>
@@ -190,11 +228,11 @@ function ProjectProfit({ records }) {
               <th onClick={() => toggleSort('recordCount')} className="sortable">
                 记录数 {getSortIcon('recordCount')}
               </th>
-              <th onClick={() => toggleSort('gameFlow')} className="sortable">
-                游戏流水 {getSortIcon('gameFlow')}
+              <th onClick={() => toggleSort('channelIncome')} className="sortable">
+                渠道收入 {getSortIcon('channelIncome')}
               </th>
-              <th onClick={() => toggleSort('settlement')} className="sortable">
-                结算金额 {getSortIcon('settlement')}
+              <th onClick={() => toggleSort('devExpense')} className="sortable">
+                研发支出 {getSortIcon('devExpense')}
               </th>
               <th onClick={() => toggleSort('profit')} className="sortable">
                 净利润 {getSortIcon('profit')}
@@ -213,9 +251,14 @@ function ProjectProfit({ records }) {
                     <span className="rank">#{index + 1}</span>
                     <span className="name">{project.name}</span>
                   </td>
-                  <td>{project.recordCount} 条</td>
-                  <td>{formatMoney(project.totalGameFlow)}</td>
-                  <td>{formatMoney(project.totalSettlement)}</td>
+                  <td>
+                    <span className="record-counts">
+                      {project.channelRecordCount > 0 && <span className="channel-count">渠道{project.channelRecordCount}</span>}
+                      {project.devRecordCount > 0 && <span className="dev-count">研发{project.devRecordCount}</span>}
+                    </span>
+                  </td>
+                  <td className="channel-income">{formatMoney(project.channelIncome)}</td>
+                  <td className="dev-expense">{formatMoney(project.devExpense)}</td>
                   <td className={project.netProfit >= 0 ? 'positive' : 'negative'}>
                     {formatMoney(project.netProfit)}
                   </td>
@@ -241,7 +284,15 @@ function ProjectProfit({ records }) {
                       <div className="project-details">
                         <div className="detail-grid">
                           <div className="detail-item">
-                            <span className="label">合作方</span>
+                            <span className="label">渠道方</span>
+                            <span className="value">
+                              {project.channels.length > 0 
+                                ? project.channels.join('、') 
+                                : '无'}
+                            </span>
+                          </div>
+                          <div className="detail-item">
+                            <span className="label">研发合作方</span>
                             <span className="value">
                               {project.partners.length > 0 
                                 ? project.partners.join('、') 
@@ -261,32 +312,48 @@ function ProjectProfit({ records }) {
                             <span className="value">{formatMoney(project.totalRefund)}</span>
                           </div>
                           <div className="detail-item">
-                            <span className="label">成本总计</span>
-                            <span className="value cost">{formatMoney(project.cost)}</span>
-                          </div>
-                          <div className="detail-item">
-                            <span className="label">平均结算</span>
-                            <span className="value">{formatMoney(project.avgSettlement)}</span>
+                            <span className="label">其他成本</span>
+                            <span className="value cost">{formatMoney(project.otherCost)}</span>
                           </div>
                         </div>
-                        <div className="detail-records">
-                          <h5>关联记录（{project.recordCount}条）</h5>
-                          <div className="records-list">
-                            {project.records.slice(0, 5).map((record, idx) => (
-                              <div key={record.id || idx} className="record-item">
-                                <span className="month">{record.settlementMonth || '未设置'}</span>
-                                <span className="partner">{record.partner || '未知'}</span>
-                                <span className="flow">{formatMoney(parseFloat(record.gameFlow || 0))}</span>
-                                <span className="settlement">{formatMoney(parseFloat(record.settlementAmount || 0))}</span>
-                              </div>
-                            ))}
-                            {project.recordCount > 5 && (
-                              <div className="more-records">
-                                还有 {project.recordCount - 5} 条记录...
-                              </div>
-                            )}
+                        
+                        {project.channelRecords.length > 0 && (
+                          <div className="detail-records channel-records">
+                            <h5>📥 渠道收入记录（{project.channelRecordCount}条）</h5>
+                            <div className="records-list">
+                              {project.channelRecords.slice(0, 3).map((record, idx) => (
+                                <div key={record.id || idx} className="record-item">
+                                  <span className="month">{record.settlementMonth || '未设置'}</span>
+                                  <span className="partner">{record.channelName || '未知渠道'}</span>
+                                  <span className="flow">{formatMoney(parseFloat(record.channelFlow || 0))}</span>
+                                  <span className="settlement positive">{formatMoney(parseFloat(record.settlementAmount || 0))}</span>
+                                </div>
+                              ))}
+                              {project.channelRecordCount > 3 && (
+                                <div className="more-records">还有 {project.channelRecordCount - 3} 条...</div>
+                              )}
+                            </div>
                           </div>
-                        </div>
+                        )}
+                        
+                        {project.devRecords.length > 0 && (
+                          <div className="detail-records dev-records">
+                            <h5>📤 研发支出记录（{project.devRecordCount}条）</h5>
+                            <div className="records-list">
+                              {project.devRecords.slice(0, 3).map((record, idx) => (
+                                <div key={record.id || idx} className="record-item">
+                                  <span className="month">{record.settlementMonth || '未设置'}</span>
+                                  <span className="partner">{record.partner || '未知'}</span>
+                                  <span className="flow">{formatMoney(parseFloat(record.gameFlow || 0))}</span>
+                                  <span className="settlement negative">{formatMoney(parseFloat(record.settlementAmount || 0))}</span>
+                                </div>
+                              ))}
+                              {project.devRecordCount > 3 && (
+                                <div className="more-records">还有 {project.devRecordCount - 3} 条...</div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>

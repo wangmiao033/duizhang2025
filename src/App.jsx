@@ -43,6 +43,7 @@ import ReminderManager from './components/ReminderManager.jsx'
 import ImportTemplateGenerator from './components/ImportTemplateGenerator.jsx'
 import Calendar from './components/Calendar.jsx'
 import ProjectProfit from './components/ProjectProfit.jsx'
+import ChannelBilling from './components/ChannelBilling.jsx'
 
 function App() {
   const { theme } = useTheme()
@@ -85,6 +86,7 @@ function App() {
   const [lastSaveTime, setLastSaveTime] = useState(null)
   const [partners, setPartners] = useState([])
   const [deliveries, setDeliveries] = useState([])
+  const [channelRecords, setChannelRecords] = useState([])
 
   // 从localStorage加载数据
   useEffect(() => {
@@ -101,6 +103,9 @@ function App() {
     if (savedMonth) setSettlementMonth(savedMonth)
     if (savedPartners) setPartners(JSON.parse(savedPartners))
     if (savedDeliveries) setDeliveries(JSON.parse(savedDeliveries))
+    
+    const savedChannelRecords = localStorage.getItem('channelRecords')
+    if (savedChannelRecords) setChannelRecords(JSON.parse(savedChannelRecords))
   }, [])
 
   // 保存数据到localStorage
@@ -128,6 +133,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem('deliveries', JSON.stringify(deliveries))
   }, [deliveries])
+
+  useEffect(() => {
+    localStorage.setItem('channelRecords', JSON.stringify(channelRecords))
+  }, [channelRecords])
 
   // 发票记录持久化
   useEffect(() => {
@@ -993,7 +1002,7 @@ function App() {
   const renderAnalysis = () => (
     <>
       <div className="project-profit-section">
-        <ProjectProfit records={records} />
+        <ProjectProfit records={records} channelRecords={channelRecords} />
       </div>
       <div className="statistics-section">
         <StatisticsChart records={records} />
@@ -1119,7 +1128,8 @@ function App() {
           onChange={setActiveTab}
           items={[
             { key: 'dashboard', label: '总览' },
-            { key: 'records', label: '录入与列表' },
+            { key: 'records', label: '研发对账' },
+            { key: 'channel', label: '渠道对账' },
             { key: 'partners', label: '客户管理' },
             { key: 'delivery', label: '快递中心' },
             { key: 'analysis', label: '分析报表' },
@@ -1132,6 +1142,24 @@ function App() {
 
         {activeTab === 'dashboard' && renderDashboard()}
         {activeTab === 'records' && renderRecords()}
+        {activeTab === 'channel' && (
+          <ChannelBilling
+            channelRecords={channelRecords}
+            onAddRecord={(record) => {
+              const newRecord = { ...record, id: Date.now() }
+              setChannelRecords([...channelRecords, newRecord])
+              showToast('渠道记录添加成功', 'success')
+            }}
+            onUpdateRecord={(id, record) => {
+              setChannelRecords(channelRecords.map(r => r.id === id ? { ...record, id } : r))
+              showToast('渠道记录更新成功', 'success')
+            }}
+            onDeleteRecord={(id) => {
+              setChannelRecords(channelRecords.filter(r => r.id !== id))
+              showToast('渠道记录已删除', 'success')
+            }}
+          />
+        )}
         {activeTab === 'partners' && renderPartners()}
         {activeTab === 'delivery' && renderDelivery()}
         {activeTab === 'analysis' && renderAnalysis()}
