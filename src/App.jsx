@@ -624,9 +624,63 @@ function App() {
     showToast('发票记录已导出 (CSV)', 'success')
   }
 
+  // 从文件名解析发票信息
+  const parseInvoiceFromFilename = (filename) => {
+    // 格式：深圳龙魂+广州熊动22557.99+20260126.pdf
+    // 或：销售方+购买方+金额+日期.pdf
+    const nameWithoutExt = filename.replace(/\.(pdf|json)$/i, '')
+    const parts = nameWithoutExt.split('+')
+    
+    if (parts.length >= 3) {
+      const seller = parts[0]?.trim() || ''
+      const buyer = parts[1]?.trim() || ''
+      const amountMatch = parts[2]?.match(/(\d+\.?\d*)/)
+      const dateMatch = parts[2]?.match(/(\d{8})/) || parts[3]?.match(/(\d{8})/)
+      
+      const amount = amountMatch ? amountMatch[1] : ''
+      const dateStr = dateMatch ? dateMatch[1] : ''
+      
+      // 格式化日期 YYYYMMDD -> YYYY-MM-DD
+      let formattedDate = ''
+      if (dateStr && dateStr.length === 8) {
+        formattedDate = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`
+      }
+      
+      return {
+        title: buyer || seller, // 购买方作为发票抬头
+        taxNo: '', // 税号需要手动填写
+        amount: amount,
+        issueDate: formattedDate,
+        status: '已开',
+        remark: `销售方：${seller}`
+      }
+    }
+    return null
+  }
+
   const handleImportInvoiceJSON = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
+    
+    // 如果是PDF文件，尝试从文件名解析
+    if (file.name.toLowerCase().endsWith('.pdf')) {
+      const parsedInfo = parseInvoiceFromFilename(file.name)
+      if (parsedInfo) {
+        setInvoiceForm({
+          ...invoiceForm,
+          ...parsedInfo
+        })
+        showToast('已从文件名解析发票信息，请确认并补充税号后保存', 'success')
+        e.target.value = ''
+        return
+      } else {
+        showToast('无法从文件名解析信息，请手动录入', 'info')
+        e.target.value = ''
+        return
+      }
+    }
+    
+    // JSON文件处理
     const reader = new FileReader()
     reader.onload = (ev) => {
       try {
@@ -719,7 +773,32 @@ function App() {
               />
             </div>
           </div>
-          <button type="submit" className="submit-btn">保存发票记录</button>
+          <div className="invoice-form-actions">
+            <button type="submit" className="submit-btn">保存发票记录</button>
+            <button 
+              type="button" 
+              className="secondary-btn" 
+              onClick={() => {
+                // 快速录入：从剪贴板或手动输入文件名解析
+                const filename = prompt('请输入发票文件名（格式：销售方+购买方+金额+日期），例如：深圳龙魂+广州熊动22557.99+20260126')
+                if (filename) {
+                  const parsedInfo = parseInvoiceFromFilename(filename)
+                  if (parsedInfo) {
+                    setInvoiceForm({
+                      ...invoiceForm,
+                      ...parsedInfo
+                    })
+                    showToast('已解析发票信息，请确认并补充税号后保存', 'success')
+                  } else {
+                    showToast('文件名格式不正确', 'error')
+                  }
+                }
+              }}
+              title="从文件名快速解析发票信息"
+            >
+              快速录入
+            </button>
+          </div>
         </form>
 
         <div className="invoice-list">
@@ -746,11 +825,11 @@ function App() {
               </select>
               <button type="button" className="secondary-btn" onClick={handleExportInvoiceJSON}>导出 JSON</button>
               <button type="button" className="secondary-btn" onClick={handleExportInvoiceCSV}>导出 CSV</button>
-              <button type="button" className="secondary-btn" onClick={() => invoiceFileInputRef.current?.click()}>导入</button>
+              <button type="button" className="secondary-btn" onClick={() => invoiceFileInputRef.current?.click()}>导入 (JSON/PDF)</button>
               <input
                 ref={invoiceFileInputRef}
                 type="file"
-                accept=".json"
+                accept=".json,.pdf"
                 style={{ display: 'none' }}
                 onChange={handleImportInvoiceJSON}
               />
