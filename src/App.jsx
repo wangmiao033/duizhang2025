@@ -83,6 +83,9 @@ function App() {
   })
   const [invoiceRecords, setInvoiceRecords] = useState([])
   const [invoiceFilter, setInvoiceFilter] = useState({ keyword: '', status: '全部' })
+  const [showVerificationDialog, setShowVerificationDialog] = useState(false)
+  const [selectedInvoiceForVerification, setSelectedInvoiceForVerification] = useState(null)
+  const [verificationRecordIds, setVerificationRecordIds] = useState([])
   const [lastSaveTime, setLastSaveTime] = useState(null)
   const [partners, setPartners] = useState([])
   const [deliveries, setDeliveries] = useState([])
@@ -542,6 +545,35 @@ function App() {
     showToast('发票记录已删除', 'success')
   }
 
+  // 打开核销对话框
+  const handleOpenVerification = (invoice) => {
+    setSelectedInvoiceForVerification(invoice)
+    setVerificationRecordIds(invoice.verifiedRecordIds || [])
+    setShowVerificationDialog(true)
+  }
+
+  // 确认核销
+  const handleConfirmVerification = () => {
+    if (!selectedInvoiceForVerification) return
+    
+    setInvoiceRecords(invoiceRecords.map(item => 
+      item.id === selectedInvoiceForVerification.id
+        ? { ...item, verifiedRecordIds: verificationRecordIds, verified: verificationRecordIds.length > 0 }
+        : item
+    ))
+    setShowVerificationDialog(false)
+    setSelectedInvoiceForVerification(null)
+    setVerificationRecordIds([])
+    showToast('核销成功', 'success')
+  }
+
+  // 取消核销对话框
+  const handleCancelVerification = () => {
+    setShowVerificationDialog(false)
+    setSelectedInvoiceForVerification(null)
+    setVerificationRecordIds([])
+  }
+
   const filteredInvoices = useMemo(() => {
     return invoiceRecords.filter(item => {
       const matchStatus = invoiceFilter.status === '全部' || item.status === invoiceFilter.status
@@ -734,28 +766,52 @@ function App() {
                 <span>金额</span>
                 <span>状态</span>
                 <span>开票日期</span>
+                <span>核销状态</span>
                 <span>备注</span>
                 <span>操作</span>
               </div>
-              {filteredInvoices.map(item => (
-                <div className="invoice-table-row" key={item.id}>
-                  <span title={item.title}>{item.title || '-'}</span>
-                  <span title={item.taxNo}>{item.taxNo || '-'}</span>
-                  <span>¥{item.amount || '0.00'}</span>
-                  <span className={`tag tag-${item.status}`}>{item.status}</span>
-                  <span>{item.issueDate || '-'}</span>
-                  <span title={item.remark}>{item.remark || '-'}</span>
-                  <span>
-                    <button
-                      type="button"
-                      className="delete-btn"
-                      onClick={() => handleDeleteInvoice(item.id)}
-                    >
-                      删除
-                    </button>
-                  </span>
-                </div>
-              ))}
+              {filteredInvoices.map(item => {
+                const verifiedRecordIds = item.verifiedRecordIds || []
+                const verifiedRecords = records.filter(r => verifiedRecordIds.includes(r.id))
+                const verifiedAmount = verifiedRecords.reduce((sum, r) => sum + parseFloat(r.settlementAmount || 0), 0)
+                
+                return (
+                  <div className="invoice-table-row" key={item.id}>
+                    <span title={item.title}>{item.title || '-'}</span>
+                    <span title={item.taxNo}>{item.taxNo || '-'}</span>
+                    <span>¥{item.amount || '0.00'}</span>
+                    <span className={`tag tag-${item.status}`}>{item.status}</span>
+                    <span>{item.issueDate || '-'}</span>
+                    <span>
+                      {item.verified ? (
+                        <span className="tag tag-verified" title={`已核销 ${verifiedRecordIds.length} 条记录，金额 ¥${verifiedAmount.toFixed(2)}`}>
+                          已核销 ({verifiedRecordIds.length})
+                        </span>
+                      ) : (
+                        <span className="tag tag-unverified">未核销</span>
+                      )}
+                    </span>
+                    <span title={item.remark}>{item.remark || '-'}</span>
+                    <span>
+                      <button
+                        type="button"
+                        className="verify-btn"
+                        onClick={() => handleOpenVerification(item)}
+                        title="核销发票"
+                      >
+                        核销
+                      </button>
+                      <button
+                        type="button"
+                        className="delete-btn"
+                        onClick={() => handleDeleteInvoice(item.id)}
+                      >
+                        删除
+                      </button>
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
@@ -1256,6 +1312,63 @@ function App() {
         message={toast.message}
         type={toast.type}
         onClose={hideToast}
+      />
+
+      {/* 核销对话框 */}
+      <ConfirmDialog
+        isOpen={showVerificationDialog}
+        title="发票核销"
+        message={
+          selectedInvoiceForVerification ? (
+            <div className="verification-dialog-content">
+              <div className="invoice-info">
+                <p><strong>发票抬头：</strong>{selectedInvoiceForVerification.title}</p>
+                <p><strong>发票金额：</strong>¥{selectedInvoiceForVerification.amount || '0.00'}</p>
+              </div>
+              <div className="verification-records">
+                <label>选择要核销的对账记录：</label>
+                <div className="records-checkbox-list">
+                  {records.length === 0 ? (
+                    <p className="no-records">暂无对账记录</p>
+                  ) : (
+                    records.map(record => (
+                      <label key={record.id} className="record-checkbox-item">
+                        <input
+                          type="checkbox"
+                          checked={verificationRecordIds.includes(record.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setVerificationRecordIds([...verificationRecordIds, record.id])
+                            } else {
+                              setVerificationRecordIds(verificationRecordIds.filter(id => id !== record.id))
+                            }
+                          }}
+                        />
+                        <span>
+                          {record.settlementMonth || '未设置月份'} - {record.partner || '未设置合作方'} - {record.game || '未设置游戏'} 
+                          <strong className="amount"> (¥{parseFloat(record.settlementAmount || 0).toFixed(2)})</strong>
+                        </span>
+                      </label>
+                    ))
+                  )}
+                </div>
+                {verificationRecordIds.length > 0 && (
+                  <div className="verification-summary">
+                    <p>已选择 {verificationRecordIds.length} 条记录</p>
+                    <p>核销金额：¥{records
+                      .filter(r => verificationRecordIds.includes(r.id))
+                      .reduce((sum, r) => sum + parseFloat(r.settlementAmount || 0), 0)
+                      .toFixed(2)}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : ''
+        }
+        onConfirm={handleConfirmVerification}
+        onCancel={handleCancelVerification}
+        confirmText="确认核销"
+        cancelText="取消"
       />
       </div>
     </ErrorBoundary>

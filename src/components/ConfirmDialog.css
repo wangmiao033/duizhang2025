@@ -27,8 +27,14 @@
   padding: 30px;
   max-width: 400px;
   width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s;
+}
+
+.confirm-dialog.large {
+  max-width: 700px;
 }
 
 @keyframes slideUp {
@@ -49,6 +55,12 @@
 }
 
 .confirm-dialog p {
+  margin: 0 0 25px 0;
+  color: #666;
+  line-height: 1.6;
+}
+
+.dialog-message {
   margin: 0 0 25px 0;
   color: #666;
   line-height: 1.6;
