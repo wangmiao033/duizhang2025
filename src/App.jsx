@@ -41,6 +41,7 @@ import DeliveryCenter from './components/DeliveryCenter.jsx'
 import TagManager from './components/TagManager.jsx'
 import ReminderManager from './components/ReminderManager.jsx'
 import ImportTemplateGenerator from './components/ImportTemplateGenerator.jsx'
+import Calendar from './components/Calendar.jsx'
 
 function App() {
   const { theme } = useTheme()
@@ -1089,6 +1090,13 @@ function App() {
           <div>
             <h1>对账管理系统</h1>
             <p>生成标准格式的对账单</p>
+          </div>
+          <div className="header-calendar">
+            <Calendar 
+              onDateSelect={(date, dateStr) => {
+                console.log('选择日期:', dateStr)
+              }}
+            />
           </div>
           <div className="header-actions">
             <NotificationCenter />

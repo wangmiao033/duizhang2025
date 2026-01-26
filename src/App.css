@@ -24,6 +24,10 @@
   margin: 0 auto;
 }
 
+.header-calendar {
+  flex-shrink: 0;
+}
+
 .header-actions {
   display: flex;
   gap: 12px;
@@ -57,6 +61,12 @@
   letter-spacing: 0.2px;
 }
 
+@media (max-width: 1200px) {
+  .header-calendar {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
   .header-content {
     flex-direction: column;
@@ -68,6 +78,10 @@
   .app-header p {
     text-align: center;
     width: 100%;
+  }
+  
+  .header-calendar {
+    display: none;
   }
 }
 
