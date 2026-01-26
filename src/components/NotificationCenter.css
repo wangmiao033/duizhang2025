@@ -1,23 +1,40 @@
 .notification-center {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
 }
 
 .notification-btn {
-  padding: 10px 15px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  font-size: 1rem;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+  color: #4f46e5;
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  border-radius: 10px;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.3s;
-  backdrop-filter: blur(10px);
   position: relative;
 }
 
 .notification-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.15) 0%, rgba(124, 58, 237, 0.15) 100%);
+  border-color: rgba(79, 70, 229, 0.4);
+}
+
+.notification-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 9998;
+  animation: fadeIn 0.2s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .notification-badge {
@@ -37,19 +54,19 @@
 }
 
 .notification-panel {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 10px;
+  position: fixed;
+  top: 80px;
+  right: 20px;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  width: 350px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  width: 360px;
   max-height: 500px;
-  z-index: 1000;
+  z-index: 9999;
   animation: slideDown 0.3s;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 [data-theme="dark"] .notification-panel {
@@ -71,8 +88,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  border-bottom: 2px solid #e9ecef;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e9ecef;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.notification-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 [data-theme="dark"] .notification-header {

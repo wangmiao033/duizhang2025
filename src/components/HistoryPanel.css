@@ -1,36 +1,58 @@
 .history-panel {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
 }
 
 .history-btn {
-  padding: 10px 20px;
-  background: #6f42c1;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3);
 }
 
 .history-btn:hover {
-  background: #5a32a3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(111, 66, 193, 0.4);
+}
+
+.history-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 9998;
+  animation: fadeIn 0.2s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .history-content {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 10px;
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
   padding: 20px;
-  min-width: 400px;
-  max-height: 500px;
-  z-index: 100;
+  width: 90%;
+  max-width: 500px;
+  max-height: 70vh;
+  z-index: 9999;
   animation: slideDown 0.3s;
+  overflow: hidden;
 }
 
 @keyframes slideDown {
@@ -48,15 +70,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #e9ecef;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e9ecef;
 }
 
 .history-header h4 {
   margin: 0;
-  color: #333;
-  font-size: 1.1rem;
+  color: #0f172a;
+  font-size: 1.15rem;
+  font-weight: 700;
 }
 
 .history-actions {
@@ -158,5 +181,38 @@
 
 .restore-btn:hover {
   background: #218838;
+}
+
+/* 暗色模式 */
+[data-theme="dark"] .history-content {
+  background: #1e1e2e;
+}
+
+[data-theme="dark"] .history-header {
+  border-bottom-color: #3d3d5c;
+}
+
+[data-theme="dark"] .history-header h4 {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .history-item {
+  background: #2d2d44;
+}
+
+[data-theme="dark"] .history-item:hover {
+  background: #3d3d5c;
+}
+
+[data-theme="dark"] .history-action {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .history-time {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .empty-history {
+  color: #94a3b8;
 }
 

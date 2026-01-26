@@ -58,41 +58,44 @@ function HistoryPanel({ onRestore }) {
       </button>
 
       {isOpen && (
-        <div className="history-content">
-          <div className="history-header">
-            <h4>操作历史</h4>
-            <div className="history-actions">
-              <button className="clear-history-btn" onClick={clearHistory}>
-                清空
-              </button>
-              <button className="close-history-btn" onClick={() => setIsOpen(false)}>
-                ×
-              </button>
+        <>
+          <div className="history-overlay" onClick={() => setIsOpen(false)} />
+          <div className="history-content">
+            <div className="history-header">
+              <h4>📜 操作历史</h4>
+              <div className="history-actions">
+                <button className="clear-history-btn" onClick={clearHistory}>
+                  🗑️ 清空
+                </button>
+                <button className="close-history-btn" onClick={() => setIsOpen(false)}>
+                  ×
+                </button>
+              </div>
+            </div>
+            <div className="history-list">
+              {history.length === 0 ? (
+                <div className="empty-history">暂无操作历史</div>
+              ) : (
+                history.map((item) => (
+                  <div key={item.id} className="history-item">
+                    <div className="history-item-header">
+                      <span className="history-action">{item.action}</span>
+                      <span className="history-time">{item.timeFormatted}</span>
+                    </div>
+                    <div className="history-item-actions">
+                      <button 
+                        className="restore-btn"
+                        onClick={() => restoreFromHistory(item)}
+                      >
+                        ↩️ 恢复
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
-          <div className="history-list">
-            {history.length === 0 ? (
-              <div className="empty-history">暂无操作历史</div>
-            ) : (
-              history.map((item) => (
-                <div key={item.id} className="history-item">
-                  <div className="history-item-header">
-                    <span className="history-action">{item.action}</span>
-                    <span className="history-time">{item.timeFormatted}</span>
-                  </div>
-                  <div className="history-item-actions">
-                    <button 
-                      className="restore-btn"
-                      onClick={() => restoreFromHistory(item)}
-                    >
-                      恢复
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+        </>
       )}
     </div>
   )

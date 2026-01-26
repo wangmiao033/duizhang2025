@@ -57,47 +57,52 @@ function NotificationCenter() {
       </button>
 
       {isOpen && (
-        <div className="notification-panel">
-          <div className="notification-header">
-            <h4>通知中心</h4>
-            {notifications.length > 0 && (
-              <button className="clear-all-btn" onClick={clearAll}>
-                清空
-              </button>
-            )}
-            <button className="close-notification-btn" onClick={() => setIsOpen(false)}>
-              ×
-            </button>
-          </div>
-          <div className="notification-list">
-            {notifications.length === 0 ? (
-              <div className="empty-notifications">暂无通知</div>
-            ) : (
-              notifications.map(notification => (
-                <div 
-                  key={notification.id} 
-                  className={`notification-item notification-${notification.type}`}
-                >
-                  <div className="notification-content">
-                    <span className="notification-message">{notification.message}</span>
-                    <span className="notification-time">
-                      {new Date(notification.timestamp).toLocaleTimeString('zh-CN', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })}
-                    </span>
-                  </div>
-                  <button 
-                    className="notification-close"
-                    onClick={() => removeNotification(notification.id)}
-                  >
-                    ×
+        <>
+          <div className="notification-overlay" onClick={() => setIsOpen(false)} />
+          <div className="notification-panel">
+            <div className="notification-header">
+              <h4>通知中心</h4>
+              <div className="notification-header-actions">
+                {notifications.length > 0 && (
+                  <button className="clear-all-btn" onClick={clearAll}>
+                    清空
                   </button>
-                </div>
-              ))
-            )}
+                )}
+                <button className="close-notification-btn" onClick={() => setIsOpen(false)}>
+                  ×
+                </button>
+              </div>
+            </div>
+            <div className="notification-list">
+              {notifications.length === 0 ? (
+                <div className="empty-notifications">暂无通知</div>
+              ) : (
+                notifications.map(notification => (
+                  <div 
+                    key={notification.id} 
+                    className={`notification-item notification-${notification.type}`}
+                  >
+                    <div className="notification-content">
+                      <span className="notification-message">{notification.message}</span>
+                      <span className="notification-time">
+                        {new Date(notification.timestamp).toLocaleTimeString('zh-CN', { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </span>
+                    </div>
+                    <button 
+                      className="notification-close"
+                      onClick={() => removeNotification(notification.id)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   )
