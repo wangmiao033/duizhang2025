@@ -3,23 +3,23 @@ import './ChannelBilling.css'
 
 function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteRecord }) {
   const [formData, setFormData] = useState({
-    gameName: '',           // 游戏名称（项目）
-    channelName: '',        // 渠道
-    flow: '',               // 流水
-    discountType: '否',     // 是否0.1折/0.05折
-    channelFeeRate: '70',   // 渠道费(%)
-    gatewayFeeRate: '5',    // 通道费(%)
-    cfChannelRate: '30',    // 超凡与渠道(%)
-    cfDevRate: '20',        // 超凡与研发(%)
-    ipRate: '0',            // IP授权(%)
-    taxRate: '0',           // 税点(%)
-    devShareRate: '80',     // 研发分成(%)
-    privateRate: '0',       // 私点(%)
-    serverCost: '',         // 服务器
-    testCost: '',           // 测试
+    // 基本信息
+    channelName: '',        // 渠道/公司简称（必填）
+    gameName: '',           // 游戏名称（必填）
+    startDate: '',          // 结算开始日期
+    endDate: '',            // 结算结束日期
+    // 流水与费用
+    flow: '',               // 后台流水
     voucherCost: '',        // 代金券
-    gatewayCost: '',        // 通道费(金额)
-    taxCost: '',            // 税点(金额)
+    noWorryCost: '',        // 无忧试
+    refundCost: '',         // 玩家退款
+    testCost: '',           // 测试费
+    welfareCost: '',        // 福利币
+    // 分成计算
+    shareRate: '30',        // 分成比例(%)
+    taxRate: '5',           // 税率(%)
+    gatewayCost: '',        // 支付通道费
+    // 结算
     settlementAmount: '',   // 结算金额
     remark: ''
   })
@@ -29,52 +29,39 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
   const [editingId, setEditingId] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
 
-  // 计算业务毛利率
-  const calculateProfitRate = (data) => {
-    const channelFee = parseFloat(data.channelFeeRate || 0)
-    const gatewayFee = parseFloat(data.gatewayFeeRate || 0)
-    const cfChannel = parseFloat(data.cfChannelRate || 0)
-    const devShare = parseFloat(data.devShareRate || 0)
-    
-    // 业务毛利 = 100% - 渠道费 - 通道费 - 超凡与渠道*研发分成 - ...
-    // 简化计算: 我方收入比例
-    const myShare = cfChannel * (100 - devShare) / 100
-    const profitRate = myShare - gatewayFee
-    return profitRate
+  // 计算计费金额 = 后台流水 - 代金券 - 无忧试 - 玩家退款 - 测试费 - 福利币
+  const calculateBillingAmount = (data) => {
+    const flow = parseFloat(data.flow || 0)
+    const voucher = parseFloat(data.voucherCost || 0)
+    const noWorry = parseFloat(data.noWorryCost || 0)
+    const refund = parseFloat(data.refundCost || 0)
+    const test = parseFloat(data.testCost || 0)
+    const welfare = parseFloat(data.welfareCost || 0)
+    return flow - voucher - noWorry - refund - test - welfare
   }
 
-  // 计算结算金额
+  // 计算分成金额 = 计费金额 * 分成比例
+  const calculateShareAmount = (data) => {
+    const billingAmount = calculateBillingAmount(data)
+    const shareRate = parseFloat(data.shareRate || 0) / 100
+    return billingAmount * shareRate
+  }
+
+  // 计算结算金额 = 分成金额 - 支付通道费 - 税费
   const calculateSettlement = (data) => {
-    const flow = parseFloat(data.flow || 0)
-    const channelFee = parseFloat(data.channelFeeRate || 0) / 100
-    const gatewayFee = parseFloat(data.gatewayFeeRate || 0) / 100
-    const cfChannel = parseFloat(data.cfChannelRate || 0) / 100
-    const cfDev = parseFloat(data.cfDevRate || 0) / 100
-    const devShare = parseFloat(data.devShareRate || 0) / 100
-    
-    // 扣除各项费用后的金额
-    const afterChannelFee = flow * (1 - channelFee)
-    const afterGateway = afterChannelFee * (1 - gatewayFee)
-    // 超凡与渠道的分成中，我方占比
-    const myShare = afterGateway * cfChannel * (1 - devShare)
-    
-    // 扣除成本
-    const serverCost = parseFloat(data.serverCost || 0)
-    const testCost = parseFloat(data.testCost || 0)
-    const voucherCost = parseFloat(data.voucherCost || 0)
+    const shareAmount = calculateShareAmount(data)
     const gatewayCost = parseFloat(data.gatewayCost || 0)
-    const taxCost = parseFloat(data.taxCost || 0)
-    
-    const settlement = myShare - serverCost - testCost - voucherCost - gatewayCost - taxCost
-    return settlement
+    const taxRate = parseFloat(data.taxRate || 0) / 100
+    const taxAmount = shareAmount * taxRate
+    return shareAmount - gatewayCost - taxAmount
   }
 
   const handleInputChange = (field, value) => {
     const newFormData = { ...formData, [field]: value }
     
     // 自动计算结算金额
-    if (['flow', 'channelFeeRate', 'gatewayFeeRate', 'cfChannelRate', 'cfDevRate', 
-         'devShareRate', 'serverCost', 'testCost', 'voucherCost', 'gatewayCost', 'taxCost'].includes(field)) {
+    if (['flow', 'voucherCost', 'noWorryCost', 'refundCost', 'testCost', 
+         'welfareCost', 'shareRate', 'taxRate', 'gatewayCost'].includes(field)) {
       const settlement = calculateSettlement(newFormData)
       newFormData.settlementAmount = settlement.toFixed(2)
     }
@@ -85,30 +72,27 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
   const handleSubmit = (e) => {
     e.preventDefault()
     
-    if (!formData.gameName || !formData.channelName || !formData.flow) {
-      window.alert('请填写必填项：游戏名称、渠道、流水')
+    if (!formData.channelName || !formData.gameName) {
+      window.alert('请填写必填项：渠道名称、游戏名称')
       return
     }
 
-    const profitRate = calculateProfitRate(formData)
+    const billingAmount = calculateBillingAmount(formData)
+    const shareAmount = calculateShareAmount(formData)
     
     const record = {
       ...formData,
       flow: parseFloat(formData.flow || 0),
-      channelFeeRate: parseFloat(formData.channelFeeRate || 0),
-      gatewayFeeRate: parseFloat(formData.gatewayFeeRate || 0),
-      cfChannelRate: parseFloat(formData.cfChannelRate || 0),
-      cfDevRate: parseFloat(formData.cfDevRate || 0),
-      ipRate: parseFloat(formData.ipRate || 0),
-      taxRate: parseFloat(formData.taxRate || 0),
-      devShareRate: parseFloat(formData.devShareRate || 0),
-      privateRate: parseFloat(formData.privateRate || 0),
-      profitRate: profitRate,
-      serverCost: parseFloat(formData.serverCost || 0),
-      testCost: parseFloat(formData.testCost || 0),
       voucherCost: parseFloat(formData.voucherCost || 0),
+      noWorryCost: parseFloat(formData.noWorryCost || 0),
+      refundCost: parseFloat(formData.refundCost || 0),
+      testCost: parseFloat(formData.testCost || 0),
+      welfareCost: parseFloat(formData.welfareCost || 0),
+      billingAmount: billingAmount,
+      shareRate: parseFloat(formData.shareRate || 0),
+      shareAmount: shareAmount,
+      taxRate: parseFloat(formData.taxRate || 0),
       gatewayCost: parseFloat(formData.gatewayCost || 0),
-      taxCost: parseFloat(formData.taxCost || 0),
       settlementAmount: parseFloat(formData.settlementAmount || 0)
     }
 
@@ -124,23 +108,19 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
 
   const resetForm = () => {
     setFormData({
-      gameName: '',
       channelName: '',
+      gameName: '',
+      startDate: '',
+      endDate: '',
       flow: '',
-      discountType: '否',
-      channelFeeRate: '70',
-      gatewayFeeRate: '5',
-      cfChannelRate: '30',
-      cfDevRate: '20',
-      ipRate: '0',
-      taxRate: '0',
-      devShareRate: '80',
-      privateRate: '0',
-      serverCost: '',
-      testCost: '',
       voucherCost: '',
+      noWorryCost: '',
+      refundCost: '',
+      testCost: '',
+      welfareCost: '',
+      shareRate: '30',
+      taxRate: '5',
       gatewayCost: '',
-      taxCost: '',
       settlementAmount: '',
       remark: ''
     })
@@ -149,23 +129,19 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
 
   const handleEdit = (record) => {
     setFormData({
-      gameName: record.gameName || '',
       channelName: record.channelName || '',
+      gameName: record.gameName || '',
+      startDate: record.startDate || '',
+      endDate: record.endDate || '',
       flow: String(record.flow || ''),
-      discountType: record.discountType || '否',
-      channelFeeRate: String(record.channelFeeRate || '70'),
-      gatewayFeeRate: String(record.gatewayFeeRate || '5'),
-      cfChannelRate: String(record.cfChannelRate || '30'),
-      cfDevRate: String(record.cfDevRate || '20'),
-      ipRate: String(record.ipRate || '0'),
-      taxRate: String(record.taxRate || '0'),
-      devShareRate: String(record.devShareRate || '80'),
-      privateRate: String(record.privateRate || '0'),
-      serverCost: String(record.serverCost || ''),
-      testCost: String(record.testCost || ''),
       voucherCost: String(record.voucherCost || ''),
+      noWorryCost: String(record.noWorryCost || ''),
+      refundCost: String(record.refundCost || ''),
+      testCost: String(record.testCost || ''),
+      welfareCost: String(record.welfareCost || ''),
+      shareRate: String(record.shareRate || '30'),
+      taxRate: String(record.taxRate || '5'),
       gatewayCost: String(record.gatewayCost || ''),
-      taxCost: String(record.taxCost || ''),
       settlementAmount: String(record.settlementAmount || ''),
       remark: record.remark || ''
     })
@@ -254,10 +230,20 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
 
   // 常用渠道列表
   const commonChannels = [
-    '233', '277游戏', '3733', '3387游戏', 'vivo', 'OPPO', 
-    '华为', '小米', '百度', '九游', 'u2game', '爱趣聚合',
-    '八门助手', '百分网', '冰火手游', '触点', '大熊游戏',
-    '当乐', '瓜子手游', '广东安久', 'iOS', '3DMGame'
+    '广州触点互联网科技有限公司',
+    '广州能动科技有限公司',
+    '深圳龙魂网络科技有限公司',
+    '华为应用市场',
+    'vivo应用商店',
+    'OPPO应用商店',
+    '小米应用商店',
+    '百度移动游戏',
+    '九游游戏中心',
+    '爱趣聚合',
+    '233乐园',
+    '277游戏',
+    '3733游戏',
+    '3387游戏'
   ]
 
   return (
@@ -302,29 +288,16 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
         <div className="channel-form-section">
           <h3>{editingId ? '✏️ 编辑渠道记录' : '➕ 添加渠道记录'}</h3>
           <form onSubmit={handleSubmit} className="channel-form">
-            <div className="form-section-title">基本信息</div>
+            <div className="form-section-title">渠道信息</div>
             <div className="form-row">
-              <div className="form-group">
-                <label>游戏名称 *</label>
-                <input
-                  type="text"
-                  value={formData.gameName}
-                  onChange={(e) => handleInputChange('gameName', e.target.value)}
-                  placeholder="如：一起来修仙005折混服"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label>渠道 *</label>
+              <div className="form-group full-width">
+                <label>渠道/公司简称 *</label>
                 <input
                   type="text"
                   list="channel-list"
                   value={formData.channelName}
                   onChange={(e) => handleInputChange('channelName', e.target.value)}
-                  placeholder="如：233, vivo, 华为"
+                  placeholder="如：广州触点互联网科技有限公司"
                   required
                 />
                 <datalist id="channel-list">
@@ -333,142 +306,49 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
                   ))}
                 </datalist>
               </div>
+            </div>
+
+            <div className="form-section-title">游戏与结算周期</div>
+            <div className="form-row">
+              <div className="form-group full-width">
+                <label>游戏名称 *</label>
+                <input
+                  type="text"
+                  value={formData.gameName}
+                  onChange={(e) => handleInputChange('gameName', e.target.value)}
+                  placeholder="如：一起来修仙(0.05折)"
+                  required
+                />
+              </div>
+            </div>
+            <div className="form-row">
               <div className="form-group">
-                <label>流水(元) *</label>
+                <label>结算开始日期</label>
+                <input
+                  type="date"
+                  value={formData.startDate}
+                  onChange={(e) => handleInputChange('startDate', e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label>结算结束日期</label>
+                <input
+                  type="date"
+                  value={formData.endDate}
+                  onChange={(e) => handleInputChange('endDate', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="form-section-title">流水与费用</div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>后台流水</label>
                 <input
                   type="number"
                   step="0.01"
                   value={formData.flow}
                   onChange={(e) => handleInputChange('flow', e.target.value)}
-                  placeholder="0.00"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>折扣类型</label>
-                <select
-                  value={formData.discountType}
-                  onChange={(e) => handleInputChange('discountType', e.target.value)}
-                >
-                  <option value="否">否</option>
-                  <option value="0.1折">0.1折</option>
-                  <option value="0.05折">0.05折</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="form-section-title">分成比例</div>
-            <div className="form-row three-col">
-              <div className="form-group">
-                <label>渠道费(%)</label>
-                <input
-                  type="number"
-                  step="1"
-                  value={formData.channelFeeRate}
-                  onChange={(e) => handleInputChange('channelFeeRate', e.target.value)}
-                  placeholder="70"
-                />
-              </div>
-              <div className="form-group">
-                <label>通道费(%)</label>
-                <input
-                  type="number"
-                  step="1"
-                  value={formData.gatewayFeeRate}
-                  onChange={(e) => handleInputChange('gatewayFeeRate', e.target.value)}
-                  placeholder="5"
-                />
-              </div>
-              <div className="form-group">
-                <label>超凡与渠道(%)</label>
-                <input
-                  type="number"
-                  step="1"
-                  value={formData.cfChannelRate}
-                  onChange={(e) => handleInputChange('cfChannelRate', e.target.value)}
-                  placeholder="30"
-                />
-              </div>
-            </div>
-
-            <div className="form-row three-col">
-              <div className="form-group">
-                <label>超凡与研发(%)</label>
-                <input
-                  type="number"
-                  step="1"
-                  value={formData.cfDevRate}
-                  onChange={(e) => handleInputChange('cfDevRate', e.target.value)}
-                  placeholder="20"
-                />
-              </div>
-              <div className="form-group">
-                <label>研发分成(%)</label>
-                <input
-                  type="number"
-                  step="1"
-                  value={formData.devShareRate}
-                  onChange={(e) => handleInputChange('devShareRate', e.target.value)}
-                  placeholder="80"
-                />
-              </div>
-              <div className="form-group">
-                <label>IP授权(%)</label>
-                <input
-                  type="number"
-                  step="1"
-                  value={formData.ipRate}
-                  onChange={(e) => handleInputChange('ipRate', e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>税点(%)</label>
-                <input
-                  type="number"
-                  step="1"
-                  value={formData.taxRate}
-                  onChange={(e) => handleInputChange('taxRate', e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-              <div className="form-group">
-                <label>私点(%)</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={formData.privateRate}
-                  onChange={(e) => handleInputChange('privateRate', e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-            </div>
-
-            <div className="form-section-title">成本费用</div>
-            <div className="form-row three-col">
-              <div className="form-group">
-                <label>服务器</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.serverCost}
-                  onChange={(e) => handleInputChange('serverCost', e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
-              <div className="form-group">
-                <label>测试</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.testCost}
-                  onChange={(e) => handleInputChange('testCost', e.target.value)}
                   placeholder="0.00"
                 />
               </div>
@@ -479,30 +359,105 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
                   step="0.01"
                   value={formData.voucherCost}
                   onChange={(e) => handleInputChange('voucherCost', e.target.value)}
-                  placeholder="0.00"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+            <div className="form-row three-col">
+              <div className="form-group">
+                <label>无忧试</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.noWorryCost}
+                  onChange={(e) => handleInputChange('noWorryCost', e.target.value)}
+                  placeholder="0"
+                />
+              </div>
+              <div className="form-group">
+                <label>玩家退款</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.refundCost}
+                  onChange={(e) => handleInputChange('refundCost', e.target.value)}
+                  placeholder="0"
+                />
+              </div>
+              <div className="form-group">
+                <label>测试费</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.testCost}
+                  onChange={(e) => handleInputChange('testCost', e.target.value)}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>福利币</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.welfareCost}
+                  onChange={(e) => handleInputChange('welfareCost', e.target.value)}
+                  placeholder="0"
+                />
+              </div>
+              <div className="form-group">
+                <label>计费金额（自动）</label>
+                <input
+                  type="text"
+                  value={formatMoney(calculateBillingAmount(formData))}
+                  readOnly
+                  className="readonly-input"
                 />
               </div>
             </div>
 
+            <div className="form-section-title">分成计算</div>
+            <div className="form-row three-col">
+              <div className="form-group">
+                <label>分成比例(%)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.shareRate}
+                  onChange={(e) => handleInputChange('shareRate', e.target.value)}
+                  placeholder="30"
+                />
+              </div>
+              <div className="form-group">
+                <label>分成金额（自动）</label>
+                <input
+                  type="text"
+                  value={formatMoney(calculateShareAmount(formData))}
+                  readOnly
+                  className="readonly-input"
+                />
+              </div>
+              <div className="form-group">
+                <label>税率(%)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.taxRate}
+                  onChange={(e) => handleInputChange('taxRate', e.target.value)}
+                  placeholder="5"
+                />
+              </div>
+            </div>
             <div className="form-row">
               <div className="form-group">
-                <label>通道费(金额)</label>
+                <label>支付通道费</label>
                 <input
                   type="number"
                   step="0.01"
                   value={formData.gatewayCost}
                   onChange={(e) => handleInputChange('gatewayCost', e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
-              <div className="form-group">
-                <label>税点(金额)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.taxCost}
-                  onChange={(e) => handleInputChange('taxCost', e.target.value)}
-                  placeholder="0.00"
+                  placeholder="0"
                 />
               </div>
             </div>

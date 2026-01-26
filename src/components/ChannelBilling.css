@@ -417,6 +417,13 @@
   grid-column: span 2;
 }
 
+.readonly-input {
+  background: rgba(226, 232, 240, 0.5) !important;
+  color: #10b981 !important;
+  font-weight: 600;
+  cursor: not-allowed;
+}
+
 /* 游戏名称列 */
 .game-name {
   max-width: 150px;
