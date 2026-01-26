@@ -708,9 +708,6 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
                           <button className="delete-btn" onClick={() => handleDelete(record.id)}>删除</button>
                         </td>
                       </tr>
-                  ))
-                )}
-              </tbody>
                     ))
                   )}
                 </tbody>
