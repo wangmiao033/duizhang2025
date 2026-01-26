@@ -195,9 +195,11 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
       grouped[channelName].records.push(record)
       grouped[channelName].totalFlow += parseFloat(record.flow) || 0
       grouped[channelName].totalSettlement += parseFloat(record.settlementAmount) || 0
-      grouped[channelName].totalServerCost += parseFloat(record.serverCost) || 0
       grouped[channelName].totalVoucherCost += parseFloat(record.voucherCost) || 0
+      grouped[channelName].totalNoWorryCost = (grouped[channelName].totalNoWorryCost || 0) + (parseFloat(record.noWorryCost) || 0)
+      grouped[channelName].totalRefundCost = (grouped[channelName].totalRefundCost || 0) + (parseFloat(record.refundCost) || 0)
       grouped[channelName].totalTestCost += parseFloat(record.testCost) || 0
+      grouped[channelName].totalWelfareCost = (grouped[channelName].totalWelfareCost || 0) + (parseFloat(record.welfareCost) || 0)
       grouped[channelName].games.add(record.gameName)
     })
 
@@ -585,23 +587,37 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
                             </tr>
                           </thead>
                           <tbody>
-                            {channel.records.map(record => (
-                              <tr key={record.id}>
-                                <td className="game-name-cell">{record.gameName}</td>
-                                <td>{formatMoney(parseFloat(record.flow) || 0)}</td>
-                                <td>{record.voucherCost || 0}</td>
-                                <td>{record.testCost || 0}</td>
-                                <td>{formatMoney(parseFloat(record.flow) - (parseFloat(record.voucherCost) || 0))}</td>
-                                <td>{record.cfChannelRate}%</td>
-                                <td>{formatMoney((parseFloat(record.flow) - (parseFloat(record.voucherCost) || 0)) * (parseFloat(record.cfChannelRate) || 0) / 100)}</td>
-                                <td>{record.taxRate}%</td>
-                                <td className="settlement">{formatMoney(parseFloat(record.settlementAmount) || 0)}</td>
-                                <td className="actions">
-                                  <button className="edit-btn" onClick={() => handleEdit(record)}>编辑</button>
-                                  <button className="delete-btn" onClick={() => handleDelete(record.id)}>删除</button>
-                                </td>
-                              </tr>
-                            ))}
+                            {channel.records.map(record => {
+                              // 兼容旧数据
+                              const flow = parseFloat(record.flow) || 0
+                              const voucher = parseFloat(record.voucherCost) || 0
+                              const noWorry = parseFloat(record.noWorryCost) || 0
+                              const refund = parseFloat(record.refundCost) || 0
+                              const test = parseFloat(record.testCost) || 0
+                              const welfare = parseFloat(record.welfareCost) || 0
+                              const billingAmount = flow - voucher - noWorry - refund - test - welfare
+                              const shareRate = parseFloat(record.shareRate || record.cfChannelRate || 30)
+                              const shareAmount = billingAmount * shareRate / 100
+                              const settlement = parseFloat(record.settlementAmount) || shareAmount
+                              
+                              return (
+                                <tr key={record.id}>
+                                  <td className="game-name-cell">{record.gameName}</td>
+                                  <td>{formatMoney(flow)}</td>
+                                  <td>{voucher}</td>
+                                  <td>{test}</td>
+                                  <td>{formatMoney(billingAmount)}</td>
+                                  <td>{shareRate}%</td>
+                                  <td>{formatMoney(shareAmount)}</td>
+                                  <td>{record.taxRate || 5}%</td>
+                                  <td className="settlement">{formatMoney(settlement)}</td>
+                                  <td className="actions">
+                                    <button className="edit-btn" onClick={() => handleEdit(record)}>编辑</button>
+                                    <button className="delete-btn" onClick={() => handleDelete(record.id)}>删除</button>
+                                  </td>
+                                </tr>
+                              )
+                            })}
                           </tbody>
                           <tfoot>
                             <tr>
@@ -609,9 +625,24 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
                               <td>{formatMoney(channel.totalFlow)}</td>
                               <td>{formatMoney(channel.totalVoucherCost)}</td>
                               <td>{formatMoney(channel.totalTestCost)}</td>
-                              <td>{formatMoney(channel.totalFlow - channel.totalVoucherCost)}</td>
+                              <td>{formatMoney(
+                                channel.totalFlow - 
+                                channel.totalVoucherCost - 
+                                (channel.totalNoWorryCost || 0) - 
+                                (channel.totalRefundCost || 0) - 
+                                channel.totalTestCost - 
+                                (channel.totalWelfareCost || 0)
+                              )}</td>
                               <td>-</td>
-                              <td>-</td>
+                              <td>{formatMoney(
+                                (channel.totalFlow - 
+                                channel.totalVoucherCost - 
+                                (channel.totalNoWorryCost || 0) - 
+                                (channel.totalRefundCost || 0) - 
+                                channel.totalTestCost - 
+                                (channel.totalWelfareCost || 0)) * 
+                                (channel.records[0] ? parseFloat(channel.records[0].shareRate || channel.records[0].cfChannelRate || 30) / 100 : 0.3)
+                              )}</td>
                               <td>-</td>
                               <td className="settlement">{formatMoney(channel.totalSettlement)}</td>
                               <td></td>
