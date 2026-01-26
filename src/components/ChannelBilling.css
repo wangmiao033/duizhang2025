@@ -3,6 +3,13 @@
   width: 100%;
   max-width: 100%;
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+.channel-billing *,
+.channel-billing *::before,
+.channel-billing *::after {
+  box-sizing: border-box;
 }
 
 .channel-header {
@@ -110,17 +117,18 @@
 
 /* 内容区域 */
 .channel-content {
-  display: grid;
-  grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 24px;
   width: 100%;
   max-width: 100%;
   overflow: hidden;
 }
 
-@media (max-width: 1024px) {
+@media (min-width: 1200px) {
   .channel-content {
-    grid-template-columns: 1fr;
+    display: grid;
+    grid-template-columns: 380px 1fr;
   }
 }
 
@@ -128,12 +136,14 @@
 .channel-form-section {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
   border-radius: 20px;
-  padding: 24px;
+  padding: 20px;
   border: 1px solid rgba(226, 232, 240, 0.6);
   box-shadow: 0 4px 16px rgba(79, 70, 229, 0.06);
   height: fit-content;
   min-width: 0;
   overflow: hidden;
+  width: 100%;
+  max-width: 100%;
 }
 
 .channel-form-section h3 {
@@ -146,17 +156,22 @@
 .channel-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .form-row.three-col {
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .form-section-title {
@@ -185,6 +200,8 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .form-group label {
@@ -201,6 +218,9 @@
   font-size: 0.95rem;
   transition: all 0.3s ease;
   background: white;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .form-group input:focus,
