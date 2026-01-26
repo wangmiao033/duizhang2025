@@ -1,5 +1,8 @@
 .channel-billing {
   padding: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .channel-header {
@@ -22,9 +25,11 @@
 /* 统计卡片 */
 .channel-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .stat-card {
@@ -96,8 +101,11 @@
 /* 内容区域 */
 .channel-content {
   display: grid;
-  grid-template-columns: 400px 1fr;
+  grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
   gap: 24px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 @media (max-width: 1024px) {
@@ -114,6 +122,8 @@
   border: 1px solid rgba(226, 232, 240, 0.6);
   box-shadow: 0 4px 16px rgba(79, 70, 229, 0.06);
   height: fit-content;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .channel-form-section h3 {
@@ -218,6 +228,8 @@
   padding: 24px;
   border: 1px solid rgba(226, 232, 240, 0.6);
   box-shadow: 0 4px 16px rgba(79, 70, 229, 0.06);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .list-header {
