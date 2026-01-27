@@ -128,6 +128,24 @@
   background: #059669;
 }
 
+.cycle-all-btn {
+  padding: 8px 16px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  color: #495057;
+  white-space: nowrap;
+}
+
+.cycle-all-btn:hover {
+  background: #f8f9fa;
+  border-color: #667eea;
+  color: #667eea;
+}
+
 /* 周期选择器菜单 */
 .cycle-selector-overlay {
   position: fixed;

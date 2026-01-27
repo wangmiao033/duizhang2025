@@ -44,7 +44,14 @@ function SettlementCycleManager({
   }
 
   const handlePreviousCycle = () => {
-    if (!selectedCycleKey) return
+    if (!selectedCycleKey) {
+      // 如果没有选中周期，先选择当前周期
+      const current = getCurrentCycle(cycleType)
+      if (onCycleChange) {
+        onCycleChange(current)
+      }
+      return
+    }
     const prevCycle = getPreviousCycle(selectedCycleKey, cycleType)
     if (prevCycle && onCycleChange) {
       onCycleChange(prevCycle)
@@ -52,7 +59,14 @@ function SettlementCycleManager({
   }
 
   const handleNextCycle = () => {
-    if (!selectedCycleKey) return
+    if (!selectedCycleKey) {
+      // 如果没有选中周期，先选择当前周期
+      const current = getCurrentCycle(cycleType)
+      if (onCycleChange) {
+        onCycleChange(current)
+      }
+      return
+    }
     const nextCycle = getNextCycle(selectedCycleKey, cycleType)
     if (nextCycle && onCycleChange) {
       onCycleChange(nextCycle)
@@ -88,7 +102,7 @@ function SettlementCycleManager({
           <button
             className="cycle-nav-btn"
             onClick={handlePreviousCycle}
-            disabled={!selectedCycleKey || !getPreviousCycle(selectedCycleKey, cycleType)}
+            disabled={selectedCycleKey && !getPreviousCycle(selectedCycleKey, cycleType)}
             title="上一个周期"
           >
             ← 上一周期
@@ -99,15 +113,24 @@ function SettlementCycleManager({
             onClick={() => setShowCycleSelector(!showCycleSelector)}
             title="选择周期"
           >
-            {currentCycleInfo ? (
+            {selectedCycleKey ? (
+              currentCycleInfo ? (
+                <>
+                  <span className="cycle-name">{currentCycleInfo.displayName}</span>
+                  <span className="cycle-stats">
+                    ({currentCycleRecords.length}条 / ¥{currentCycleInfo.totalAmount.toFixed(2)})
+                  </span>
+                </>
+              ) : (
+                '选择周期'
+              )
+            ) : (
               <>
-                <span className="cycle-name">{currentCycleInfo.displayName}</span>
+                <span className="cycle-name">全部记录</span>
                 <span className="cycle-stats">
-                  ({currentCycleRecords.length}条 / ¥{currentCycleInfo.totalAmount.toFixed(2)})
+                  ({records.length}条)
                 </span>
               </>
-            ) : (
-              '选择周期'
             )}
             <span className="dropdown-arrow">▼</span>
           </button>
@@ -115,7 +138,7 @@ function SettlementCycleManager({
           <button
             className="cycle-nav-btn"
             onClick={handleNextCycle}
-            disabled={!selectedCycleKey || !getNextCycle(selectedCycleKey, cycleType)}
+            disabled={selectedCycleKey && !getNextCycle(selectedCycleKey, cycleType)}
             title="下一个周期"
           >
             下一周期 →
@@ -127,6 +150,13 @@ function SettlementCycleManager({
             title="跳转到当前周期"
           >
             当前周期
+          </button>
+          <button
+            className="cycle-all-btn"
+            onClick={() => onCycleChange && onCycleChange(null)}
+            title="显示全部记录"
+          >
+            显示全部
           </button>
         </div>
       </div>
@@ -148,6 +178,26 @@ function SettlementCycleManager({
               </button>
             </div>
             <div className="cycle-list">
+              <button
+                className={`cycle-item ${!selectedCycleKey ? 'active' : ''}`}
+                onClick={() => handleCycleSelect(null)}
+                style={{ marginBottom: '8px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}
+              >
+                <div className="cycle-item-header">
+                  <span className="cycle-item-name">全部记录</span>
+                  <span className="cycle-item-date">显示所有周期的记录</span>
+                </div>
+                <div className="cycle-item-stats">
+                  <span className="stat-item">
+                    <span className="stat-label">记录数：</span>
+                    <span className="stat-value">{records.length}</span>
+                  </span>
+                  <span className="stat-item">
+                    <span className="stat-label">金额：</span>
+                    <span className="stat-value amount">¥{records.reduce((sum, r) => sum + (parseFloat(r.settlementAmount) || 0), 0).toFixed(2)}</span>
+                  </span>
+                </div>
+              </button>
               {cycles.length === 0 ? (
                 <div className="empty-cycles">暂无周期数据</div>
               ) : (

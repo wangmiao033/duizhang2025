@@ -144,10 +144,10 @@ function App() {
     const savedFormat = getNumberFormatFromStorage()
     setSettlementNumberFormat(savedFormat)
     
-    // 初始化周期选择（默认当前周期）
-    const currentCycle = getCurrentCycle(CYCLE_TYPES.MONTHLY)
+    // 初始化周期选择（默认不筛选，显示全部）
     setCycleType(CYCLE_TYPES.MONTHLY)
-    setSelectedCycleKey(currentCycle)
+    // 不设置selectedCycleKey，默认显示全部记录
+    // setSelectedCycleKey(null)
   }, [])
 
   // 保存数据到localStorage
@@ -1154,7 +1154,11 @@ function App() {
           cycleType={cycleType}
           onCycleChange={(cycleKey) => {
             setSelectedCycleKey(cycleKey)
-            showToast(`已切换到${cycleKey === '未设置' ? '未设置周期' : '周期：' + cycleKey}`, 'info')
+            if (cycleKey === null) {
+              showToast('已切换到显示全部记录', 'info')
+            } else {
+              showToast(`已切换到${cycleKey === '未设置' ? '未设置周期' : '周期：' + cycleKey}`, 'info')
+            }
           }}
           onCycleTypeChange={(newCycleType) => {
             setCycleType(newCycleType)
