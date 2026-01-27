@@ -19,6 +19,7 @@ import BatchEdit from './components/BatchEdit.jsx'
 import CopyRecord from './components/CopyRecord.jsx'
 import DataValidator from './components/DataValidator.jsx'
 import HistoryPanel from './components/HistoryPanel.jsx'
+import DataRecoveryHelper from './components/DataRecoveryHelper.jsx'
 import TemplatePresets from './components/TemplatePresets.jsx'
 import GamePresets from './components/GamePresets.jsx'
 import CSVExport from './components/CSVExport.jsx'
@@ -413,7 +414,8 @@ function App() {
     let result = [...records]
 
     // 周期筛选（优先级最高）
-    if (selectedCycleKey) {
+    // 注意：如果selectedCycleKey为null，则显示全部记录
+    if (selectedCycleKey !== null && selectedCycleKey !== undefined) {
       result = filterRecordsByCycle(result, selectedCycleKey, cycleType)
     }
 
@@ -1176,6 +1178,20 @@ function App() {
           resultCount={filteredRecords.length}
           totalCount={records.length}
         />
+        {(searchTerm || selectedCycleKey || Object.values(filterOptions).some(v => v)) && (
+          <button
+            className="clear-filters-btn"
+            onClick={() => {
+              setSearchTerm('')
+              setSelectedCycleKey(null)
+              setFilterOptions({})
+              showToast('已清除所有筛选条件', 'info')
+            }}
+            title="清除所有筛选条件"
+          >
+            🗑️ 清除筛选
+          </button>
+        )}
         <div className="toolbar-buttons">
           <BillExport
             records={records}
@@ -1208,6 +1224,18 @@ function App() {
               📥 导出选中 ({selectedIds.length})
             </button>
           )}
+          <DataRecoveryHelper 
+            records={records}
+            onDataRestored={(data) => {
+              if (data.records) setRecords(data.records)
+              if (data.partyA) setPartyA(data.partyA)
+              if (data.partyB) setPartyB(data.partyB)
+              if (data.settlementMonth) setSettlementMonth(data.settlementMonth)
+              if (data.partners) setPartners(data.partners)
+              if (data.deliveries) setDeliveries(data.deliveries)
+              showToast('数据已恢复！', 'success')
+            }}
+          />
           <HistoryPanel onRestore={handleRestoreFromHistory} />
           <ExcelImport onImport={handleExcelImport} />
           <DataBackup 

@@ -1,0 +1,253 @@
+.data-recovery-btn {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.data-recovery-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.recovery-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.recovery-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 10001;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: scaleIn 0.2s ease;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.recovery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.recovery-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #1f2937;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.recovery-content {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.diagnostics-section,
+.recovery-section {
+  margin-bottom: 24px;
+}
+
+.diagnostics-section h4,
+.recovery-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.diagnostic-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.diagnostic-item .label {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.diagnostic-item .value {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.diagnostic-item .value.has-data {
+  color: #10b981;
+}
+
+.diagnostic-item .value.no-data {
+  color: #ef4444;
+}
+
+.recovery-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recovery-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.recovery-item-info {
+  flex: 1;
+}
+
+.recovery-item-time,
+.recovery-item-action {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.recovery-item-stats {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.recovery-btn {
+  padding: 6px 16px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.recovery-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.no-recovery-options {
+  padding: 20px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.no-recovery-options p {
+  margin: 8px 0;
+}
+
+.no-recovery-options .hint {
+  font-weight: 600;
+  color: #1f2937;
+  margin-top: 16px;
+}
+
+.no-recovery-options ul {
+  text-align: left;
+  margin: 12px 0;
+  padding-left: 24px;
+}
+
+.no-recovery-options li {
+  margin: 6px 0;
+}
+
+[data-theme="dark"] .recovery-dialog {
+  background: #2d2d2d;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .recovery-header {
+  border-bottom-color: #444;
+}
+
+[data-theme="dark"] .recovery-header h3 {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .diagnostic-item {
+  border-bottom-color: #444;
+}
+
+[data-theme="dark"] .diagnostic-item .label {
+  color: #b0b0b0;
+}
+
+[data-theme="dark"] .recovery-item {
+  background: #3d3d3d;
+  border-color: #555;
+}
+
+[data-theme="dark"] .recovery-item-time,
+[data-theme="dark"] .recovery-item-action {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .recovery-item-stats {
+  color: #b0b0b0;
+}
