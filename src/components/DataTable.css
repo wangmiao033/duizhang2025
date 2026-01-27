@@ -203,6 +203,200 @@ tbody td {
   gap: 10px;
 }
 
+.table-header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 4px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.toggle-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.toggle-btn:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+}
+
+.toggle-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+}
+
+.partner-summary {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 8px;
+  color: #667eea;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.partner-group-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.partner-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.06);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.partner-card:hover {
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.12);
+}
+
+.partner-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  transition: background 0.2s;
+}
+
+.partner-card-header:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+}
+
+.partner-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.expand-icon {
+  font-size: 0.9rem;
+  color: #667eea;
+  font-weight: bold;
+  width: 20px;
+  text-align: center;
+}
+
+.partner-name {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.game-badge {
+  padding: 4px 12px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.partner-stats {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.partner-stats .stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.partner-stats .label {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.partner-stats .value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.partner-stats .value.settlement {
+  color: #007bff;
+  font-size: 1.1rem;
+}
+
+.partner-records {
+  padding: 16px;
+  background: rgba(248, 250, 252, 0.5);
+}
+
+.partner-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.partner-detail-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.partner-detail-table th {
+  padding: 12px;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.partner-detail-table td {
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.875rem;
+}
+
+.partner-detail-table tbody tr:hover {
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.partner-detail-table tfoot {
+  background: #f8f9fa;
+  font-weight: 600;
+}
+
+.partner-detail-table tfoot td {
+  border-top: 2px solid #667eea;
+}
+
+.total-label {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.game-name-cell {
+  font-weight: 500;
+  color: #1e293b;
+}
+
 .data-table h3 {
   margin: 0;
   color: #333;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import DragSort from './DragSort.jsx'
 import CopyRecord from './CopyRecord.jsx'
 import './DataTable.css'
@@ -22,6 +22,8 @@ function DataTable({
   const [editForm, setEditForm] = useState({})
   const [draggedIndex, setDraggedIndex] = useState(null)
   const [dragOverIndex, setDragOverIndex] = useState(null)
+  const [viewMode, setViewMode] = useState('list') // 'byPartner' or 'list'
+  const [expandedPartners, setExpandedPartners] = useState({})
 
   const startEdit = (record) => {
     setEditingId(record.id)
@@ -131,22 +133,202 @@ function DataTable({
       : <span className="sort-icon">↓</span>
   }
 
+  // 按合作方分组
+  const groupedByPartner = useMemo(() => {
+    const grouped = {}
+    
+    records.forEach(record => {
+      const partner = record.partner || '未分类'
+      if (!grouped[partner]) {
+        grouped[partner] = {
+          partner,
+          records: [],
+          totalGameFlow: 0,
+          totalSettlementAmount: 0,
+          totalVoucher: 0,
+          totalRefund: 0,
+          games: new Set()
+        }
+      }
+      
+      grouped[partner].records.push(record)
+      grouped[partner].totalGameFlow += parseFloat(record.gameFlow || 0)
+      grouped[partner].totalSettlementAmount += parseFloat(record.settlementAmount || 0)
+      grouped[partner].totalVoucher += parseFloat(record.voucher || 0)
+      grouped[partner].totalRefund += parseFloat(record.refund || 0)
+      if (record.game) {
+        grouped[partner].games.add(record.game)
+      }
+    })
+    
+    return Object.values(grouped).map(group => ({
+      ...group,
+      gameCount: group.games.size,
+      games: Array.from(group.games)
+    })).sort((a, b) => b.totalSettlementAmount - a.totalSettlementAmount)
+  }, [records])
+
+  const togglePartnerExpand = (partner) => {
+    setExpandedPartners(prev => ({
+      ...prev,
+      [partner]: !prev[partner]
+    }))
+  }
+
+  const formatMoney = (amount) => {
+    if (amount >= 100000000) {
+      return `¥${(amount / 100000000).toFixed(2)}亿`
+    } else if (amount >= 10000) {
+      return `¥${(amount / 10000).toFixed(2)}万`
+    }
+    return `¥${amount.toFixed(2)}`
+  }
+
   return (
     <div className="data-table">
       <div className="table-header">
         <h3>对账记录列表</h3>
-        {selectedIds.length > 0 && (
-          <div className="batch-actions">
-            <span className="selected-count">已选择 {selectedIds.length} 条</span>
-            <button className="batch-delete-btn" onClick={onBatchDelete}>
-              批量删除
+        <div className="table-header-right">
+          <div className="view-toggle">
+            <button 
+              className={`toggle-btn ${viewMode === 'byPartner' ? 'active' : ''}`}
+              onClick={() => setViewMode('byPartner')}
+            >
+              按合作方
+            </button>
+            <button 
+              className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+              onClick={() => setViewMode('list')}
+            >
+              列表
             </button>
           </div>
-        )}
+          {selectedIds.length > 0 && (
+            <div className="batch-actions">
+              <span className="selected-count">已选择 {selectedIds.length} 条</span>
+              <button className="batch-delete-btn" onClick={onBatchDelete}>
+                批量删除
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-      {onReorder && <DragSort records={records} onReorder={onReorder} />}
-      <div className="table-wrapper">
-        <table>
+      {viewMode === 'byPartner' && (
+        <div className="partner-summary">
+          {groupedByPartner.length} 个合作方 / {records.length} 条记录
+        </div>
+      )}
+      {onReorder && viewMode === 'list' && <DragSort records={records} onReorder={onReorder} />}
+      
+      {viewMode === 'byPartner' ? (
+        <div className="partner-group-view">
+          {groupedByPartner.length === 0 ? (
+            <div className="empty-message">暂无对账记录</div>
+          ) : (
+            groupedByPartner.map(group => (
+              <div key={group.partner} className="partner-card">
+                <div 
+                  className="partner-card-header"
+                  onClick={() => togglePartnerExpand(group.partner)}
+                >
+                  <div className="partner-info">
+                    <span className="expand-icon">
+                      {expandedPartners[group.partner] ? '▼' : '▶'}
+                    </span>
+                    <h4 className="partner-name">{group.partner}</h4>
+                    <span className="game-badge">{group.gameCount} 个游戏</span>
+                  </div>
+                  <div className="partner-stats">
+                    <span className="stat">
+                      <span className="label">流水</span>
+                      <span className="value">{formatMoney(group.totalGameFlow)}</span>
+                    </span>
+                    <span className="stat">
+                      <span className="label">结算</span>
+                      <span className="value settlement">{formatMoney(group.totalSettlementAmount)}</span>
+                    </span>
+                    <span className="stat">
+                      <span className="label">代金券</span>
+                      <span className="value">{formatMoney(group.totalVoucher)}</span>
+                    </span>
+                  </div>
+                </div>
+                
+                {expandedPartners[group.partner] && (
+                  <div className="partner-records">
+                    <table className="partner-detail-table">
+                      <thead>
+                        <tr>
+                          <th>结算月份</th>
+                          <th>游戏</th>
+                          <th>游戏流水</th>
+                          <th>测试费</th>
+                          <th>代金券</th>
+                          <th>通道费率</th>
+                          <th>税点</th>
+                          <th>分成比例</th>
+                          <th>折扣</th>
+                          <th>退款</th>
+                          <th>结算金额</th>
+                          <th>操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {group.records.map(record => (
+                          <tr key={record.id}>
+                            <td>{record.settlementMonth || '-'}</td>
+                            <td className="game-name-cell">{record.game || '-'}</td>
+                            <td className="amount-cell">¥{parseFloat(record.gameFlow || 0).toFixed(2)}</td>
+                            <td className="amount-cell">¥{parseFloat(record.testingFee || 0).toFixed(2)}</td>
+                            <td className="amount-cell">¥{parseFloat(record.voucher || 0).toFixed(2)}</td>
+                            <td>{record.channelFeeRate || '0'}%</td>
+                            <td>{record.taxPoint || '0'}%</td>
+                            <td>{record.revenueShareRatio || '0'}%</td>
+                            <td>{record.discount || '1'}</td>
+                            <td className="amount-cell">¥{parseFloat(record.refund || 0).toFixed(2)}</td>
+                            <td className="amount-cell settlement-amount">
+                              ¥{parseFloat(record.settlementAmount || 0).toFixed(2)}
+                            </td>
+                            <td>
+                              {onCopyRecord && <CopyRecord record={record} onCopy={onCopyRecord} />}
+                              <button className="edit-btn" onClick={() => startEdit(record)}>编辑</button>
+                              <button className="delete-btn" onClick={() => onDeleteRecord(record.id)}>删除</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td className="total-label" colSpan="2">合计</td>
+                          <td className="amount-cell">
+                            <strong>¥{group.totalGameFlow.toFixed(2)}</strong>
+                          </td>
+                          <td className="amount-cell">
+                            <strong>¥{group.records.reduce((sum, r) => sum + (parseFloat(r.testingFee) || 0), 0).toFixed(2)}</strong>
+                          </td>
+                          <td className="amount-cell">
+                            <strong>¥{group.totalVoucher.toFixed(2)}</strong>
+                          </td>
+                          <td colSpan="4">-</td>
+                          <td className="amount-cell">
+                            <strong>¥{group.totalRefund.toFixed(2)}</strong>
+                          </td>
+                          <td className="amount-cell settlement-amount">
+                            <strong>¥{group.totalSettlementAmount.toFixed(2)}</strong>
+                          </td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      ) : (
+        <div className="table-wrapper">
+          <table>
           <thead>
             <tr>
               <th style={{ width: '50px' }}>
@@ -376,6 +558,7 @@ function DataTable({
           </tbody>
         </table>
       </div>
+      )}
     </div>
   )
 }
