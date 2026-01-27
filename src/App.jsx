@@ -45,6 +45,7 @@ import ImportTemplateGenerator from './components/ImportTemplateGenerator.jsx'
 import Calendar from './components/Calendar.jsx'
 import ProjectProfit from './components/ProjectProfit.jsx'
 import ChannelBilling from './components/ChannelBilling.jsx'
+import BillExport from './components/BillExport.jsx'
 
 function App() {
   const { theme } = useTheme()
@@ -1035,6 +1036,15 @@ function App() {
           totalCount={records.length}
         />
         <div className="toolbar-buttons">
+          <BillExport
+            records={records}
+            partyA={partyA}
+            partyB={partyB}
+            settlementMonth={settlementMonth}
+            statistics={statistics}
+            onExportSuccess={(message) => showToast(message || '账单导出成功！', 'success')}
+            onExportError={handleExportError}
+          />
           <FilterSort
             onFilterChange={setFilterOptions}
             onSortChange={(field, order) => setSortOptions({ field, order })}
