@@ -261,6 +261,7 @@ function DataTable({
                     <table className="partner-detail-table">
                       <thead>
                         <tr>
+                          <th>结算单编号</th>
                           <th>结算月份</th>
                           <th>游戏</th>
                           <th>游戏流水</th>
@@ -279,6 +280,9 @@ function DataTable({
                       <tbody>
                         {group.records.map(record => (
                           <tr key={record.id}>
+                            <td className="settlement-number-cell" title={record.settlementNumber || '未设置编号'}>
+                              {record.settlementNumber || '-'}
+                            </td>
                             <td>{record.settlementMonth || '-'}</td>
                             <td className="game-name-cell">{record.game || '-'}</td>
                             <td className="amount-cell">¥{parseFloat(record.gameFlow || 0).toFixed(2)}</td>
@@ -308,7 +312,7 @@ function DataTable({
                       </tbody>
                       <tfoot>
                         <tr>
-                          <td className="total-label" colSpan="2">合计</td>
+                          <td className="total-label" colSpan="3">合计</td>
                           <td className="amount-cell">
                             <strong>¥{group.totalGameFlow.toFixed(2)}</strong>
                           </td>
@@ -353,6 +357,7 @@ function DataTable({
                   />
                 )}
               </th>
+              <th>结算单编号</th>
               <th>结算月份</th>
               <th>合作方</th>
               <th 
@@ -379,7 +384,7 @@ function DataTable({
           <tbody>
             {records.length === 0 ? (
               <tr>
-                <td colSpan="15" className="empty-message">暂无对账记录</td>
+                <td colSpan="16" className="empty-message">暂无对账记录</td>
               </tr>
             ) : (
               records.map((record, index) => (
@@ -400,6 +405,16 @@ function DataTable({
                           checked={selectedIds.includes(record.id)}
                           onChange={(e) => onSelectRecord && onSelectRecord(record.id, e.target.checked)}
                           onClick={(e) => e.stopPropagation()}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          value={editForm.settlementNumber || ''}
+                          onChange={(e) => setEditForm({ ...editForm, settlementNumber: e.target.value })}
+                          className="edit-input"
+                          placeholder="结算单编号"
+                          title="可手动修改编号"
                         />
                       </td>
                       <td>
@@ -524,6 +539,9 @@ function DataTable({
                           onChange={(e) => onSelectRecord && onSelectRecord(record.id, e.target.checked)}
                         />
                       </td>
+                      <td className="settlement-number-cell" title={record.settlementNumber || '未设置编号'}>
+                        {record.settlementNumber || '-'}
+                      </td>
                       <td>{record.settlementMonth || '-'}</td>
                       <td>{record.partner || '-'}</td>
                       <td>{record.game || '-'}</td>
@@ -556,8 +574,7 @@ function DataTable({
             )}
             {records.length > 0 && (
               <tr className="total-row">
-                <td colSpan="2"><strong>合计</strong></td>
-                <td>-</td>
+                <td colSpan="3"><strong>合计</strong></td>
                 <td className="amount-cell">
                   <strong>¥{records.reduce((sum, r) => sum + (parseFloat(r.gameFlow) || 0), 0).toFixed(2)}</strong>
                 </td>

@@ -129,6 +129,34 @@
 .setting-item label {
   font-size: 0.9rem;
   color: #495057;
+}
+
+.format-select {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+  color: #495057;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.format-select:hover {
+  border-color: #667eea;
+}
+
+.format-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.format-description {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: #6c757d;
+  font-style: italic;
   font-weight: 500;
 }
 

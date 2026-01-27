@@ -46,6 +46,14 @@ import ProjectProfit from './components/ProjectProfit.jsx'
 import ChannelBilling from './components/ChannelBilling.jsx'
 import BillExport from './components/BillExport.jsx'
 import { StatusTag, StatusSelector, BatchStatusUpdate, STATUS_OPTIONS } from './components/StatusManager.jsx'
+import { 
+  generateSettlementNumber, 
+  getNumberFormatFromStorage, 
+  saveNumberFormatToStorage,
+  SETTLEMENT_NUMBER_FORMATS,
+  isSettlementNumberUnique,
+  validateSettlementNumber
+} from './utils/settlementNumber.js'
 
 function App() {
   const { theme } = useTheme()
@@ -92,6 +100,7 @@ function App() {
   const [partners, setPartners] = useState([])
   const [deliveries, setDeliveries] = useState([])
   const [channelRecords, setChannelRecords] = useState([])
+  const [settlementNumberFormat, setSettlementNumberFormat] = useState(getNumberFormatFromStorage())
 
   // 从localStorage加载数据
   useEffect(() => {
@@ -104,12 +113,19 @@ function App() {
     
     if (savedRecords) {
       const records = JSON.parse(savedRecords)
-      // 为旧数据添加默认状态
-      const recordsWithStatus = records.map(r => ({
+      // 为旧数据添加默认状态和编号
+      const recordsWithDefaults = records.map(r => ({
         ...r,
-        status: r.status || 'pending'
+        status: r.status || 'pending',
+        // 如果旧数据没有编号，为其生成编号（使用记录创建时的日期或当前日期）
+        settlementNumber: r.settlementNumber || generateSettlementNumber(
+          [],
+          r.settlementMonth ? new Date(r.settlementMonth + '-01') : new Date(),
+          getNumberFormatFromStorage(),
+          r.partner
+        )
       }))
-      setRecords(recordsWithStatus)
+      setRecords(recordsWithDefaults)
     }
     if (savedPartyA) setPartyA(JSON.parse(savedPartyA))
     if (savedPartyB) setPartyB(JSON.parse(savedPartyB))
@@ -119,6 +135,10 @@ function App() {
     
     const savedChannelRecords = localStorage.getItem('channelRecords')
     if (savedChannelRecords) setChannelRecords(JSON.parse(savedChannelRecords))
+    
+    // 加载编号格式配置
+    const savedFormat = getNumberFormatFromStorage()
+    setSettlementNumberFormat(savedFormat)
   }, [])
 
   // 保存数据到localStorage
@@ -138,6 +158,13 @@ function App() {
   useEffect(() => {
     localStorage.setItem('settlementMonth', settlementMonth)
   }, [settlementMonth])
+
+  // 保存编号格式配置
+  useEffect(() => {
+    if (settlementNumberFormat) {
+      saveNumberFormatToStorage(settlementNumberFormat)
+    }
+  }, [settlementNumberFormat])
 
   useEffect(() => {
     localStorage.setItem('partners', JSON.stringify(partners))
@@ -190,18 +217,37 @@ function App() {
     const settlementAmount = calculateSettlementAmount(record)
     // 确保四舍五入到两位小数
     const roundedAmount = Math.round(settlementAmount * 100) / 100
+    
+    // 自动生成结算单编号
+    const settlementNumber = record.settlementNumber || generateSettlementNumber(
+      records,
+      record.settlementMonth ? new Date(record.settlementMonth + '-01') : new Date(),
+      settlementNumberFormat,
+      record.partner
+    )
+    
     const newRecords = [...records, { 
       ...record, 
       id: Date.now(),
       settlementAmount: roundedAmount.toFixed(2),
-      status: record.status || 'pending' // 默认状态为"待确认"
+      status: record.status || 'pending', // 默认状态为"待确认"
+      settlementNumber: settlementNumber // 结算单编号
     }]
     setRecords(newRecords)
     addHistoryItem('添加记录', { records: newRecords, partyA, partyB, settlementMonth })
-    showToast('记录添加成功！', 'success')
+    showToast(`记录添加成功！编号：${settlementNumber}`, 'success')
   }
 
   const updateRecord = (id, updatedRecord) => {
+    // 如果修改了编号，检查唯一性
+    if (updatedRecord.settlementNumber) {
+      const isUnique = isSettlementNumberUnique(records, updatedRecord.settlementNumber, id)
+      if (!isUnique) {
+        showToast('结算单编号已存在，请使用其他编号', 'error')
+        return
+      }
+    }
+    
     const settlementAmount = calculateSettlementAmount(updatedRecord)
     // 确保四舍五入到两位小数
     const roundedAmount = Math.round(settlementAmount * 100) / 100
@@ -210,6 +256,8 @@ function App() {
         ? { ...updatedRecord, id, settlementAmount: roundedAmount.toFixed(2) }
         : r
     ))
+    addHistoryItem('更新记录', { records, partyA, partyB, settlementMonth })
+    showToast('记录更新成功！', 'success')
   }
 
   const deleteRecord = (id) => {
@@ -1317,6 +1365,10 @@ function App() {
               <ThemeToggle />
               <UserGuide />
               <Settings onSettingsChange={(settings) => {
+                // 更新编号格式配置
+                if (settings.settlementNumberFormat) {
+                  setSettlementNumberFormat(settings.settlementNumberFormat)
+                }
                 console.log('设置已更新', settings)
               }} />
               <HelpTooltip />

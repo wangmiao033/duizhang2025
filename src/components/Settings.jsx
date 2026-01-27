@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import './Settings.css'
+import { 
+  SETTLEMENT_NUMBER_FORMATS, 
+  getNumberFormatFromStorage, 
+  saveNumberFormatToStorage 
+} from '../utils/settlementNumber.js'
 
 function Settings({ onSettingsChange }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -29,10 +34,17 @@ function Settings({ onSettingsChange }) {
         console.error('加载设置失败', e)
       }
     }
+    // 加载编号格式配置
+    const numberFormat = getNumberFormatFromStorage()
+    setSettings(prev => ({ ...prev, settlementNumberFormat: numberFormat }))
   }
 
   const saveSettings = () => {
     localStorage.setItem('appSettings', JSON.stringify(settings))
+    // 保存编号格式配置
+    if (settings.settlementNumberFormat) {
+      saveNumberFormatToStorage(settings.settlementNumberFormat)
+    }
     if (onSettingsChange) {
       onSettingsChange(settings)
     }
@@ -121,6 +133,27 @@ function Settings({ onSettingsChange }) {
                       value={settings.defaultDiscount}
                       onChange={(e) => handleSettingChange('defaultDiscount', e.target.value)}
                     />
+                  </div>
+                </div>
+              </div>
+
+              <div className="settings-section">
+                <h5>结算单编号格式</h5>
+                <div className="setting-item">
+                  <label>编号生成格式</label>
+                  <select
+                    value={settings.settlementNumberFormat || 'DATE_SEQUENCE'}
+                    onChange={(e) => handleSettingChange('settlementNumberFormat', e.target.value)}
+                    className="format-select"
+                  >
+                    {Object.entries(SETTLEMENT_NUMBER_FORMATS).map(([key, format]) => (
+                      <option key={key} value={key}>
+                        {format.name} - {format.description}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="format-description">
+                    {SETTLEMENT_NUMBER_FORMATS[settings.settlementNumberFormat || 'DATE_SEQUENCE']?.description}
                   </div>
                 </div>
               </div>

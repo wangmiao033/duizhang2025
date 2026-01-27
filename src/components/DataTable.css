@@ -2,6 +2,14 @@
   width: 100%;
 }
 
+.settlement-number-cell {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #6366f1;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
 .table-tabs {
   display: flex;
   gap: 10px;
