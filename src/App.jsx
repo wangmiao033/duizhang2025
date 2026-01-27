@@ -45,6 +45,7 @@ import Calendar from './components/Calendar.jsx'
 import ProjectProfit from './components/ProjectProfit.jsx'
 import ChannelBilling from './components/ChannelBilling.jsx'
 import BillExport from './components/BillExport.jsx'
+import { StatusTag, StatusSelector, BatchStatusUpdate, STATUS_OPTIONS } from './components/StatusManager.jsx'
 
 function App() {
   const { theme } = useTheme()
@@ -101,7 +102,15 @@ function App() {
     const savedPartners = localStorage.getItem('partners')
     const savedDeliveries = localStorage.getItem('deliveries')
     
-    if (savedRecords) setRecords(JSON.parse(savedRecords))
+    if (savedRecords) {
+      const records = JSON.parse(savedRecords)
+      // 为旧数据添加默认状态
+      const recordsWithStatus = records.map(r => ({
+        ...r,
+        status: r.status || 'pending'
+      }))
+      setRecords(recordsWithStatus)
+    }
     if (savedPartyA) setPartyA(JSON.parse(savedPartyA))
     if (savedPartyB) setPartyB(JSON.parse(savedPartyB))
     if (savedMonth) setSettlementMonth(savedMonth)
@@ -184,7 +193,8 @@ function App() {
     const newRecords = [...records, { 
       ...record, 
       id: Date.now(),
-      settlementAmount: roundedAmount.toFixed(2)
+      settlementAmount: roundedAmount.toFixed(2),
+      status: record.status || 'pending' // 默认状态为"待确认"
     }]
     setRecords(newRecords)
     addHistoryItem('添加记录', { records: newRecords, partyA, partyB, settlementMonth })
@@ -264,6 +274,29 @@ function App() {
     showToast(`已更新 ${ids.length} 条记录`, 'success')
   }
 
+  const handleBatchStatusUpdate = (ids, status) => {
+    setRecords(records.map(r => {
+      if (ids.includes(r.id)) {
+        return { ...r, status }
+      }
+      return r
+    }))
+    setSelectedIds([])
+    const statusInfo = STATUS_OPTIONS.find(s => s.value === status)
+    showToast(`已将 ${ids.length} 条记录状态修改为"${statusInfo?.label || status}"`, 'success')
+  }
+
+  const handleStatusChange = (id, newStatus) => {
+    setRecords(records.map(r => {
+      if (r.id === id) {
+        return { ...r, status: newStatus }
+      }
+      return r
+    }))
+    const statusInfo = STATUS_OPTIONS.find(s => s.value === newStatus)
+    showToast(`状态已修改为"${statusInfo?.label || newStatus}"`, 'success')
+  }
+
   const handleCopyRecord = (newRecord) => {
     const settlementAmount = calculateSettlementAmount(newRecord)
     // 使用四舍五入确保精度
@@ -338,6 +371,9 @@ function App() {
     }
     if (filterOptions.game) {
       result = result.filter(r => r.game && r.game.includes(filterOptions.game))
+    }
+    if (filterOptions.status) {
+      result = result.filter(r => (r.status || 'pending') === filterOptions.status)
     }
     if (filterOptions.minAmount) {
       const min = parseFloat(filterOptions.minAmount)
@@ -990,6 +1026,29 @@ function App() {
         <SummaryCard title="测试费总额" value={`¥${statistics.totalTestingFee.toFixed(2)}`} icon="🧪" />
         <SummaryCard title="平均游戏流水" value={`¥${statistics.avgGameFlow.toFixed(2)}`} icon="📈" />
       </div>
+      <div className="status-summary-section">
+        <h3 className="status-summary-title">📊 状态统计</h3>
+        <div className="status-summary-grid">
+          {STATUS_OPTIONS.map(option => {
+            const count = records.filter(r => (r.status || 'pending') === option.value).length
+            const amount = records
+              .filter(r => (r.status || 'pending') === option.value)
+              .reduce((sum, r) => sum + (parseFloat(r.settlementAmount) || 0), 0)
+            return (
+              <div key={option.value} className="status-summary-card" style={{ borderColor: option.color }}>
+                <div className="status-summary-header">
+                  <span className="status-summary-icon">{option.icon}</span>
+                  <span className="status-summary-label">{option.label}</span>
+                </div>
+                <div className="status-summary-content">
+                  <div className="status-summary-count">{count} 条</div>
+                  <div className="status-summary-amount">¥{amount.toFixed(2)}</div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
       <div className="validator-section">
         <DataValidator 
           records={records} 
@@ -1110,11 +1169,17 @@ function App() {
         <div className="table-section">
           <div className="table-actions">
             {selectedIds.length > 0 && (
-              <BatchEdit
-                selectedIds={selectedIds}
-                records={records}
-                onBatchUpdate={handleBatchUpdate}
-              />
+              <>
+                <BatchEdit
+                  selectedIds={selectedIds}
+                  records={records}
+                  onBatchUpdate={handleBatchUpdate}
+                />
+                <BatchStatusUpdate
+                  selectedIds={selectedIds}
+                  onBatchStatusUpdate={handleBatchStatusUpdate}
+                />
+              </>
             )}
           </div>
           <DataTable
@@ -1131,6 +1196,7 @@ function App() {
             onReorder={handleReorder}
             sortOptions={sortOptions}
             onSortChange={(field, order) => setSortOptions({ field, order })}
+            onStatusChange={handleStatusChange}
           />
         </div>
       </div>

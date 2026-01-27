@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import './FilterSort.css'
+import { STATUS_OPTIONS } from './StatusManager.jsx'
 
 function FilterSort({ onFilterChange, onSortChange }) {
   const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState({
     partner: '',
     game: '',
+    status: '',
     minAmount: '',
     maxAmount: ''
   })
@@ -24,6 +26,7 @@ function FilterSort({ onFilterChange, onSortChange }) {
     const clearedFilters = {
       partner: '',
       game: '',
+      status: '',
       minAmount: '',
       maxAmount: ''
     }
@@ -51,7 +54,7 @@ function FilterSort({ onFilterChange, onSortChange }) {
     }
   }
 
-  const hasActiveFilters = filters.partner || filters.game || filters.minAmount || filters.maxAmount
+  const hasActiveFilters = filters.partner || filters.game || filters.status || filters.minAmount || filters.maxAmount
 
   return (
     <div className="filter-sort">
@@ -84,6 +87,20 @@ function FilterSort({ onFilterChange, onSortChange }) {
                   onChange={(e) => handleFilterChange('game', e.target.value)}
                   placeholder="输入游戏名称"
                 />
+              </div>
+              <div className="filter-group">
+                <label>状态：</label>
+                <select
+                  value={filters.status}
+                  onChange={(e) => handleFilterChange('status', e.target.value)}
+                >
+                  <option value="">全部状态</option>
+                  {STATUS_OPTIONS.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.icon} {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="filter-row">

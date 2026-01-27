@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import DragSort from './DragSort.jsx'
 import CopyRecord from './CopyRecord.jsx'
+import { StatusSelector } from './StatusManager.jsx'
 import './DataTable.css'
 
 function DataTable({ 
@@ -16,7 +17,8 @@ function DataTable({
   onCopyRecord,
   onReorder,
   sortOptions = { field: '', order: 'asc' },
-  onSortChange
+  onSortChange,
+  onStatusChange
 }) {
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({})
@@ -270,6 +272,7 @@ function DataTable({
                           <th>折扣</th>
                           <th>退款</th>
                           <th>结算金额</th>
+                          <th>状态</th>
                           <th>操作</th>
                         </tr>
                       </thead>
@@ -288,6 +291,12 @@ function DataTable({
                             <td className="amount-cell">¥{parseFloat(record.refund || 0).toFixed(2)}</td>
                             <td className="amount-cell settlement-amount">
                               ¥{parseFloat(record.settlementAmount || 0).toFixed(2)}
+                            </td>
+                            <td>
+                              <StatusSelector
+                                currentStatus={record.status || 'pending'}
+                                onStatusChange={(newStatus) => onStatusChange && onStatusChange(record.id, newStatus)}
+                              />
                             </td>
                             <td>
                               {onCopyRecord && <CopyRecord record={record} onCopy={onCopyRecord} />}
@@ -316,6 +325,7 @@ function DataTable({
                           <td className="amount-cell settlement-amount">
                             <strong>¥{group.totalSettlementAmount.toFixed(2)}</strong>
                           </td>
+                          <td>-</td>
                           <td></td>
                         </tr>
                       </tfoot>
@@ -362,13 +372,14 @@ function DataTable({
               <th>折扣</th>
               <th>退款</th>
               <th>结算金额</th>
+              <th>状态</th>
               <th>操作</th>
             </tr>
           </thead>
           <tbody>
             {records.length === 0 ? (
               <tr>
-                <td colSpan="14" className="empty-message">暂无对账记录</td>
+                <td colSpan="15" className="empty-message">暂无对账记录</td>
               </tr>
             ) : (
               records.map((record, index) => (
@@ -491,6 +502,12 @@ function DataTable({
                         ¥{(Math.round(calculateSettlementAmount(editForm) * 100) / 100).toFixed(2)}
                       </td>
                       <td>
+                        <StatusSelector
+                          currentStatus={editForm.status || 'pending'}
+                          onStatusChange={(newStatus) => setEditForm({ ...editForm, status: newStatus })}
+                        />
+                      </td>
+                      <td>
                         <button className="save-btn" onClick={saveEdit}>保存</button>
                         <button className="cancel-btn" onClick={cancelEdit}>取消</button>
                       </td>
@@ -522,6 +539,12 @@ function DataTable({
                         ¥{parseFloat(record.settlementAmount || 0).toFixed(2)}
                       </td>
                       <td>
+                        <StatusSelector
+                          currentStatus={record.status || 'pending'}
+                          onStatusChange={(newStatus) => onStatusChange && onStatusChange(record.id, newStatus)}
+                        />
+                      </td>
+                      <td>
                         {onCopyRecord && <CopyRecord record={record} onCopy={onCopyRecord} />}
                         <button className="edit-btn" onClick={() => startEdit(record)}>编辑</button>
                         <button className="delete-btn" onClick={() => onDeleteRecord(record.id)}>删除</button>
@@ -544,7 +567,7 @@ function DataTable({
                 <td className="amount-cell">
                   <strong>¥{records.reduce((sum, r) => sum + (parseFloat(r.voucher) || 0), 0).toFixed(2)}</strong>
                 </td>
-                <td colSpan="4">-</td>
+                <td colSpan="5">-</td>
                 <td className="amount-cell">
                   <strong>¥{records.reduce((sum, r) => sum + (parseFloat(r.refund) || 0), 0).toFixed(2)}</strong>
                 </td>
@@ -552,7 +575,7 @@ function DataTable({
                   <strong>¥{records.reduce((sum, r) => sum + (parseFloat(r.settlementAmount) || 0), 0).toFixed(2)}</strong>
                 </td>
                 <td>-</td>
-                <td>-</td>
+                <td></td>
               </tr>
             )}
           </tbody>

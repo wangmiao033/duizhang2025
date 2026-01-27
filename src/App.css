@@ -147,6 +147,94 @@
   margin-bottom: 32px;
 }
 
+.status-summary-section {
+  margin-bottom: 32px;
+}
+
+.status-summary-title {
+  margin: 0 0 16px 0;
+  font-size: 1.2rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.status-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.status-summary-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 16px;
+  border: 2px solid;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.status-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.status-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.status-summary-icon {
+  font-size: 1.2rem;
+}
+
+.status-summary-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.status-summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-summary-count {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.status-summary-amount {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .status-summary-title {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .status-summary-card {
+  background: rgba(45, 45, 68, 0.95);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .status-summary-label {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .status-summary-count {
+  color: #f0f0f0;
+}
+
+[data-theme="dark"] .status-summary-amount {
+  color: #b0b0b0;
+}
+
 .main-content {
   display: grid;
   grid-template-columns: 1fr 2fr;
