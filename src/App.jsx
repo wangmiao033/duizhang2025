@@ -23,7 +23,6 @@ import TemplatePresets from './components/TemplatePresets.jsx'
 import GamePresets from './components/GamePresets.jsx'
 import CSVExport from './components/CSVExport.jsx'
 import StatisticsReport from './components/StatisticsReport.jsx'
-import DataComparison from './components/DataComparison.jsx'
 import Settings from './components/Settings.jsx'
 import UserGuide from './components/UserGuide.jsx'
 import QuickActions from './components/QuickActions.jsx'
@@ -1136,9 +1135,6 @@ function App() {
         </div>
       </div>
 
-      <div className="comparison-section">
-        <DataComparison records={records} />
-      </div>
     </>
   )
 
@@ -1152,9 +1148,6 @@ function App() {
       </div>
       <div className="advanced-charts-section">
         <AdvancedCharts records={records} />
-      </div>
-      <div className="comparison-section">
-        <DataComparison records={records} />
       </div>
       <div className="report-section">
         <StatisticsReport records={records} />
