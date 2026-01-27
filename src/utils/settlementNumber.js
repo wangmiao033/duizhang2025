@@ -28,6 +28,12 @@ export const SETTLEMENT_NUMBER_FORMATS = {
     name: '年月+序号',
     pattern: 'JS-{YYYYMM}-{SEQ}',
     description: 'JS-202501-001'
+  },
+  // 格式5: 01+YYYYMMDDHHMM (固定前缀+年月日时分，确保分粒度唯一)
+  PREFIX01_MINUTE_TIMESTAMP: {
+    name: '01+年月日时分',
+    pattern: '01{YYYYMMDDHHMM}',
+    description: '01202601271514'
   }
 }
 
@@ -67,7 +73,8 @@ function formatDate(date, format) {
     DD: day,
     YYYYMMDD: `${year}${month}${day}`,
     YYYYMM: `${year}${month}`,
-    HHMMSS: `${hours}${minutes}${seconds}`
+    HHMMSS: `${hours}${minutes}${seconds}`,
+    HHMM: `${hours}${minutes}` // 时分格式（用于01前缀格式）
   }
 }
 
@@ -92,8 +99,22 @@ function getSequenceNumber(records, date, format, partner = null) {
     case 'MONTH_SEQUENCE':
       prefix = `JS-${dateStr.YYYYMM}-`
       break
+    case 'PREFIX01_MINUTE_TIMESTAMP':
+      // 对于01前缀格式，前缀是 01 + YYYYMMDDHHMM
+      prefix = `01${dateStr.YYYYMMDD}${dateStr.HHMM}`
+      break
     default:
       prefix = `JS-${dateStr.YYYYMMDD}-`
+  }
+  
+  // 对于 PREFIX01_MINUTE_TIMESTAMP 格式，需要特殊处理
+  if (format === 'PREFIX01_MINUTE_TIMESTAMP') {
+    // 查找相同时间戳的编号（同一分钟内创建的记录）
+    const matchingNumbers = records
+      .filter(r => r.settlementNumber && r.settlementNumber.startsWith(prefix))
+      .length
+    // 如果同一分钟内已有记录，添加序号后缀（但这种情况应该很少见）
+    return matchingNumbers
   }
   
   // 查找相同前缀的编号
@@ -135,6 +156,15 @@ export function generateSettlementNumber(records = [], date = new Date(), format
     case 'MONTH_SEQUENCE':
       return `JS-${dateStr.YYYYMM}-${String(seq).padStart(3, '0')}`
     
+    case 'PREFIX01_MINUTE_TIMESTAMP':
+      // 格式：01 + YYYYMMDDHHMM (14位数字)
+      // 如果同一分钟内有多条记录，添加2位序号后缀（变成16位）以确保唯一性
+      const baseNumber = `01${dateStr.YYYYMMDD}${dateStr.HHMM}`
+      if (seq > 0) {
+        return `${baseNumber}${String(seq).padStart(2, '0')}`
+      }
+      return baseNumber
+    
     default:
       return `JS-${dateStr.YYYYMMDD}-${String(seq).padStart(3, '0')}`
   }
@@ -150,7 +180,8 @@ export function validateSettlementNumber(number, format = DEFAULT_FORMAT) {
     DATE_SEQUENCE: /^JS-\d{8}-\d{3}$/,
     MONTH_PARTNER_SEQUENCE: /^JS-\d{6}-[A-Z0-9]{1,10}-\d{3}$/,
     DATETIME: /^SETTLEMENT-\d{8}-\d{6}$/,
-    MONTH_SEQUENCE: /^JS-\d{6}-\d{3}$/
+    MONTH_SEQUENCE: /^JS-\d{6}-\d{3}$/,
+    PREFIX01_MINUTE_TIMESTAMP: /^01\d{12}(\d{2})?$/ // 01 + 12位日期时间，可选2位序号
   }
   
   return patterns[format] ? patterns[format].test(number) : false
