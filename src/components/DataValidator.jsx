@@ -1,180 +1,47 @@
 import React, { useMemo, useState } from 'react'
 import './DataValidator.css'
+import {
+  validateAllRecords,
+  getValidationStatistics,
+  VALIDATION_TYPES,
+  groupIssuesByCategory
+} from '../utils/dataValidation.js'
 
-function DataValidator({ records, onIssueClick }) {
+function DataValidator({ records, onIssueClick, calculateSettlementAmount, onAutoFix }) {
   const [expanded, setExpanded] = useState(true)
-  const [filterType, setFilterType] = useState('all') // all, error, warning
+  const [filterType, setFilterType] = useState('all') // all, error, warning, info
+  const [filterCategory, setFilterCategory] = useState('all') // all, completeness, range, business, consistency, format
 
   const issues = useMemo(() => {
-    const foundIssues = []
+    if (!records || records.length === 0) return []
+    return validateAllRecords(records, calculateSettlementAmount)
+  }, [records, calculateSettlementAmount])
 
-    records.forEach((record, index) => {
-      const recordId = record.id || index
-      
-      // 检查必填字段
-      if (!record.game || record.game.trim() === '') {
-        foundIssues.push({
-          type: 'error',
-          recordIndex: index + 1,
-          recordId,
-          field: '游戏名称',
-          message: '游戏名称不能为空',
-          fixable: true
-        })
-      }
+  const statistics = useMemo(() => {
+    return getValidationStatistics(issues)
+  }, [issues])
 
-      if (!record.partner || record.partner.trim() === '') {
-        foundIssues.push({
-          type: 'warning',
-          recordIndex: index + 1,
-          recordId,
-          field: '合作方',
-          message: '建议填写合作方信息',
-          fixable: true
-        })
-      }
+  const filteredIssues = useMemo(() => {
+    let filtered = issues
 
-      if (!record.gameFlow || parseFloat(record.gameFlow) <= 0) {
-        foundIssues.push({
-          type: 'error',
-          recordIndex: index + 1,
-          recordId,
-          field: '游戏流水',
-          message: '游戏流水必须大于0',
-          fixable: true
-        })
-      }
+    // 按类型筛选
+    if (filterType !== 'all') {
+      filtered = filtered.filter(i => i.type === filterType)
+    }
 
-      // 检查数据合理性
-      const gameFlow = parseFloat(record.gameFlow || 0)
-      const testingFee = parseFloat(record.testingFee || 0)
-      const voucher = parseFloat(record.voucher || 0)
+    // 按类别筛选
+    if (filterCategory !== 'all') {
+      filtered = filtered.filter(i => i.category === filterCategory)
+    }
 
-      if (testingFee + voucher > gameFlow * 0.5) {
-        foundIssues.push({
-          type: 'warning',
-          recordIndex: index + 1,
-          recordId,
-          field: '费用',
-          message: `测试费和代金券之和(${testingFee + voucher})占游戏流水比例较高(${((testingFee + voucher) / gameFlow * 100).toFixed(1)}%)，请确认`,
-          fixable: false
-        })
-      }
+    return filtered
+  }, [issues, filterType, filterCategory])
 
-      if (testingFee + voucher > gameFlow) {
-        foundIssues.push({
-          type: 'error',
-          recordIndex: index + 1,
-          recordId,
-          field: '费用',
-          message: '测试费和代金券之和大于游戏流水，数据异常',
-          fixable: false
-        })
-      }
-
-      // 检查结算金额
-      const settlementAmount = parseFloat(record.settlementAmount || 0)
-      if (settlementAmount < 0) {
-        foundIssues.push({
-          type: 'error',
-          recordIndex: index + 1,
-          recordId,
-          field: '结算金额',
-          message: '结算金额不能为负数',
-          fixable: false
-        })
-      }
-
-      // 检查费率范围
-      const channelFeeRate = parseFloat(record.channelFeeRate || 0)
-      if (channelFeeRate < 0 || channelFeeRate > 100) {
-        foundIssues.push({
-          type: 'error',
-          recordIndex: index + 1,
-          recordId,
-          field: '通道费率',
-          message: '通道费率应在0-100%之间',
-          fixable: true
-        })
-      }
-
-      const taxPoint = parseFloat(record.taxPoint || 0)
-      if (taxPoint < 0 || taxPoint > 100) {
-        foundIssues.push({
-          type: 'error',
-          recordIndex: index + 1,
-          recordId,
-          field: '税点',
-          message: '税点应在0-100%之间',
-          fixable: true
-        })
-      }
-
-      const revenueShareRatio = parseFloat(record.revenueShareRatio || 0)
-      if (revenueShareRatio < 0 || revenueShareRatio > 100) {
-        foundIssues.push({
-          type: 'error',
-          recordIndex: index + 1,
-          recordId,
-          field: '分成比例',
-          message: '分成比例应在0-100%之间',
-          fixable: true
-        })
-      }
-
-      // 检查折扣范围
-      const discount = parseFloat(record.discount || 1)
-      if (discount < 0 || discount > 1) {
-        foundIssues.push({
-          type: 'warning',
-          recordIndex: index + 1,
-          recordId,
-          field: '折扣',
-          message: '折扣应在0-1之间（1表示无折扣）',
-          fixable: true
-        })
-      }
-
-      // 检查结算月份格式
-      if (record.settlementMonth && !/^\d{4}年\d{1,2}月$/.test(record.settlementMonth)) {
-        foundIssues.push({
-          type: 'warning',
-          recordIndex: index + 1,
-          recordId,
-          field: '结算月份',
-          message: '结算月份格式建议为：YYYY年MM月（如：2025年1月）',
-          fixable: true
-        })
-      }
-
-      // 检查重复记录
-      const duplicateRecords = records.filter(r => 
-        r.game === record.game && 
-        r.partner === record.partner &&
-        r.settlementMonth === record.settlementMonth &&
-        r.id !== record.id
-      )
-      if (duplicateRecords.length > 0) {
-        foundIssues.push({
-          type: 'warning',
-          recordIndex: index + 1,
-          recordId,
-          field: '重复记录',
-          message: `可能存在重复记录（相同游戏、合作方、结算月份）`,
-          fixable: false
-        })
-      }
-    })
-
-    return foundIssues
-  }, [records])
-
-  const filteredIssues = filterType === 'all' 
-    ? issues 
-    : issues.filter(i => i.type === filterType)
-
-  const errorCount = issues.filter(i => i.type === 'error').length
-  const warningCount = issues.filter(i => i.type === 'warning').length
+  const handleAutoFix = (issue) => {
+    if (issue.autoFixValue !== undefined && onAutoFix) {
+      onAutoFix(issue.recordId, issue.field, issue.autoFixValue)
+    }
+  }
 
   if (issues.length === 0) {
     return (
@@ -197,9 +64,11 @@ function DataValidator({ records, onIssueClick }) {
           <span className="validator-icon warning">⚠️</span>
           <div>
             <div className="validator-title">
-              发现 {errorCount} 个错误，{warningCount} 个警告
+              发现 {statistics.errors} 个错误，{statistics.warnings} 个警告，{statistics.info} 个提示
             </div>
-            <div className="validator-subtitle">点击展开查看详情</div>
+            <div className="validator-subtitle">
+              共 {statistics.total} 个问题，其中 {statistics.fixable} 个可自动修复
+            </div>
           </div>
         </div>
         <button className="expand-btn">{expanded ? '▼' : '▶'}</button>
@@ -208,24 +77,72 @@ function DataValidator({ records, onIssueClick }) {
       {expanded && (
         <>
           <div className="validator-filters">
-            <button
-              className={`filter-btn ${filterType === 'all' ? 'active' : ''}`}
-              onClick={() => setFilterType('all')}
-            >
-              全部 ({issues.length})
-            </button>
-            <button
-              className={`filter-btn ${filterType === 'error' ? 'active' : ''}`}
-              onClick={() => setFilterType('error')}
-            >
-              错误 ({errorCount})
-            </button>
-            <button
-              className={`filter-btn ${filterType === 'warning' ? 'active' : ''}`}
-              onClick={() => setFilterType('warning')}
-            >
-              警告 ({warningCount})
-            </button>
+            <div className="filter-group">
+              <label>类型：</label>
+              <button
+                className={`filter-btn ${filterType === 'all' ? 'active' : ''}`}
+                onClick={() => setFilterType('all')}
+              >
+                全部 ({statistics.total})
+              </button>
+              <button
+                className={`filter-btn ${filterType === VALIDATION_TYPES.ERROR ? 'active' : ''}`}
+                onClick={() => setFilterType(VALIDATION_TYPES.ERROR)}
+              >
+                错误 ({statistics.errors})
+              </button>
+              <button
+                className={`filter-btn ${filterType === VALIDATION_TYPES.WARNING ? 'active' : ''}`}
+                onClick={() => setFilterType(VALIDATION_TYPES.WARNING)}
+              >
+                警告 ({statistics.warnings})
+              </button>
+              <button
+                className={`filter-btn ${filterType === VALIDATION_TYPES.INFO ? 'active' : ''}`}
+                onClick={() => setFilterType(VALIDATION_TYPES.INFO)}
+              >
+                提示 ({statistics.info})
+              </button>
+            </div>
+            <div className="filter-group">
+              <label>类别：</label>
+              <button
+                className={`filter-btn ${filterCategory === 'all' ? 'active' : ''}`}
+                onClick={() => setFilterCategory('all')}
+              >
+                全部
+              </button>
+              <button
+                className={`filter-btn ${filterCategory === 'completeness' ? 'active' : ''}`}
+                onClick={() => setFilterCategory('completeness')}
+              >
+                完整性 ({statistics.byCategory.completeness.length})
+              </button>
+              <button
+                className={`filter-btn ${filterCategory === 'range' ? 'active' : ''}`}
+                onClick={() => setFilterCategory('range')}
+              >
+                范围 ({statistics.byCategory.range.length})
+              </button>
+              <button
+                className={`filter-btn ${filterCategory === 'business' ? 'active' : ''}`}
+                onClick={() => setFilterCategory('business')}
+              >
+                业务规则 ({statistics.byCategory.business.length})
+              </button>
+              <button
+                className={`filter-btn ${filterCategory === 'consistency' ? 'active' : ''}`}
+                onClick={() => setFilterCategory('consistency')}
+              >
+                一致性 ({statistics.byCategory.consistency.length})
+              </button>
+              <button
+                className={`filter-btn ${filterCategory === 'format' ? 'active' : ''}`}
+                onClick={() => setFilterCategory('format')}
+              >
+                格式 ({statistics.byCategory.format.length})
+              </button>
+            </div>
           </div>
 
           <div className="validator-issues">
@@ -236,16 +153,48 @@ function DataValidator({ records, onIssueClick }) {
                 <div 
                   key={idx} 
                   className={`validator-issue ${issue.type}`}
-                  onClick={() => onIssueClick && onIssueClick(issue.recordId)}
                 >
                   <div className="issue-header">
-                    <span className="issue-type-badge">{issue.type === 'error' ? '错误' : '警告'}</span>
-                    <span className="issue-record">记录 #{issue.recordIndex}</span>
-                    {issue.fixable && <span className="fixable-badge">可修复</span>}
+                    <div className="issue-header-left">
+                      <span className={`issue-type-badge ${issue.type}`}>
+                        {issue.type === VALIDATION_TYPES.ERROR ? '错误' : issue.type === VALIDATION_TYPES.WARNING ? '警告' : '提示'}
+                      </span>
+                      <span className="issue-category-badge">{getCategoryName(issue.category)}</span>
+                      <span className="issue-record" onClick={() => onIssueClick && onIssueClick(issue.recordId)}>
+                        记录 #{issue.recordIndex}
+                      </span>
+                    </div>
+                    <div className="issue-header-right">
+                      {issue.fixable && (
+                        <span className="fixable-badge">
+                          {issue.autoFixValue ? '可自动修复' : '可修复'}
+                        </span>
+                      )}
+                      {issue.autoFixValue && onAutoFix && (
+                        <button 
+                          className="auto-fix-btn"
+                          onClick={() => handleAutoFix(issue)}
+                          title="自动修复"
+                        >
+                          修复
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="issue-content">
-                    <span className="issue-field">{issue.field}:</span>
-                    <span className="issue-message">{issue.message}</span>
+                    <div className="issue-main">
+                      <span className="issue-field">{issue.field}:</span>
+                      <span className="issue-message">{issue.message}</span>
+                    </div>
+                    {issue.suggestion && (
+                      <div className="issue-suggestion">
+                        <span className="suggestion-label">💡 建议：</span>
+                        <span className="suggestion-text">{issue.suggestion}</span>
+                        {issue.autoFixValue && (
+                          <span className="auto-fix-value">（自动修复值：{issue.autoFixValue}）</span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
@@ -255,6 +204,17 @@ function DataValidator({ records, onIssueClick }) {
       )}
     </div>
   )
+}
+
+function getCategoryName(category) {
+  const categoryNames = {
+    completeness: '完整性',
+    range: '范围',
+    business: '业务规则',
+    consistency: '一致性',
+    format: '格式'
+  }
+  return categoryNames[category] || category
 }
 
 export default DataValidator

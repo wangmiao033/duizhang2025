@@ -98,9 +98,23 @@
 
 .validator-filters {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 12px;
   margin-bottom: 16px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
+}
+
+.filter-group label {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 600;
+  min-width: 50px;
 }
 
 .filter-btn {
@@ -161,12 +175,37 @@
   color: #92400e;
 }
 
+.validator-issue.info {
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.8) 0%, rgba(191, 219, 254, 0.8) 100%);
+  border-left: 4px solid #3b82f6;
+  color: #1e40af;
+}
+
+.validator-issue.info .issue-type-badge {
+  background: #3b82f6;
+  color: white;
+}
+
 .issue-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 10px;
   margin-bottom: 8px;
   flex-wrap: wrap;
+}
+
+.issue-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.issue-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .issue-type-badge {
@@ -175,6 +214,15 @@
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.issue-category-badge {
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(100, 116, 139, 0.2);
+  color: #475569;
 }
 
 .validator-issue.error .issue-type-badge {
@@ -190,6 +238,13 @@
 .issue-record {
   font-weight: 700;
   color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.issue-record:hover {
+  color: #3b82f6;
 }
 
 .fixable-badge {
@@ -203,9 +258,58 @@
 
 .issue-content {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.issue-main {
+  display: flex;
   gap: 8px;
   align-items: flex-start;
   flex-wrap: wrap;
+}
+
+.issue-suggestion {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.suggestion-label {
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.suggestion-text {
+  flex: 1;
+  color: #475569;
+}
+
+.auto-fix-value {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.auto-fix-btn {
+  padding: 4px 12px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.auto-fix-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .issue-field {

@@ -1114,11 +1114,22 @@ function App() {
       </div>
       <div className="validator-section">
         <DataValidator 
-          records={records} 
+          records={records}
+          calculateSettlementAmount={calculateSettlementAmount}
           onIssueClick={(recordId) => {
-            // 可以在这里实现跳转到记录的功能
+            // 跳转到记录页面并定位到该记录
             setActiveTab('records')
-            showToast('请手动查找并修复该记录', 'info')
+            // 可以在这里添加滚动到记录的功能
+            showToast('请查找并修复该记录', 'info')
+          }}
+          onAutoFix={(recordId, field, value) => {
+            // 自动修复功能
+            const record = records.find(r => r.id === recordId)
+            if (record) {
+              const updatedRecord = { ...record, [field]: value }
+              updateRecord(recordId, updatedRecord)
+              showToast(`已自动修复记录 #${records.indexOf(record) + 1} 的${field}`, 'success')
+            }
           }}
         />
       </div>
