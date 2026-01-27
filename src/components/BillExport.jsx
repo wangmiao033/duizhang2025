@@ -489,14 +489,32 @@ function BillExport({
     }
   }
 
+  const handleButtonClick = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    console.log('导出账单按钮被点击', { recordsCount: records?.length, showMenu })
+    if (records && records.length > 0) {
+      setShowMenu(!showMenu)
+      console.log('菜单状态切换为:', !showMenu)
+    } else {
+      const errorMsg = '没有可导出的记录，请先添加对账记录'
+      console.warn(errorMsg)
+      onExportError?.(errorMsg)
+    }
+  }
+
+  const handleMenuClick = (e) => {
+    e.stopPropagation()
+  }
+
   return (
     <div className="bill-export">
       <button 
         ref={buttonRef}
-        className={`bill-export-btn ${showMenu ? 'menu-open' : ''}`}
-        onClick={() => setShowMenu(!showMenu)}
-        disabled={!records || records.length === 0}
-        title="导出对账单"
+        className={`bill-export-btn ${showMenu ? 'menu-open' : ''} ${!records || records.length === 0 ? 'disabled' : ''}`}
+        onClick={handleButtonClick}
+        title={records && records.length > 0 ? "导出对账单" : "请先添加对账记录"}
+        type="button"
       >
         📥 导出账单
         <span className="dropdown-arrow">▼</span>
@@ -511,6 +529,7 @@ function BillExport({
           <div 
             ref={menuRef}
             className="bill-export-menu"
+            onClick={handleMenuClick}
             style={{
               top: `${menuPosition.top}px`,
               right: `${menuPosition.right}px`
@@ -518,22 +537,34 @@ function BillExport({
           >
             <button 
               className="export-menu-item" 
-              onClick={exportToExcel}
+              onClick={(e) => {
+                e.stopPropagation()
+                exportToExcel()
+              }}
               title="导出Excel格式的结算确认单"
+              type="button"
             >
               📊 Excel格式
             </button>
             <button 
               className="export-menu-item" 
-              onClick={exportToPDF}
+              onClick={(e) => {
+                e.stopPropagation()
+                exportToPDF()
+              }}
               title="导出PDF格式的对账单"
+              type="button"
             >
               📄 PDF格式
             </button>
             <button 
               className="export-menu-item" 
-              onClick={exportToCSV}
+              onClick={(e) => {
+                e.stopPropagation()
+                exportToCSV()
+              }}
               title="导出CSV格式的数据"
+              type="button"
             >
               📋 CSV格式
             </button>
