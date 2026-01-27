@@ -54,6 +54,8 @@ import {
   isSettlementNumberUnique,
   validateSettlementNumber
 } from './utils/settlementNumber.js'
+import SettlementCycleManager from './components/SettlementCycleManager.jsx'
+import { CYCLE_TYPES, getCurrentCycle, filterRecordsByCycle } from './utils/settlementCycle.js'
 
 function App() {
   const { theme } = useTheme()
@@ -101,6 +103,8 @@ function App() {
   const [deliveries, setDeliveries] = useState([])
   const [channelRecords, setChannelRecords] = useState([])
   const [settlementNumberFormat, setSettlementNumberFormat] = useState(getNumberFormatFromStorage())
+  const [cycleType, setCycleType] = useState(CYCLE_TYPES.MONTHLY)
+  const [selectedCycleKey, setSelectedCycleKey] = useState(null)
 
   // 从localStorage加载数据
   useEffect(() => {
@@ -139,6 +143,11 @@ function App() {
     // 加载编号格式配置
     const savedFormat = getNumberFormatFromStorage()
     setSettlementNumberFormat(savedFormat)
+    
+    // 初始化周期选择（默认当前周期）
+    const currentCycle = getCurrentCycle(CYCLE_TYPES.MONTHLY)
+    setCycleType(CYCLE_TYPES.MONTHLY)
+    setSelectedCycleKey(currentCycle)
   }, [])
 
   // 保存数据到localStorage
@@ -403,13 +412,19 @@ function App() {
   const filteredRecords = useMemo(() => {
     let result = [...records]
 
+    // 周期筛选（优先级最高）
+    if (selectedCycleKey) {
+      result = filterRecordsByCycle(result, selectedCycleKey, cycleType)
+    }
+
     // 搜索筛选
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
       result = result.filter(record => 
         (record.game && record.game.toLowerCase().includes(term)) ||
         (record.partner && record.partner.toLowerCase().includes(term)) ||
-        (record.settlementMonth && record.settlementMonth.toLowerCase().includes(term))
+        (record.settlementMonth && record.settlementMonth.toLowerCase().includes(term)) ||
+        (record.settlementNumber && record.settlementNumber.toLowerCase().includes(term))
       )
     }
 
@@ -1121,6 +1136,24 @@ function App() {
 
   const renderRecords = () => (
     <>
+      <div className="cycle-manager-section">
+        <SettlementCycleManager
+          records={records}
+          selectedCycleKey={selectedCycleKey}
+          cycleType={cycleType}
+          onCycleChange={(cycleKey) => {
+            setSelectedCycleKey(cycleKey)
+            showToast(`已切换到${cycleKey === '未设置' ? '未设置周期' : '周期：' + cycleKey}`, 'info')
+          }}
+          onCycleTypeChange={(newCycleType) => {
+            setCycleType(newCycleType)
+            // 切换周期类型时，重新选择当前周期
+            const currentCycle = getCurrentCycle(newCycleType)
+            setSelectedCycleKey(currentCycle)
+            showToast(`已切换到${newCycleType === CYCLE_TYPES.MONTHLY ? '月度' : newCycleType === CYCLE_TYPES.QUARTERLY ? '季度' : '年度'}视图`, 'info')
+          }}
+        />
+      </div>
       <div className="toolbar-section">
         <SearchFilter 
           searchTerm={searchTerm} 

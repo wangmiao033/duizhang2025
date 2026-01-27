@@ -1,0 +1,348 @@
+.settlement-cycle-manager {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.cycle-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.cycle-type-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cycle-type-selector label {
+  font-size: 0.9rem;
+  color: #495057;
+  font-weight: 500;
+}
+
+.cycle-type-select {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cycle-type-select:hover {
+  border-color: #667eea;
+}
+
+.cycle-type-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.cycle-navigation {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.cycle-nav-btn,
+.cycle-select-btn,
+.cycle-current-btn {
+  padding: 8px 16px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  color: #495057;
+  white-space: nowrap;
+}
+
+.cycle-nav-btn:hover:not(:disabled),
+.cycle-select-btn:hover,
+.cycle-current-btn:hover {
+  background: #f8f9fa;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.cycle-nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cycle-select-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 200px;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  font-weight: 600;
+}
+
+.cycle-select-btn:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.cycle-name {
+  font-weight: 600;
+}
+
+.cycle-stats {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  transition: transform 0.2s;
+}
+
+.cycle-select-btn:hover .dropdown-arrow {
+  transform: translateY(2px);
+}
+
+.cycle-current-btn {
+  background: #10b981;
+  color: white;
+  border: none;
+}
+
+.cycle-current-btn:hover {
+  background: #059669;
+}
+
+/* 周期选择器菜单 */
+.cycle-selector-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 9998;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.cycle-selector-menu {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  width: 90%;
+  max-width: 600px;
+  max-height: 70vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: scaleIn 0.2s ease;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.cycle-selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cycle-selector-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #1f2937;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.cycle-list {
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.empty-cycles {
+  padding: 40px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.cycle-item {
+  padding: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.cycle-item:hover {
+  border-color: #667eea;
+  background: #f8f9ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.cycle-item.active {
+  border-color: #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  font-weight: 600;
+}
+
+.cycle-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.cycle-item-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.cycle-item-date {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.cycle-item-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.stat-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.stat-value.amount {
+  color: #10b981;
+}
+
+/* 暗色主题支持 */
+[data-theme="dark"] .cycle-controls {
+  background: rgba(45, 45, 68, 0.95);
+}
+
+[data-theme="dark"] .cycle-type-selector label {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .cycle-type-select {
+  background: #2d2d2d;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .cycle-nav-btn,
+[data-theme="dark"] .cycle-current-btn {
+  background: #2d2d2d;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .cycle-selector-menu {
+  background: #2d2d2d;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .cycle-selector-header {
+  border-bottom-color: #444;
+}
+
+[data-theme="dark"] .cycle-selector-header h4 {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .cycle-item {
+  background: #3d3d3d;
+  border-color: #555;
+}
+
+[data-theme="dark"] .cycle-item:hover {
+  background: #4d4d4d;
+}
+
+[data-theme="dark"] .cycle-item-name {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .cycle-item-date,
+[data-theme="dark"] .stat-label {
+  color: #b0b0b0;
+}
+
+[data-theme="dark"] .stat-value {
+  color: #e0e0e0;
+}
