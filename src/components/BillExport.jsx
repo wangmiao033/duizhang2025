@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import * as XLSX from 'xlsx'
 import dayjs from 'dayjs'
 import './BillExport.css'
@@ -13,6 +13,35 @@ function BillExport({
   onExportError
 }) {
   const [showMenu, setShowMenu] = useState(false)
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 })
+  const buttonRef = useRef(null)
+  const menuRef = useRef(null)
+
+  // 计算菜单位置
+  useEffect(() => {
+    if (showMenu && buttonRef.current) {
+      const updateMenuPosition = () => {
+        if (buttonRef.current) {
+          const buttonRect = buttonRef.current.getBoundingClientRect()
+          setMenuPosition({
+            top: buttonRect.bottom + 8,
+            right: window.innerWidth - buttonRect.right
+          })
+        }
+      }
+      
+      updateMenuPosition()
+      
+      // 监听滚动和窗口大小变化
+      window.addEventListener('scroll', updateMenuPosition, true)
+      window.addEventListener('resize', updateMenuPosition)
+      
+      return () => {
+        window.removeEventListener('scroll', updateMenuPosition, true)
+        window.removeEventListener('resize', updateMenuPosition)
+      }
+    }
+  }, [showMenu])
 
   const formatNumber = (value) => Number(value || 0)
 
@@ -463,6 +492,7 @@ function BillExport({
   return (
     <div className="bill-export">
       <button 
+        ref={buttonRef}
         className={`bill-export-btn ${showMenu ? 'menu-open' : ''}`}
         onClick={() => setShowMenu(!showMenu)}
         disabled={!records || records.length === 0}
@@ -478,7 +508,14 @@ function BillExport({
             className="bill-export-overlay" 
             onClick={() => setShowMenu(false)}
           />
-          <div className="bill-export-menu">
+          <div 
+            ref={menuRef}
+            className="bill-export-menu"
+            style={{
+              top: `${menuPosition.top}px`,
+              right: `${menuPosition.right}px`
+            }}
+          >
             <button 
               className="export-menu-item" 
               onClick={exportToExcel}
