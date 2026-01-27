@@ -99,6 +99,29 @@ thead th {
   text-transform: none;
 }
 
+thead th.sortable-header {
+  user-select: none;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+thead th.sortable-header:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+}
+
+thead th.sortable-header .sort-icon {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.9rem;
+  vertical-align: middle;
+  transition: opacity 0.2s;
+  font-weight: bold;
+}
+
+thead th.sortable-header:hover .sort-icon {
+  opacity: 1 !important;
+}
+
 tbody tr {
   border-bottom: 1px solid #e9ecef;
   transition: background-color 0.2s;

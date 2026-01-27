@@ -1133,6 +1133,8 @@ function App() {
             onBatchDelete={handleBatchDelete}
             onCopyRecord={handleCopyRecord}
             onReorder={handleReorder}
+            sortOptions={sortOptions}
+            onSortChange={(field, order) => setSortOptions({ field, order })}
           />
         </div>
       </div>

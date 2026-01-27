@@ -14,7 +14,9 @@ function DataTable({
   onSelectRecord,
   onBatchDelete,
   onCopyRecord,
-  onReorder
+  onReorder,
+  sortOptions = { field: '', order: 'asc' },
+  onSortChange
 }) {
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({})
@@ -107,6 +109,28 @@ function DataTable({
     setDragOverIndex(null)
   }
 
+  const handleSort = (field) => {
+    if (!onSortChange) return
+    
+    if (sortOptions.field === field) {
+      // 切换排序顺序
+      const newOrder = sortOptions.order === 'asc' ? 'desc' : 'asc'
+      onSortChange(field, newOrder)
+    } else {
+      // 新的排序字段，默认升序
+      onSortChange(field, 'asc')
+    }
+  }
+
+  const getSortIcon = (field) => {
+    if (sortOptions.field !== field) {
+      return <span className="sort-icon" style={{ opacity: 0.3 }}>⇅</span>
+    }
+    return sortOptions.order === 'asc' 
+      ? <span className="sort-icon">↑</span>
+      : <span className="sort-icon">↓</span>
+  }
+
   return (
     <div className="data-table">
       <div className="table-header">
@@ -139,7 +163,14 @@ function DataTable({
               </th>
               <th>结算月份</th>
               <th>合作方</th>
-              <th>游戏</th>
+              <th 
+                className="sortable-header" 
+                onClick={() => handleSort('game')}
+                style={{ cursor: onSortChange ? 'pointer' : 'default' }}
+                title={onSortChange ? '点击按游戏名称排序' : ''}
+              >
+                游戏 {onSortChange && getSortIcon('game')}
+              </th>
               <th>游戏流水</th>
               <th>测试费</th>
               <th>代金券</th>
