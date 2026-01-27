@@ -2,6 +2,7 @@
   position: relative;
   display: inline-flex;
   align-items: center;
+  z-index: 1;
 }
 
 .history-btn {
@@ -15,6 +16,8 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3);
+  position: relative;
+  z-index: 2;
 }
 
 .history-btn:hover {
@@ -31,6 +34,9 @@
   background: rgba(0, 0, 0, 0.3);
   z-index: 9998;
   animation: fadeIn 0.2s;
+  pointer-events: auto;
+  /* 确保overlay不会遮挡工具栏区域 */
+  backdrop-filter: blur(2px);
 }
 
 @keyframes fadeIn {
@@ -53,6 +59,7 @@
   z-index: 9999;
   animation: slideDown 0.3s;
   overflow: hidden;
+  pointer-events: auto;
 }
 
 @keyframes slideDown {

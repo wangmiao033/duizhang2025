@@ -1015,19 +1015,6 @@ function App() {
 
   const renderRecords = () => (
     <>
-      <div className="config-section">
-        <div className="config-item">
-          <label>结算月份：</label>
-          <input
-            type="text"
-            value={settlementMonth}
-            onChange={(e) => setSettlementMonth(e.target.value)}
-            placeholder="如：2025年9月"
-            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ddd', width: '200px' }}
-          />
-        </div>
-      </div>
-
       <div className="toolbar-section">
         <SearchFilter 
           searchTerm={searchTerm} 

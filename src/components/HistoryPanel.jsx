@@ -48,19 +48,36 @@ function HistoryPanel({ onRestore }) {
   }
 
 
+  const handleButtonClick = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsOpen(!isOpen)
+  }
+
+  const handleOverlayClick = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsOpen(false)
+  }
+
+  const handleContentClick = (e) => {
+    e.stopPropagation()
+  }
+
   return (
     <div className="history-panel">
       <button 
         className="history-btn"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleButtonClick}
+        type="button"
       >
         📜 操作历史 ({history.length})
       </button>
 
       {isOpen && (
         <>
-          <div className="history-overlay" onClick={() => setIsOpen(false)} />
-          <div className="history-content">
+          <div className="history-overlay" onClick={handleOverlayClick} />
+          <div className="history-content" onClick={handleContentClick}>
             <div className="history-header">
               <h4>📜 操作历史</h4>
               <div className="history-actions">

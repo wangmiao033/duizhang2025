@@ -245,6 +245,8 @@
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 10;
 }
 
 .export-filtered-btn,
