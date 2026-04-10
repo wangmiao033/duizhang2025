@@ -15,6 +15,10 @@ const defaultInvoiceForm = {
 
 export function useInvoiceStore({ showToast }) {
   const [invoiceForm, setInvoiceForm] = useState(defaultInvoiceForm)
+
+  const resetInvoiceForm = React.useCallback(() => {
+    setInvoiceForm({ ...defaultInvoiceForm })
+  }, [])
   const [invoiceRecords, setInvoiceRecords] = useState([])
   const [invoiceFilter, setInvoiceFilter] = useState({ keyword: '', status: '全部' })
   const [showVerificationDialog, setShowVerificationDialog] = useState(false)
@@ -36,25 +40,56 @@ export function useInvoiceStore({ showToast }) {
 
   const filteredInvoices = filterInvoiceRecords(invoiceRecords, invoiceFilter)
 
-  const handleAddInvoice = (e) => {
-    e.preventDefault()
-    if (!invoiceForm.title) {
+  /**
+   * 独立新增/编辑页提交：校验规则与历史 handleAddInvoice 一致；编辑时保留 verified / verifiedRecordIds
+   */
+  const submitInvoiceFromForm = (formData, { editId, resetFormAfterAdd = true } = {}) => {
+    if (!formData.title) {
       showToast('请填写发票抬头', 'error')
-      return
+      return false
     }
-    if (!invoiceForm.taxNo) {
+    if (!formData.taxNo) {
       showToast('请填写税号', 'error')
-      return
+      return false
+    }
+    const amountStr = parseFloat(formData.amount || 0).toFixed(2)
+    if (editId != null) {
+      setInvoiceRecords(
+        invoiceRecords.map((item) =>
+          item.id === editId
+            ? {
+                ...item,
+                ...formData,
+                amount: amountStr,
+                id: editId
+              }
+            : item
+        )
+      )
+      showToast('发票记录已更新', 'success')
+      return true
     }
     const newItem = {
-      ...invoiceForm,
+      ...formData,
       id: Date.now(),
-      amount: parseFloat(invoiceForm.amount || 0).toFixed(2)
+      amount: amountStr
     }
     setInvoiceRecords([newItem, ...invoiceRecords])
-    setInvoiceForm({ ...defaultInvoiceForm })
+    if (resetFormAfterAdd) {
+      setInvoiceForm({ ...defaultInvoiceForm })
+    }
     showToast('发票记录已添加', 'success')
+    return true
   }
+
+  const handleAddInvoice = (e) => {
+    e.preventDefault()
+    submitInvoiceFromForm(invoiceForm, { resetFormAfterAdd: true })
+  }
+
+  const updateInvoiceRecord = React.useCallback((id, record) => {
+    setInvoiceRecords((prev) => prev.map((item) => (item.id === id ? { ...record, id } : item)))
+  }, [])
 
   const handleDeleteInvoice = (id) => {
     setInvoiceRecords(invoiceRecords.filter((item) => item.id !== id))
@@ -172,6 +207,7 @@ export function useInvoiceStore({ showToast }) {
   return {
     invoiceForm,
     setInvoiceForm,
+    resetInvoiceForm,
     invoiceRecords,
     setInvoiceRecords,
     invoiceFilter,
@@ -184,6 +220,8 @@ export function useInvoiceStore({ showToast }) {
     setVerificationRecordIds,
     invoiceFileInputRef,
     handleAddInvoice,
+    submitInvoiceFromForm,
+    updateInvoiceRecord,
     handleDeleteInvoice,
     handleOpenVerification,
     handleConfirmVerification,

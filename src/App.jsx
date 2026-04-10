@@ -26,10 +26,19 @@ import OperationHistoryPage from './pages/OperationHistoryPage.jsx'
 import BackupRestorePage from './pages/BackupRestorePage.jsx'
 import ReconciliationCreatePage from './pages/ReconciliationCreatePage.jsx'
 import ReconciliationEditPage from './pages/ReconciliationEditPage.jsx'
+import ChannelReconciliationCreatePage from './pages/ChannelReconciliationCreatePage.jsx'
+import ChannelReconciliationEditPage from './pages/ChannelReconciliationEditPage.jsx'
+import InvoiceCreatePage from './pages/InvoiceCreatePage.jsx'
+import InvoiceEditPage from './pages/InvoiceEditPage.jsx'
+import PaymentCreatePage from './pages/PaymentCreatePage.jsx'
+import PaymentEditPage from './pages/PaymentEditPage.jsx'
 
 function App() {
-  const [activeView, setActiveView] = useState(VIEWS.DASHBOARD)
+  const [activeView, setActiveViewRaw] = useState(VIEWS.DASHBOARD)
   const [reconEditRecordId, setReconEditRecordId] = useState(null)
+  const [channelEditRecordId, setChannelEditRecordId] = useState(null)
+  const [invoiceEditId, setInvoiceEditId] = useState(null)
+  const [paymentEditId, setPaymentEditId] = useState(null)
   const prevActiveViewRef = useRef(activeView)
   const [toast, setToast] = useState({ isVisible: false, message: '', type: 'success' })
 
@@ -41,6 +50,17 @@ function App() {
   const settings = useSettingsStore()
   const recon = useReconciliationStore(settings, showToast)
   const invoice = useInvoiceStore({ showToast })
+  const { resetInvoiceForm } = invoice
+
+  const navigate = useCallback(
+    (view) => {
+      if (view === VIEWS.INVOICE_CREATE) {
+        resetInvoiceForm()
+      }
+      setActiveViewRaw(view)
+    },
+    [resetInvoiceForm]
+  )
 
   const hideToast = useCallback(() => {
     setToast((t) => ({ ...t, isVisible: false }))
@@ -49,6 +69,18 @@ function App() {
   useEffect(() => {
     if (prevActiveViewRef.current === VIEWS.RECON_EDIT && activeView !== VIEWS.RECON_EDIT) {
       setReconEditRecordId(null)
+    }
+    if (
+      prevActiveViewRef.current === VIEWS.CHANNEL_RECON_EDIT &&
+      activeView !== VIEWS.CHANNEL_RECON_EDIT
+    ) {
+      setChannelEditRecordId(null)
+    }
+    if (prevActiveViewRef.current === VIEWS.INVOICE_EDIT && activeView !== VIEWS.INVOICE_EDIT) {
+      setInvoiceEditId(null)
+    }
+    if (prevActiveViewRef.current === VIEWS.PAYMENT_EDIT && activeView !== VIEWS.PAYMENT_EDIT) {
+      setPaymentEditId(null)
     }
     prevActiveViewRef.current = activeView
   }, [activeView])
@@ -74,7 +106,22 @@ function App() {
 
   const openReconciliationEdit = useCallback((id) => {
     setReconEditRecordId(id)
-    setActiveView(VIEWS.RECON_EDIT)
+    setActiveViewRaw(VIEWS.RECON_EDIT)
+  }, [])
+
+  const openChannelReconciliationEdit = useCallback((id) => {
+    setChannelEditRecordId(id)
+    setActiveViewRaw(VIEWS.CHANNEL_RECON_EDIT)
+  }, [])
+
+  const openInvoiceEdit = useCallback((id) => {
+    setInvoiceEditId(id)
+    setActiveViewRaw(VIEWS.INVOICE_EDIT)
+  }, [])
+
+  const openPaymentEdit = useCallback((id) => {
+    setPaymentEditId(id)
+    setActiveViewRaw(VIEWS.PAYMENT_EDIT)
   }, [])
 
   const appCtx = {
@@ -82,10 +129,17 @@ function App() {
     recon,
     invoice,
     showToast,
-    setActiveView,
+    setActiveView: navigate,
+    setActiveViewRaw,
     activeView,
     reconEditRecordId,
-    openReconciliationEdit
+    openReconciliationEdit,
+    channelEditRecordId,
+    openChannelReconciliationEdit,
+    invoiceEditId,
+    openInvoiceEdit,
+    paymentEditId,
+    openPaymentEdit
   }
 
   const handleHeaderSettingsChange = (s) => {
@@ -108,6 +162,10 @@ function App() {
         return <ReconciliationPage variant="master" />
       case VIEWS.RECON_CHANNEL:
         return <ChannelReconciliationPage />
+      case VIEWS.CHANNEL_RECON_CREATE:
+        return <ChannelReconciliationCreatePage />
+      case VIEWS.CHANNEL_RECON_EDIT:
+        return <ChannelReconciliationEditPage />
       case VIEWS.RECON_EXCEPTIONS:
         return <ExceptionsPage />
       case VIEWS.RECON_HISTORY:
@@ -122,6 +180,14 @@ function App() {
       case VIEWS.INVOICE_VERIFY:
       case VIEWS.INVOICE_PAYMENT:
         return <InvoicePage section={activeView} />
+      case VIEWS.INVOICE_CREATE:
+        return <InvoiceCreatePage />
+      case VIEWS.INVOICE_EDIT:
+        return <InvoiceEditPage />
+      case VIEWS.PAYMENT_CREATE:
+        return <PaymentCreatePage />
+      case VIEWS.PAYMENT_EDIT:
+        return <PaymentEditPage />
       case VIEWS.PARTNER_CONTACTS:
       case VIEWS.PARTNER_GAMES:
       case VIEWS.PARTNER_COMPANY:
@@ -159,7 +225,7 @@ function App() {
       <AppStateProvider value={appCtx}>
         <AppShell
           activeView={activeView}
-          onNavigate={setActiveView}
+          onNavigate={navigate}
           onSettingsChange={handleHeaderSettingsChange}
         >
           {renderView()}

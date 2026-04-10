@@ -10,6 +10,10 @@ export const VIEWS = {
   /** 完整编辑（独立页，通常从列表进入，不常驻侧栏） */
   RECON_EDIT: 'recon-edit',
   RECON_CHANNEL: 'recon-channel',
+  /** 渠道对账：完整新增（独立页） */
+  CHANNEL_RECON_CREATE: 'channel-recon-create',
+  /** 渠道对账：完整编辑（独立页） */
+  CHANNEL_RECON_EDIT: 'channel-recon-edit',
   RECON_MASTER: 'recon-master',
   RECON_EXCEPTIONS: 'recon-exceptions',
   /** 对账操作历史（localStorage operationHistory） */
@@ -22,6 +26,10 @@ export const VIEWS = {
   INVOICE_MANAGE: 'invoice-manage',
   INVOICE_VERIFY: 'invoice-verify',
   INVOICE_PAYMENT: 'invoice-payment',
+  INVOICE_CREATE: 'invoice-create',
+  INVOICE_EDIT: 'invoice-edit',
+  PAYMENT_CREATE: 'payment-create',
+  PAYMENT_EDIT: 'payment-edit',
   PARTNER_CONTACTS: 'partner-contacts',
   PARTNER_GAMES: 'partner-games',
   PARTNER_COMPANY: 'partner-company',
@@ -50,6 +58,7 @@ export const SIDEBAR_GROUPS = [
       { view: VIEWS.RECON_RD, label: '研发对账' },
       { view: VIEWS.RECON_CREATE, label: '新增研发对账记录' },
       { view: VIEWS.RECON_CHANNEL, label: '渠道对账' },
+      { view: VIEWS.CHANNEL_RECON_CREATE, label: '新增渠道对账记录' },
       { view: VIEWS.RECON_MASTER, label: '对账总表' },
       { view: VIEWS.RECON_EXCEPTIONS, label: '异常中心' },
       { view: VIEWS.RECON_HISTORY, label: '操作历史' }
@@ -69,8 +78,10 @@ export const SIDEBAR_GROUPS = [
     label: '发票与回款',
     items: [
       { view: VIEWS.INVOICE_MANAGE, label: '发票管理' },
+      { view: VIEWS.INVOICE_CREATE, label: '新增发票' },
       { view: VIEWS.INVOICE_VERIFY, label: '发票核销' },
-      { view: VIEWS.INVOICE_PAYMENT, label: '回款登记' }
+      { view: VIEWS.INVOICE_PAYMENT, label: '回款登记' },
+      { view: VIEWS.PAYMENT_CREATE, label: '新增回款登记' }
     ]
   },
   {
@@ -117,6 +128,8 @@ const VIEW_TITLES = {
   [VIEWS.RECON_CREATE]: '新增研发对账记录',
   [VIEWS.RECON_EDIT]: '编辑研发对账记录',
   [VIEWS.RECON_CHANNEL]: '渠道对账',
+  [VIEWS.CHANNEL_RECON_CREATE]: '新增渠道对账记录',
+  [VIEWS.CHANNEL_RECON_EDIT]: '编辑渠道对账记录',
   [VIEWS.RECON_MASTER]: '对账总表',
   [VIEWS.RECON_EXCEPTIONS]: '异常中心',
   [VIEWS.RECON_HISTORY]: '操作历史',
@@ -125,8 +138,12 @@ const VIEW_TITLES = {
   [VIEWS.SETTLE_CHANNEL]: '渠道结算单',
   [VIEWS.SETTLE_STATUS]: '结算状态',
   [VIEWS.INVOICE_MANAGE]: '发票管理',
+  [VIEWS.INVOICE_CREATE]: '新增发票',
+  [VIEWS.INVOICE_EDIT]: '编辑发票',
   [VIEWS.INVOICE_VERIFY]: '发票核销',
   [VIEWS.INVOICE_PAYMENT]: '回款登记',
+  [VIEWS.PAYMENT_CREATE]: '新增回款登记',
+  [VIEWS.PAYMENT_EDIT]: '编辑回款登记',
   [VIEWS.PARTNER_CONTACTS]: '合作方管理',
   [VIEWS.PARTNER_GAMES]: '游戏管理',
   [VIEWS.PARTNER_COMPANY]: '公司信息',
@@ -152,6 +169,8 @@ const VIEW_DESCRIPTIONS = {
   [VIEWS.RECON_CREATE]: '完整表单录入新记录，与编辑页共用同一套 DataForm 与校验',
   [VIEWS.RECON_EDIT]: '完整编辑已有记录；保存后返回研发对账列表',
   [VIEWS.RECON_CHANNEL]: '渠道对账数据维护与核对',
+  [VIEWS.CHANNEL_RECON_CREATE]: '完整表单录入渠道记录，与编辑页共用 ChannelBillingForm',
+  [VIEWS.CHANNEL_RECON_EDIT]: '完整编辑已有渠道记录；保存后返回渠道对账列表',
   [VIEWS.RECON_MASTER]: '全量对账汇总视图',
   [VIEWS.RECON_EXCEPTIONS]: '差异与异常集中处理',
   [VIEWS.RECON_HISTORY]: '本地操作历史（operationHistory）',
@@ -160,8 +179,12 @@ const VIEW_DESCRIPTIONS = {
   [VIEWS.SETTLE_CHANNEL]: '渠道维度结算',
   [VIEWS.SETTLE_STATUS]: '结算进度与状态跟踪',
   [VIEWS.INVOICE_MANAGE]: '发票开具与台账',
+  [VIEWS.INVOICE_CREATE]: '完整录入发票，与编辑页共用表单与校验',
+  [VIEWS.INVOICE_EDIT]: '完整编辑发票；保存后返回发票管理',
   [VIEWS.INVOICE_VERIFY]: '发票核销与勾稽',
   [VIEWS.INVOICE_PAYMENT]: '回款登记与流水',
+  [VIEWS.PAYMENT_CREATE]: '完整录入回款/寄送登记',
+  [VIEWS.PAYMENT_EDIT]: '完整编辑回款登记；保存后返回列表',
   [VIEWS.PARTNER_CONTACTS]: '合作方联系人维护',
   [VIEWS.PARTNER_GAMES]: '游戏/项目主数据',
   [VIEWS.PARTNER_COMPANY]: '本公司信息',
@@ -183,6 +206,8 @@ export const VIEW_ICONS = {
   [VIEWS.RECON_CREATE]: '增',
   [VIEWS.RECON_EDIT]: '改',
   [VIEWS.RECON_CHANNEL]: '渠',
+  [VIEWS.CHANNEL_RECON_CREATE]: '增',
+  [VIEWS.CHANNEL_RECON_EDIT]: '改',
   [VIEWS.RECON_MASTER]: '总',
   [VIEWS.RECON_EXCEPTIONS]: '异',
   [VIEWS.RECON_HISTORY]: '史',
@@ -191,8 +216,12 @@ export const VIEW_ICONS = {
   [VIEWS.SETTLE_CHANNEL]: '结',
   [VIEWS.SETTLE_STATUS]: '态',
   [VIEWS.INVOICE_MANAGE]: '票',
+  [VIEWS.INVOICE_CREATE]: '增',
+  [VIEWS.INVOICE_EDIT]: '改',
   [VIEWS.INVOICE_VERIFY]: '核',
   [VIEWS.INVOICE_PAYMENT]: '款',
+  [VIEWS.PAYMENT_CREATE]: '增',
+  [VIEWS.PAYMENT_EDIT]: '改',
   [VIEWS.PARTNER_CONTACTS]: '人',
   [VIEWS.PARTNER_GAMES]: '游',
   [VIEWS.PARTNER_COMPANY]: '司',
@@ -232,6 +261,30 @@ export function getBreadcrumb(view) {
       { label: '对账管理' },
       { label: getPageTitle(VIEWS.RECON_RD), view: VIEWS.RECON_RD },
       { label: getPageTitle(VIEWS.RECON_EDIT), current: true }
+    ]
+  }
+  if (view === VIEWS.CHANNEL_RECON_EDIT) {
+    return [
+      { label: '工作台', view: VIEWS.DASHBOARD },
+      { label: '对账管理' },
+      { label: getPageTitle(VIEWS.RECON_CHANNEL), view: VIEWS.RECON_CHANNEL },
+      { label: getPageTitle(VIEWS.CHANNEL_RECON_EDIT), current: true }
+    ]
+  }
+  if (view === VIEWS.INVOICE_EDIT) {
+    return [
+      { label: '工作台', view: VIEWS.DASHBOARD },
+      { label: '发票与回款' },
+      { label: getPageTitle(VIEWS.INVOICE_MANAGE), view: VIEWS.INVOICE_MANAGE },
+      { label: getPageTitle(VIEWS.INVOICE_EDIT), current: true }
+    ]
+  }
+  if (view === VIEWS.PAYMENT_EDIT) {
+    return [
+      { label: '工作台', view: VIEWS.DASHBOARD },
+      { label: '发票与回款' },
+      { label: getPageTitle(VIEWS.INVOICE_PAYMENT), view: VIEWS.INVOICE_PAYMENT },
+      { label: getPageTitle(VIEWS.PAYMENT_EDIT), current: true }
     ]
   }
   const group = SIDEBAR_GROUPS.find((g) => g.items.some((i) => i.view === view))

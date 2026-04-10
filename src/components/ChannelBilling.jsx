@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react'
+import React, { useState, useMemo, useRef } from 'react'
 import * as XLSX from 'xlsx'
 import AdminWorkspace from '@/components/admin/AdminWorkspace.jsx'
 import AdminFilterBar from '@/components/admin/AdminFilterBar.jsx'
@@ -6,6 +6,9 @@ import AdminActionBar from '@/components/admin/AdminActionBar.jsx'
 import AdminStatsRow from '@/components/admin/AdminStatsRow.jsx'
 import '@/components/reconciliation/reconciliation-admin.css'
 import { useAppState } from '@/app/AppStateContext.jsx'
+import ChannelLightDrawer from '@/components/channel/ChannelLightDrawer.jsx'
+import { initialForm, buildRecordFromForm } from '@/domain/channel/channelBillingForm.js'
+import { VIEWS } from '@/app/routes.js'
 import './ChannelBilling.css'
 
 const PERIOD_OPTIONS = [
@@ -71,33 +74,13 @@ function recordMatchesStatusFilter(record, statusFilter) {
   return true
 }
 
-const initialForm = {
-  channelName: '',
-  gameName: '',
-  startDate: '',
-  endDate: '',
-  flow: '',
-  voucherCost: '',
-  noWorryCost: '',
-  refundCost: '',
-  testCost: '',
-  welfareCost: '',
-  shareRate: '30',
-  taxRate: '5',
-  gatewayCost: '',
-  settlementAmount: '',
-  remark: ''
-}
-
 function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpdateRecord, onDeleteRecord }) {
-  const { showToast } = useAppState()
+  const { showToast, setActiveView, openChannelReconciliationEdit } = useAppState()
   const importRef = useRef(null)
 
-  const [formData, setFormData] = useState(initialForm)
   const [expandedGames, setExpandedGames] = useState({})
   const [viewMode, setViewMode] = useState('byGame')
-  const [editingId, setEditingId] = useState(null)
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [lightDrawerRecord, setLightDrawerRecord] = useState(null)
 
   const [periodFilter, setPeriodFilter] = useState('all')
   const [filterMonth, setFilterMonth] = useState('')
@@ -107,50 +90,6 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
   const [searchTerm, setSearchTerm] = useState('')
 
   const [selectedIds, setSelectedIds] = useState([])
-
-  const calculateBillingAmount = (data) => {
-    const flow = parseFloat(data.flow || 0)
-    const voucher = parseFloat(data.voucherCost || 0)
-    const noWorry = parseFloat(data.noWorryCost || 0)
-    const refund = parseFloat(data.refundCost || 0)
-    const test = parseFloat(data.testCost || 0)
-    const welfare = parseFloat(data.welfareCost || 0)
-    return flow - voucher - noWorry - refund - test - welfare
-  }
-
-  const calculateShareAmount = (data) => {
-    const billingAmount = calculateBillingAmount(data)
-    const shareRate = parseFloat(data.shareRate || 0) / 100
-    return billingAmount * shareRate
-  }
-
-  const calculateSettlement = (data) => {
-    const shareAmount = calculateShareAmount(data)
-    const gatewayCost = parseFloat(data.gatewayCost || 0)
-    const taxRate = parseFloat(data.taxRate || 0) / 100
-    const taxAmount = shareAmount * taxRate
-    return shareAmount - gatewayCost - taxAmount
-  }
-
-  const buildRecordFromForm = (fd) => {
-    const billingAmount = calculateBillingAmount(fd)
-    const shareAmount = calculateShareAmount(fd)
-    return {
-      ...fd,
-      flow: parseFloat(fd.flow || 0),
-      voucherCost: parseFloat(fd.voucherCost || 0),
-      noWorryCost: parseFloat(fd.noWorryCost || 0),
-      refundCost: parseFloat(fd.refundCost || 0),
-      testCost: parseFloat(fd.testCost || 0),
-      welfareCost: parseFloat(fd.welfareCost || 0),
-      billingAmount,
-      shareRate: parseFloat(fd.shareRate || 0),
-      shareAmount,
-      taxRate: parseFloat(fd.taxRate || 0),
-      gatewayCost: parseFloat(fd.gatewayCost || 0),
-      settlementAmount: parseFloat(fd.settlementAmount || 0)
-    }
-  }
 
   const channelOptions = useMemo(() => {
     const set = new Set()
@@ -266,94 +205,6 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
       .sort((a, b) => b.totalSettlement - a.totalSettlement)
   }, [filteredRecords])
 
-  useEffect(() => {
-    if (!drawerOpen) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [drawerOpen])
-
-  const handleInputChange = (field, value) => {
-    const newFormData = { ...formData, [field]: value }
-
-    if (
-      [
-        'flow',
-        'voucherCost',
-        'noWorryCost',
-        'refundCost',
-        'testCost',
-        'welfareCost',
-        'shareRate',
-        'taxRate',
-        'gatewayCost'
-      ].includes(field)
-    ) {
-      const settlement = calculateSettlement(newFormData)
-      newFormData.settlementAmount = settlement.toFixed(2)
-    }
-
-    setFormData(newFormData)
-  }
-
-  const resetForm = () => {
-    setFormData({ ...initialForm })
-    setEditingId(null)
-  }
-
-  const closeDrawer = () => {
-    setDrawerOpen(false)
-    resetForm()
-  }
-
-  const openDrawerAdd = () => {
-    resetForm()
-    setDrawerOpen(true)
-  }
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-
-    if (!formData.channelName || !formData.gameName) {
-      window.alert('请填写必填项：渠道名称、游戏名称')
-      return
-    }
-
-    const record = buildRecordFromForm(formData)
-
-    if (editingId) {
-      onUpdateRecord(editingId, record)
-    } else {
-      onAddRecord(record)
-    }
-
-    closeDrawer()
-  }
-
-  const handleEdit = (record) => {
-    setFormData({
-      channelName: record.channelName || '',
-      gameName: record.gameName || '',
-      startDate: record.startDate || '',
-      endDate: record.endDate || '',
-      flow: String(record.flow || ''),
-      voucherCost: String(record.voucherCost || ''),
-      noWorryCost: String(record.noWorryCost || ''),
-      refundCost: String(record.refundCost || ''),
-      testCost: String(record.testCost || ''),
-      welfareCost: String(record.welfareCost || ''),
-      shareRate: String(record.shareRate || '30'),
-      taxRate: String(record.taxRate || '5'),
-      gatewayCost: String(record.gatewayCost || ''),
-      settlementAmount: String(record.settlementAmount || ''),
-      remark: record.remark || ''
-    })
-    setEditingId(record.id)
-    setDrawerOpen(true)
-  }
-
   const handleDelete = (id) => {
     if (window.confirm('确定要删除这条渠道记录吗？')) {
       onDeleteRecord(id)
@@ -377,8 +228,6 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
     }
     return `¥${Number(amount).toFixed(2)}`
   }
-
-  const fmtPlain = (n) => `¥${(Number(n) || 0).toFixed(2)}`
 
   const allFilteredIds = useMemo(() => filteredRecords.map((r) => r.id), [filteredRecords])
   const allSelected =
@@ -539,25 +388,6 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
     showToast('已重置筛选条件', 'info')
   }
 
-  const previewSettlement = calculateSettlement(formData)
-
-  const commonChannels = [
-    '广州触点互联网科技有限公司',
-    '广州能动科技有限公司',
-    '深圳龙魂网络科技有限公司',
-    '华为应用市场',
-    'vivo应用商店',
-    'OPPO应用商店',
-    '小米应用商店',
-    '百度移动游戏',
-    '九游游戏中心',
-    '爱趣聚合',
-    '233乐园',
-    '277游戏',
-    '3733游戏',
-    '3387游戏'
-  ]
-
   return (
     <AdminWorkspace className="channel-rd">
       <AdminFilterBar>
@@ -650,16 +480,12 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
       <AdminActionBar>
         <div className="rec-toolbar">
           <div className="rec-toolbar__primary">
-            <button type="button" className="rec-btn rec-btn--primary" onClick={openDrawerAdd}>
-              快速新增
-            </button>
             <button
               type="button"
-              className="rec-btn rec-btn--secondary"
-              disabled
-              title="渠道独立完整录入页将在后续版本提供"
+              className="rec-btn rec-btn--primary"
+              onClick={() => setActiveView(VIEWS.CHANNEL_RECON_CREATE)}
             >
-              完整录入
+              新增记录
             </button>
             <button type="button" className="rec-btn rec-btn--secondary" onClick={() => importRef.current?.click()}>
               Excel导入
@@ -824,7 +650,18 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                                   <td>{record.taxRate || 5}%</td>
                                   <td className="settlement">{formatMoney(settlement)}</td>
                                   <td className="actions">
-                                    <button type="button" className="edit-btn" onClick={() => handleEdit(record)}>
+                                    <button
+                                      type="button"
+                                      className="edit-btn"
+                                      onClick={() => setLightDrawerRecord(record)}
+                                    >
+                                      查看
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="edit-btn"
+                                      onClick={() => openChannelReconciliationEdit(record.id)}
+                                    >
                                       编辑
                                     </button>
                                     <button type="button" className="delete-btn" onClick={() => handleDelete(record.id)}>
@@ -935,7 +772,18 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                         <td>{record.voucherCost || '-'}</td>
                         <td className="settlement">{formatMoney(parseFloat(record.settlementAmount) || 0)}</td>
                         <td className="actions">
-                          <button type="button" className="edit-btn" onClick={() => handleEdit(record)}>
+                          <button
+                            type="button"
+                            className="edit-btn"
+                            onClick={() => setLightDrawerRecord(record)}
+                          >
+                            查看
+                          </button>
+                          <button
+                            type="button"
+                            className="edit-btn"
+                            onClick={() => openChannelReconciliationEdit(record.id)}
+                          >
                             编辑
                           </button>
                           <button type="button" className="delete-btn" onClick={() => handleDelete(record.id)}>
@@ -968,230 +816,13 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
         </div>
       </div>
 
-      {drawerOpen && (
-        <>
-          <button type="button" className="rec-drawer-backdrop" aria-label="关闭抽屉" onClick={closeDrawer} />
-          <aside className="rec-drawer channel-rd__drawer" role="dialog" aria-modal="true" aria-labelledby="channel-drawer-title">
-            <div className="rec-drawer__head">
-              <h2 id="channel-drawer-title" className="rec-drawer__title">
-                {editingId ? '编辑渠道记录' : '快速新增 · 渠道'}
-              </h2>
-              <button type="button" className="rec-drawer__close" onClick={closeDrawer} aria-label="关闭">
-                ×
-              </button>
-            </div>
-            <div className="rec-drawer__body">
-              <form id="channel-drawer-form" onSubmit={handleSubmit} className="channel-form channel-form--drawer">
-                <div className="form-section-title">渠道信息</div>
-                <div className="form-row">
-                  <div className="form-group full-width">
-                    <label>渠道/公司简称 *</label>
-                    <input
-                      type="text"
-                      list="channel-list-drawer"
-                      value={formData.channelName}
-                      onChange={(e) => handleInputChange('channelName', e.target.value)}
-                      placeholder="如：广州触点互联网科技有限公司"
-                      required className="admin-input"
-                    />
-                    <datalist id="channel-list-drawer">
-                      {commonChannels.map((ch) => (
-                        <option key={ch} value={ch} />
-                      ))}
-                    </datalist>
-                  </div>
-                </div>
-
-                <div className="form-section-title">游戏与结算周期</div>
-                <div className="form-row">
-                  <div className="form-group full-width">
-                    <label>游戏名称 *</label>
-                    <input
-                      type="text"
-                      value={formData.gameName}
-                      onChange={(e) => handleInputChange('gameName', e.target.value)}
-                      placeholder="如：一起来修仙(0.05折)"
-                      required
-                      className="admin-input"
-                    />
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>结算开始日期</label>
-                    <input
-                      type="date"
-                      value={formData.startDate}
-                      onChange={(e) => handleInputChange('startDate', e.target.value)}
-                      className="admin-input"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>结算结束日期</label>
-                    <input
-                      type="date"
-                      value={formData.endDate}
-                      onChange={(e) => handleInputChange('endDate', e.target.value)}
-                      className="admin-input"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-section-title">流水与费用</div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>后台流水</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={formData.flow}
-                      onChange={(e) => handleInputChange('flow', e.target.value)}
-                      className="admin-input"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>代金券</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={formData.voucherCost}
-                      onChange={(e) => handleInputChange('voucherCost', e.target.value)}
-                      className="admin-input"
-                    />
-                  </div>
-                </div>
-                <div className="form-row three-col">
-                  <div className="form-group">
-                    <label>无忧试</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={formData.noWorryCost}
-                      onChange={(e) => handleInputChange('noWorryCost', e.target.value)}
-                      className="admin-input"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>玩家退款</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={formData.refundCost}
-                      onChange={(e) => handleInputChange('refundCost', e.target.value)}
-                      className="admin-input"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>测试费</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={formData.testCost}
-                      onChange={(e) => handleInputChange('testCost', e.target.value)}
-                      className="admin-input"
-                    />
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>福利币</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={formData.welfareCost}
-                      onChange={(e) => handleInputChange('welfareCost', e.target.value)}
-                      className="admin-input"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>计费金额（自动）</label>
-                    <input type="text" value={formatMoney(calculateBillingAmount(formData))} readOnly className="admin-input readonly-input" />
-                  </div>
-                </div>
-
-                <div className="form-section-title">分成计算</div>
-                <div className="form-row three-col">
-                  <div className="form-group">
-                    <label>分成比例(%)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={formData.shareRate}
-                      onChange={(e) => handleInputChange('shareRate', e.target.value)}
-                      className="admin-input"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>分成金额（自动）</label>
-                    <input type="text" value={formatMoney(calculateShareAmount(formData))} readOnly className="admin-input readonly-input" />
-                  </div>
-                  <div className="form-group">
-                    <label>税率(%)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={formData.taxRate}
-                      onChange={(e) => handleInputChange('taxRate', e.target.value)}
-                      className="admin-input"
-                    />
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>支付通道费</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={formData.gatewayCost}
-                      onChange={(e) => handleInputChange('gatewayCost', e.target.value)}
-                      className="admin-input"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-section-title">结算</div>
-                <div className="form-row">
-                  <div className="form-group settlement-group full-width">
-                    <label>结算金额</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={formData.settlementAmount}
-                      onChange={(e) => handleInputChange('settlementAmount', e.target.value)}
-                      className="admin-input settlement-input"
-                    />
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group full-width">
-                    <label>备注</label>
-                    <input
-                      type="text"
-                      value={formData.remark}
-                      onChange={(e) => handleInputChange('remark', e.target.value)}
-                      className="admin-input"
-                    />
-                  </div>
-                </div>
-              </form>
-            </div>
-            <div className="rec-drawer__footer">
-              <div className="rec-drawer__preview">
-                <span className="rec-drawer__preview-label">预计结算金额</span>
-                <span className="rec-drawer__preview-value">{fmtPlain(previewSettlement)}</span>
-              </div>
-              <div className="rec-drawer__footer-actions">
-                <button type="button" className="rec-btn rec-btn--ghost" onClick={closeDrawer}>
-                  取消
-                </button>
-                <button type="submit" className="rec-btn rec-btn--primary" form="channel-drawer-form">
-                  保存
-                </button>
-              </div>
-            </div>
-          </aside>
-        </>
-      )}
+      <ChannelLightDrawer
+        open={Boolean(lightDrawerRecord)}
+        record={lightDrawerRecord}
+        onClose={() => setLightDrawerRecord(null)}
+        onUpdateRecord={onUpdateRecord}
+        onNavigateToFullEdit={(id) => openChannelReconciliationEdit(id)}
+      />
     </AdminWorkspace>
   )
 }

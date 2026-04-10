@@ -1,0 +1,78 @@
+.page-container--invoice-form .page-container-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.invoice-form--page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0 12px;
+  min-width: 0;
+}
+
+.invoice-form__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.invoice-form__row--two {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.invoice-form__row--two > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.invoice-form__quick {
+  margin-top: 8px;
+}
+
+.invoice-table--workspace {
+  overflow-x: auto;
+}
+
+.invoice-table-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.invoice-rd__table-card {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.page-container--payment-form .page-container-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.payment-form-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 0 12px;
+}
+
+.payment-form-page .delivery-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.payment-form-page .form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.payment-rd__table-card {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}

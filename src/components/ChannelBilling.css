@@ -1079,6 +1079,30 @@
   flex: 1 1 100%;
 }
 
+/* 独立新增/编辑页：完整表单（非抽屉） */
+.channel-form--page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0 12px;
+  min-width: 0;
+}
+
+.channel-form--page .form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.channel-form--page .form-group {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.channel-form--page .form-group.full-width {
+  flex: 1 1 100%;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
