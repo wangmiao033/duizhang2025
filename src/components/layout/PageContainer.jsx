@@ -1,10 +1,10 @@
 import React from 'react'
 import './PageContainer.css'
 
-function PageContainer({ title, description, actions, filters, children }) {
+function PageContainer({ title, description, actions, filters, children, hideHeader = false, className = '' }) {
   return (
-    <div className="page-container">
-      {(title || actions) && (
+    <div className={`page-container ${className}`.trim()}>
+      {!hideHeader && (title || actions) && (
         <div className="page-container-header">
           <div className="page-container-titles">
             {title && <h2 className="page-container-title">{title}</h2>}

@@ -18,7 +18,10 @@ function DataTable({
   onReorder,
   sortOptions = { field: '', order: 'asc' },
   onSortChange,
-  onStatusChange
+  onStatusChange,
+  columnPreset = 'full',
+  useDrawerForEdit = false,
+  onRequestEdit
 }) {
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({})
@@ -26,8 +29,13 @@ function DataTable({
   const [dragOverIndex, setDragOverIndex] = useState(null)
   const [viewMode, setViewMode] = useState('list') // 'byPartner' or 'list'
   const [expandedPartners, setExpandedPartners] = useState({})
+  const compact = columnPreset === 'compact'
 
   const startEdit = (record) => {
+    if (useDrawerForEdit && onRequestEdit) {
+      onRequestEdit(record)
+      return
+    }
     setEditingId(record.id)
     setEditForm({ ...record })
   }
@@ -342,7 +350,7 @@ function DataTable({
         </div>
       ) : (
         <div className="table-wrapper">
-          <table>
+          <table className={compact ? 'data-table--compact' : ''}>
           <thead>
             <tr>
               <th style={{ width: '50px' }}>
@@ -368,15 +376,38 @@ function DataTable({
               >
                 游戏 {onSortChange && getSortIcon('game')}
               </th>
-              <th>游戏流水</th>
-              <th>测试费</th>
-              <th>代金券</th>
-              <th>通道费率</th>
-              <th>税点</th>
-              <th>分成比例</th>
-              <th>折扣</th>
-              <th>退款</th>
-              <th>结算金额</th>
+              {!compact && (
+                <>
+                  <th>游戏流水</th>
+                  <th>测试费</th>
+                  <th>代金券</th>
+                  <th>通道费率</th>
+                  <th>税点</th>
+                  <th>分成比例</th>
+                  <th>折扣</th>
+                  <th>退款</th>
+                  <th>结算金额</th>
+                </>
+              )}
+              {compact && (
+                <>
+                  <th
+                    className="sortable-header"
+                    onClick={() => handleSort('gameFlow')}
+                    style={{ cursor: onSortChange ? 'pointer' : 'default' }}
+                  >
+                    游戏流水 {onSortChange && getSortIcon('gameFlow')}
+                  </th>
+                  <th>分成比例</th>
+                  <th
+                    className="sortable-header"
+                    onClick={() => handleSort('settlementAmount')}
+                    style={{ cursor: onSortChange ? 'pointer' : 'default' }}
+                  >
+                    结算金额 {onSortChange && getSortIcon('settlementAmount')}
+                  </th>
+                </>
+              )}
               <th>状态</th>
               <th>操作</th>
             </tr>
@@ -384,7 +415,7 @@ function DataTable({
           <tbody>
             {records.length === 0 ? (
               <tr>
-                <td colSpan="16" className="empty-message">暂无对账记录</td>
+                <td colSpan={compact ? 10 : 16} className="empty-message">暂无对账记录</td>
               </tr>
             ) : (
               records.map((record, index) => (
@@ -397,7 +428,7 @@ function DataTable({
                   onDrop={(e) => handleDrop(e, index)}
                   onDragEnd={handleDragEnd}
                 >
-                  {editingId === record.id ? (
+                  {editingId === record.id && !useDrawerForEdit ? (
                     <>
                       <td>
                         <input
@@ -545,17 +576,29 @@ function DataTable({
                       <td>{record.settlementMonth || '-'}</td>
                       <td>{record.partner || '-'}</td>
                       <td>{record.game || '-'}</td>
-                      <td className="amount-cell">¥{parseFloat(record.gameFlow || 0).toFixed(2)}</td>
-                      <td className="amount-cell">¥{parseFloat(record.testingFee || 0).toFixed(2)}</td>
-                      <td className="amount-cell">¥{parseFloat(record.voucher || 0).toFixed(2)}</td>
-                      <td>{record.channelFeeRate || '0'}%</td>
-                      <td>{record.taxPoint || '0'}%</td>
-                      <td>{record.revenueShareRatio || '0'}%</td>
-                      <td>{record.discount || '0'}</td>
-                      <td className="amount-cell">¥{parseFloat(record.refund || 0).toFixed(2)}</td>
-                      <td className="amount-cell settlement-amount">
-                        ¥{parseFloat(record.settlementAmount || 0).toFixed(2)}
-                      </td>
+                      {compact ? (
+                        <>
+                          <td className="amount-cell">¥{parseFloat(record.gameFlow || 0).toFixed(2)}</td>
+                          <td>{record.revenueShareRatio || '0'}%</td>
+                          <td className="amount-cell settlement-amount">
+                            ¥{parseFloat(record.settlementAmount || 0).toFixed(2)}
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="amount-cell">¥{parseFloat(record.gameFlow || 0).toFixed(2)}</td>
+                          <td className="amount-cell">¥{parseFloat(record.testingFee || 0).toFixed(2)}</td>
+                          <td className="amount-cell">¥{parseFloat(record.voucher || 0).toFixed(2)}</td>
+                          <td>{record.channelFeeRate || '0'}%</td>
+                          <td>{record.taxPoint || '0'}%</td>
+                          <td>{record.revenueShareRatio || '0'}%</td>
+                          <td>{record.discount || '0'}</td>
+                          <td className="amount-cell">¥{parseFloat(record.refund || 0).toFixed(2)}</td>
+                          <td className="amount-cell settlement-amount">
+                            ¥{parseFloat(record.settlementAmount || 0).toFixed(2)}
+                          </td>
+                        </>
+                      )}
                       <td>
                         <StatusSelector
                           currentStatus={record.status || 'pending'}
@@ -572,7 +615,7 @@ function DataTable({
                 </tr>
               ))
             )}
-            {records.length > 0 && (
+            {records.length > 0 && !compact && (
               <tr className="total-row">
                 <td colSpan="3"><strong>合计</strong></td>
                 <td className="amount-cell">
@@ -593,6 +636,23 @@ function DataTable({
                 </td>
                 <td>-</td>
                 <td></td>
+              </tr>
+            )}
+            {records.length > 0 && compact && (
+              <tr className="total-row">
+                <td />
+                <td colSpan={4}>
+                  <strong>合计</strong>
+                </td>
+                <td className="amount-cell">
+                  <strong>¥{records.reduce((sum, r) => sum + (parseFloat(r.gameFlow) || 0), 0).toFixed(2)}</strong>
+                </td>
+                <td>—</td>
+                <td className="amount-cell settlement-amount">
+                  <strong>¥{records.reduce((sum, r) => sum + (parseFloat(r.settlementAmount) || 0), 0).toFixed(2)}</strong>
+                </td>
+                <td>—</td>
+                <td />
               </tr>
             )}
           </tbody>

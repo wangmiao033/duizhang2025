@@ -115,7 +115,7 @@ export function useReconciliationStore(settings, showToast) {
         const isUnique = isSettlementNumberUnique(records, updatedRecord.settlementNumber, id)
         if (!isUnique) {
           showToast('结算单编号已存在，请使用其他编号', 'error')
-          return
+          return false
         }
       }
       const roundedStr = formatSettlementAmountString(updatedRecord)
@@ -126,6 +126,7 @@ export function useReconciliationStore(settings, showToast) {
       )
       addHistoryItem('更新记录', { records, partyA, partyB, settlementMonth })
       showToast('记录更新成功！', 'success')
+      return true
     },
     [records, partyA, partyB, settlementMonth, showToast]
   )

@@ -43,3 +43,20 @@
     padding: 20px 16px;
   }
 }
+
+/* 研发对账：浅灰工作台底，弱化主内容区「卡片舞台」感 */
+.app-main--rd-recon {
+  background: #f6f7fb;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+.app-main--rd-recon:hover {
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme='dark'] .app-main--rd-recon {
+  background: #1a1d2e;
+  border-color: rgba(148, 163, 184, 0.2);
+}

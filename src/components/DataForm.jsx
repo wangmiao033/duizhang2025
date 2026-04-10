@@ -2,10 +2,27 @@ import React, { useState, useEffect } from 'react'
 import './DataForm.css'
 import { findGamePreset } from './GamePresets.jsx'
 import GamePresets from './GamePresets.jsx'
+import { STATUS_OPTIONS } from './StatusManager.jsx'
 
-function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partners = [], onAddPartner }) {
+function DataForm({
+  onAddRecord,
+  onUpdateRecord,
+  settlementMonth,
+  onError,
+  quickFillData,
+  partners = [],
+  onAddPartner,
+  layout = 'default',
+  mode = 'add',
+  editRecord = null,
+  formId,
+  showSubmitButton = true,
+  onSubmitted,
+  onPreviewChange
+}) {
   const [formData, setFormData] = useState({
     settlementMonth: settlementMonth || '',
+    settlementNumber: '',
     partner: '',
     game: '',
     gameFlow: '',
@@ -15,13 +32,33 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
     taxPoint: '0',
     revenueShareRatio: '15',
     discount: '1',
-    refund: '0'
+    refund: '0',
+    status: 'pending'
   })
   const [lastMatchedPreset, setLastMatchedPreset] = useState(null)
 
   React.useEffect(() => {
-    setFormData(prev => ({ ...prev, settlementMonth: settlementMonth || '' }))
-  }, [settlementMonth])
+    if (mode === 'edit' && editRecord) {
+      setFormData({
+        settlementMonth: editRecord.settlementMonth ?? settlementMonth ?? '',
+        settlementNumber: editRecord.settlementNumber ?? '',
+        partner: editRecord.partner ?? '',
+        game: editRecord.game ?? '',
+        gameFlow: editRecord.gameFlow != null ? String(editRecord.gameFlow) : '',
+        testingFee: editRecord.testingFee != null ? String(editRecord.testingFee) : '0',
+        voucher: editRecord.voucher != null ? String(editRecord.voucher) : '0',
+        channelFeeRate: editRecord.channelFeeRate != null ? String(editRecord.channelFeeRate) : '0',
+        taxPoint: editRecord.taxPoint != null ? String(editRecord.taxPoint) : '0',
+        revenueShareRatio: editRecord.revenueShareRatio != null ? String(editRecord.revenueShareRatio) : '15',
+        discount: editRecord.discount != null ? String(editRecord.discount) : '1',
+        refund: editRecord.refund != null ? String(editRecord.refund) : '0',
+        status: editRecord.status || 'pending'
+      })
+      setLastMatchedPreset(null)
+      return
+    }
+    setFormData((prev) => ({ ...prev, settlementMonth: settlementMonth || '' }))
+  }, [settlementMonth, mode, editRecord])
 
   React.useEffect(() => {
     if (quickFillData) {
@@ -121,7 +158,7 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    
+
     const error = validateForm()
     if (error) {
       if (onError) {
@@ -130,9 +167,21 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
       return
     }
 
+    if (mode === 'edit' && editRecord && onUpdateRecord) {
+      const ok = onUpdateRecord(editRecord.id, {
+        ...editRecord,
+        ...formData,
+        id: editRecord.id
+      })
+      if (ok === false) return
+      if (onSubmitted) onSubmitted()
+      return
+    }
+
     onAddRecord(formData)
     setFormData({
       settlementMonth: settlementMonth || '',
+      settlementNumber: '',
       partner: '',
       game: '',
       gameFlow: '',
@@ -142,9 +191,11 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
       taxPoint: '0',
       revenueShareRatio: '15',
       discount: '1',
-      refund: '0'
+      refund: '0',
+      status: 'pending'
     })
     setLastMatchedPreset(null)
+    if (onSubmitted) onSubmitted()
   }
 
   const handleChange = (field, value) => {
@@ -177,19 +228,30 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
 
   const previewAmount = calculatePreviewAmount()
 
+  React.useEffect(() => {
+    if (!onPreviewChange) return
+    onPreviewChange(previewAmount)
+  }, [previewAmount, onPreviewChange])
+
+  const isDrawer = layout === 'drawer'
+
   return (
-    <div className="data-form">
-      <form onSubmit={handleSubmit} className="form">
-        <div className="form-header-row">
-          <div>
-            <h3>添加对账记录</h3>
-            <span className="form-hint">必填项已标 *</span>
+    <div className={`data-form ${isDrawer ? 'data-form--drawer' : ''}`}>
+      <form id={formId || undefined} onSubmit={handleSubmit} className="form">
+        {!isDrawer && (
+          <div className="form-header-row">
+            <div>
+              <h3>{mode === 'edit' ? '编辑对账记录' : '添加对账记录'}</h3>
+              <span className="form-hint">必填项已标 *</span>
+            </div>
+            <GamePresets onApplyPreset={handleApplyGamePreset} currentGameName={formData.game} />
           </div>
-          <GamePresets 
-            onApplyPreset={handleApplyGamePreset}
-            currentGameName={formData.game}
-          />
-        </div>
+        )}
+        {isDrawer && (
+          <div className="form-header-row form-header-row--drawer">
+            <GamePresets onApplyPreset={handleApplyGamePreset} currentGameName={formData.game} />
+          </div>
+        )}
         {lastMatchedPreset && (
           <div className="preset-matched-hint">
             ✅ 已自动匹配预设：<strong>{lastMatchedPreset.gameName}</strong>
@@ -200,6 +262,18 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
         <div className="form-section">
           <div className="section-title">基础信息</div>
           <div className="form-grid">
+            {mode === 'edit' && (
+              <div className="form-group">
+                <label>结算单编号</label>
+                <input
+                  type="text"
+                  value={formData.settlementNumber}
+                  onChange={(e) => handleChange('settlementNumber', e.target.value)}
+                  placeholder="结算单编号"
+                  title="可手动修改编号"
+                />
+              </div>
+            )}
             <div className="form-group">
               <label>结算月份 *</label>
               <input
@@ -321,6 +395,12 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
                 className="number-input"
               />
             </div>
+          </div>
+        </div>
+
+        <div className="form-section">
+          <div className="section-title">分成参数</div>
+          <div className="form-grid">
             <div className="form-group">
               <label>分成比例(%)</label>
               <input
@@ -362,16 +442,43 @@ function DataForm({ onAddRecord, settlementMonth, onError, quickFillData, partne
           </div>
         </div>
 
-        <div className="form-preview">
-          <div className="preview-card">
-            <span className="preview-label">预计结算金额：</span>
-            <span className="preview-amount">¥{Math.round(previewAmount * 100) / 100}</span>
+        {mode === 'edit' && (
+          <div className="form-section">
+            <div className="section-title">状态</div>
+            <div className="form-grid">
+              <div className="form-group">
+                <label>记录状态</label>
+                <select
+                  value={formData.status || 'pending'}
+                  onChange={(e) => handleChange('status', e.target.value)}
+                >
+                  {STATUS_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="form-actions">
-          <button type="submit" className="submit-btn">添加记录</button>
-        </div>
+        {!isDrawer && (
+          <div className="form-preview">
+            <div className="preview-card">
+              <span className="preview-label">预计结算金额：</span>
+              <span className="preview-amount">¥{Math.round(previewAmount * 100) / 100}</span>
+            </div>
+          </div>
+        )}
+
+        {showSubmitButton && (
+          <div className="form-actions">
+            <button type="submit" className="submit-btn">
+              {mode === 'edit' ? '保存修改' : '添加记录'}
+            </button>
+          </div>
+        )}
       </form>
     </div>
   )

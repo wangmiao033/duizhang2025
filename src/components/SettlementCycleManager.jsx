@@ -16,7 +16,8 @@ function SettlementCycleManager({
   selectedCycleKey, 
   cycleType,
   onCycleChange,
-  onCycleTypeChange 
+  onCycleTypeChange,
+  className = ''
 }) {
   const [showCycleSelector, setShowCycleSelector] = useState(false)
 
@@ -81,7 +82,7 @@ function SettlementCycleManager({
   }
 
   return (
-    <div className="settlement-cycle-manager">
+    <div className={`settlement-cycle-manager ${className}`.trim()}>
       <div className="cycle-controls">
         <div className="cycle-type-selector">
           <label>周期类型：</label>

@@ -8,6 +8,10 @@ export const VIEWS = {
   RECON_CHANNEL: 'recon-channel',
   RECON_MASTER: 'recon-master',
   RECON_EXCEPTIONS: 'recon-exceptions',
+  /** 对账操作历史（localStorage operationHistory） */
+  RECON_HISTORY: 'recon-history',
+  /** 本地备份 / 导入导出 JSON（DataBackup） */
+  DATA_BACKUP_RESTORE: 'data-backup-restore',
   SETTLE_MONTHLY: 'settle-monthly',
   SETTLE_CHANNEL: 'settle-channel',
   SETTLE_STATUS: 'settle-status',
@@ -29,6 +33,20 @@ export const VIEWS = {
   SETTINGS_REMINDERS: 'settings-reminders'
 }
 
+/** 使用浅灰工作台主区（与研发对账页一致） */
+export const ADMIN_GRAY_MAIN_VIEWS = new Set([
+  VIEWS.RECON_RD,
+  VIEWS.RECON_CHANNEL,
+  VIEWS.RECON_MASTER,
+  VIEWS.RECON_EXCEPTIONS,
+  VIEWS.RECON_HISTORY,
+  VIEWS.DATA_BACKUP_RESTORE,
+  VIEWS.REPORTS_IMPORT,
+  VIEWS.REPORTS_EXPORT,
+  VIEWS.REPORTS_STATS,
+  VIEWS.REPORTS_PROFIT
+])
+
 export const SIDEBAR_GROUPS = [
   {
     id: 'workbench',
@@ -42,7 +60,8 @@ export const SIDEBAR_GROUPS = [
       { view: VIEWS.RECON_RD, label: '研发对账' },
       { view: VIEWS.RECON_CHANNEL, label: '渠道对账' },
       { view: VIEWS.RECON_MASTER, label: '对账总表' },
-      { view: VIEWS.RECON_EXCEPTIONS, label: '异常中心' }
+      { view: VIEWS.RECON_EXCEPTIONS, label: '异常中心' },
+      { view: VIEWS.RECON_HISTORY, label: '操作历史' }
     ]
   },
   {
@@ -78,6 +97,13 @@ export const SIDEBAR_GROUPS = [
     items: [
       { view: VIEWS.REPORTS_IMPORT, label: 'Excel导入' },
       { view: VIEWS.REPORTS_EXPORT, label: '导出中心' },
+      { view: VIEWS.DATA_BACKUP_RESTORE, label: '备份恢复' }
+    ]
+  },
+  {
+    id: 'analytics',
+    label: '分析报表',
+    items: [
       { view: VIEWS.REPORTS_STATS, label: '统计分析' },
       { view: VIEWS.REPORTS_PROFIT, label: '利润分析' }
     ]
@@ -100,6 +126,8 @@ const VIEW_TITLES = {
   [VIEWS.RECON_CHANNEL]: '渠道对账',
   [VIEWS.RECON_MASTER]: '对账总表',
   [VIEWS.RECON_EXCEPTIONS]: '异常中心',
+  [VIEWS.RECON_HISTORY]: '操作历史',
+  [VIEWS.DATA_BACKUP_RESTORE]: '备份恢复',
   [VIEWS.SETTLE_MONTHLY]: '月度结算单',
   [VIEWS.SETTLE_CHANNEL]: '渠道结算单',
   [VIEWS.SETTLE_STATUS]: '结算状态',

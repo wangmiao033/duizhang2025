@@ -1,0 +1,35 @@
+.backup-restore-view {
+  font-size: 14px;
+}
+
+.backup-restore-view__section {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.backup-restore-view__heading {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 650;
+  color: #0f172a;
+}
+
+.backup-restore-view__hint {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.backup-restore-view .data-backup .backup-buttons {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.backup-restore-view .data-backup .backup-btn {
+  font-size: 13px;
+  border-radius: 8px;
+}

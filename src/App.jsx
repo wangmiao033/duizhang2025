@@ -22,6 +22,8 @@ import PartnerPage from './pages/PartnerPage.jsx'
 import ReportsPage from './pages/ReportsPage.jsx'
 import SettingsHubPage from './pages/SettingsHubPage.jsx'
 import RemindersPage from './pages/RemindersPage.jsx'
+import OperationHistoryPage from './pages/OperationHistoryPage.jsx'
+import BackupRestorePage from './pages/BackupRestorePage.jsx'
 
 function App() {
   const [activeView, setActiveView] = useState(VIEWS.DASHBOARD)
@@ -85,6 +87,10 @@ function App() {
         return <ChannelReconciliationPage />
       case VIEWS.RECON_EXCEPTIONS:
         return <ExceptionsPage />
+      case VIEWS.RECON_HISTORY:
+        return <OperationHistoryPage />
+      case VIEWS.DATA_BACKUP_RESTORE:
+        return <BackupRestorePage />
       case VIEWS.SETTLE_MONTHLY:
       case VIEWS.SETTLE_CHANNEL:
       case VIEWS.SETTLE_STATUS:

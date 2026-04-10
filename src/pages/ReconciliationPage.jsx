@@ -1,8 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
 import PageContainer from '@/components/layout/PageContainer.jsx'
 import SearchFilter from '@/components/SearchFilter.jsx'
-import DataForm from '@/components/DataForm.jsx'
 import DataTable from '@/components/DataTable.jsx'
 import BillExport from '@/components/BillExport.jsx'
 import FilterSort from '@/components/FilterSort.jsx'
@@ -11,10 +10,12 @@ import DataRecoveryHelper from '@/components/DataRecoveryHelper.jsx'
 import HistoryPanel from '@/components/HistoryPanel.jsx'
 import ExcelImport from '@/components/ExcelImport.jsx'
 import DataBackup from '@/components/DataBackup.jsx'
-import QuickFill from '@/components/QuickFill.jsx'
-import TemplatePresets from '@/components/TemplatePresets.jsx'
 import SettlementCycleManager from '@/components/SettlementCycleManager.jsx'
-import { showNotification } from '@/components/NotificationCenter.jsx'
+import ReconciliationPageHeader from '@/components/reconciliation/ReconciliationPageHeader.jsx'
+import ReconciliationStatsCards from '@/components/reconciliation/ReconciliationStatsCards.jsx'
+import ReconciliationToolbar from '@/components/reconciliation/ReconciliationToolbar.jsx'
+import ReconciliationDrawerForm from '@/components/reconciliation/ReconciliationDrawerForm.jsx'
+import '@/components/reconciliation/reconciliation-admin.css'
 import { BatchStatusUpdate } from '@/components/StatusManager.jsx'
 import { calculateSettlementAmount } from '@/domain/settlement/calculateSettlementAmount.js'
 import { CYCLE_TYPES, getCurrentCycle } from '@/utils/settlementCycle.js'
@@ -58,47 +59,194 @@ function ReconciliationPage({ variant = 'full' }) {
     setQuickFillData
   } = recon
 
-  const {
-    settlementMonth,
-    partyA,
-    partyB,
-    partners,
-    deliveries,
-    setPartners
-  } = settings
+  const { settlementMonth, partyA, partyB, partners, deliveries, setPartners } = settings
 
   const title = variant === 'master' ? '对账总表' : '研发对账'
   const description =
     variant === 'master'
       ? '按当前筛选查看全部对账记录（与研发对账共用数据）'
-      : '录入与维护研发对账记录'
+      : '录入与管理研发对账记录'
 
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [drawerMode, setDrawerMode] = useState('add')
+  const [drawerEdit, setDrawerEdit] = useState(null)
+
+  const openDrawerAdd = () => {
+    setDrawerMode('add')
+    setDrawerEdit(null)
+    setDrawerOpen(true)
+  }
+
+  const openDrawerEdit = (record) => {
+    setDrawerMode('edit')
+    setDrawerEdit(record)
+    setDrawerOpen(true)
+  }
+
+  const closeDrawer = () => {
+    setDrawerOpen(false)
+    setDrawerEdit(null)
+  }
+
+  const cycleBlock = (
+    <SettlementCycleManager
+      className={variant === 'full' ? 'settlement-cycle-manager--embed' : ''}
+      records={records}
+      selectedCycleKey={selectedCycleKey}
+      cycleType={cycleType}
+      onCycleChange={(cycleKey) => {
+        setSelectedCycleKey(cycleKey)
+        if (cycleKey === null) {
+          showToast('已切换到显示全部记录', 'info')
+        } else {
+          showToast(`已切换到${cycleKey === '未设置' ? '未设置周期' : '周期：' + cycleKey}`, 'info')
+        }
+      }}
+      onCycleTypeChange={(newCycleType) => {
+        setCycleType(newCycleType)
+        const currentCycle = getCurrentCycle(newCycleType)
+        setSelectedCycleKey(currentCycle)
+        showToast(
+          `已切换到${newCycleType === CYCLE_TYPES.MONTHLY ? '月度' : newCycleType === CYCLE_TYPES.QUARTERLY ? '季度' : '年度'}视图`,
+          'info'
+        )
+      }}
+    />
+  )
+
+  if (variant === 'full') {
+    const hasActiveFilters = Boolean(
+      searchTerm ||
+        (selectedCycleKey !== null && selectedCycleKey !== undefined) ||
+        Object.values(filterOptions || {}).some((v) => v !== '' && v != null) ||
+        !!(sortOptions && sortOptions.field)
+    )
+
+    return (
+      <PageContainer hideHeader className="page-container--recon-rd">
+        <div className="reconciliation-rd">
+          <ReconciliationPageHeader title={title} description={description} />
+
+          <div className="reconciliation-rd__filter-layer">
+            <div className="reconciliation-rd__filter-strip">
+              {cycleBlock}
+            </div>
+            <div className="reconciliation-rd__filter-row">
+              <div className="reconciliation-rd__search">
+                <SearchFilter
+                  searchTerm={searchTerm}
+                  onSearchChange={setSearchTerm}
+                  resultCount={filteredRecords.length}
+                  totalCount={records.length}
+                />
+              </div>
+              <div className="reconciliation-rd__filter-actions">
+                <FilterSort
+                  variant="inline"
+                  filterValues={filterOptions}
+                  sortField={sortOptions.field}
+                  sortOrder={sortOptions.order}
+                  onFilterChange={setFilterOptions}
+                  onSortChange={(field, order) => setSortOptions({ field, order })}
+                />
+                {hasActiveFilters && (
+                  <button
+                    type="button"
+                    className="rec-btn rec-btn--ghost"
+                    onClick={() => {
+                      setSearchTerm('')
+                      setSelectedCycleKey(null)
+                      setFilterOptions({})
+                      setSortOptions({ field: '', order: 'desc' })
+                      showToast('已清除搜索、周期与筛选', 'info')
+                    }}
+                    title="重置搜索、周期与筛选条件"
+                  >
+                    重置
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="reconciliation-rd__action-layer">
+            <ReconciliationToolbar
+              onAddClick={openDrawerAdd}
+              records={records}
+              filteredRecords={filteredRecords}
+              selectedIds={selectedIds}
+              partyA={partyA}
+              partyB={partyB}
+              settlementMonth={settlementMonth}
+              statistics={statistics}
+              onExportSuccess={(message) => showToast(message || '账单导出成功！', 'success')}
+              onExportError={handleExportError}
+              handleExportFiltered={handleExportFiltered}
+              handleExportSelected={handleExportSelected}
+              handleExcelImport={handleExcelImport}
+              handleBatchUpdate={handleBatchUpdate}
+              handleBatchStatusUpdate={handleBatchStatusUpdate}
+            />
+          </div>
+
+          <ReconciliationStatsCards filteredRecords={filteredRecords} compact />
+
+          <div className="reconciliation-rd__table-card">
+            <DataTable
+              records={filteredRecords}
+              onUpdateRecord={updateRecord}
+              onDeleteRecord={deleteRecord}
+              calculateSettlementAmount={calculateSettlementAmount}
+              onUpdateSuccess={() => showToast('记录更新成功！', 'success')}
+              selectedIds={selectedIds}
+              onSelectAll={handleSelectAll}
+              onSelectRecord={handleSelectRecord}
+              onBatchDelete={handleBatchDelete}
+              onCopyRecord={handleCopyRecord}
+              onReorder={handleReorder}
+              sortOptions={sortOptions}
+              onSortChange={(field, order) => setSortOptions({ field, order })}
+              onStatusChange={handleStatusChange}
+              columnPreset="compact"
+              useDrawerForEdit
+              onRequestEdit={openDrawerEdit}
+            />
+          </div>
+        </div>
+
+        <ReconciliationDrawerForm
+          open={drawerOpen}
+          mode={drawerMode}
+          editRecord={drawerEdit}
+          onClose={closeDrawer}
+          settlementMonth={settlementMonth}
+          addRecord={addRecord}
+          updateRecord={updateRecord}
+          showToast={showToast}
+          quickFillData={quickFillData}
+          setQuickFillData={setQuickFillData}
+          partners={partners}
+          onAddPartner={(name) => {
+            const newPartner = {
+              id: Date.now(),
+              name,
+              category: '游戏研发商',
+              tag2: '',
+              createdAt: new Date().toISOString()
+            }
+            setPartners([...partners, newPartner])
+            showToast(`客户"${name}"已添加到客户库`, 'success')
+          }}
+          handleApplyTemplate={handleApplyTemplate}
+        />
+      </PageContainer>
+    )
+  }
+
+  /* 对账总表：保留原结构（无右侧抽屉、表格全列） */
   return (
     <PageContainer title={title} description={description}>
-      <div className="cycle-manager-section">
-        <SettlementCycleManager
-          records={records}
-          selectedCycleKey={selectedCycleKey}
-          cycleType={cycleType}
-          onCycleChange={(cycleKey) => {
-            setSelectedCycleKey(cycleKey)
-            if (cycleKey === null) {
-              showToast('已切换到显示全部记录', 'info')
-            } else {
-              showToast(`已切换到${cycleKey === '未设置' ? '未设置周期' : '周期：' + cycleKey}`, 'info')
-            }
-          }}
-          onCycleTypeChange={(newCycleType) => {
-            setCycleType(newCycleType)
-            const currentCycle = getCurrentCycle(newCycleType)
-            setSelectedCycleKey(currentCycle)
-            showToast(
-              `已切换到${newCycleType === CYCLE_TYPES.MONTHLY ? '月度' : newCycleType === CYCLE_TYPES.QUARTERLY ? '季度' : '年度'}视图`,
-              'info'
-            )
-          }}
-        />
-      </div>
+      <div className="cycle-manager-section">{cycleBlock}</div>
       <div className="toolbar-section">
         <SearchFilter
           searchTerm={searchTerm}
@@ -180,41 +328,6 @@ function ReconciliationPage({ variant = 'full' }) {
       </div>
 
       <div className="main-content">
-        {variant === 'full' && (
-          <div className="form-section">
-            <div className="form-header">
-              <h3>添加对账记录</h3>
-              <div className="form-header-actions">
-                <QuickFill
-                  onFill={(data) => {
-                    setQuickFillData(data)
-                    showNotification('快速填充模板已应用', 'success')
-                  }}
-                />
-                <TemplatePresets onApplyTemplate={handleApplyTemplate} />
-              </div>
-            </div>
-            <DataForm
-              onAddRecord={addRecord}
-              settlementMonth={settlementMonth}
-              onError={(msg) => showToast(msg, 'error')}
-              quickFillData={quickFillData}
-              partners={partners}
-              onAddPartner={(name) => {
-                const newPartner = {
-                  id: Date.now(),
-                  name,
-                  category: '游戏研发商',
-                  tag2: '',
-                  createdAt: new Date().toISOString()
-                }
-                setPartners([...partners, newPartner])
-                showToast(`客户"${name}"已添加到客户库`, 'success')
-              }}
-            />
-          </div>
-        )}
-
         <div className="table-section">
           <div className="table-actions">
             {selectedIds.length > 0 && (
