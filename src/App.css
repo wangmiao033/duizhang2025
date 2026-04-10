@@ -1,96 +1,7 @@
-.app {
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-  overflow-x: hidden;
-}
-
-.app-header {
-  color: #1f2937;
-  margin-bottom: 32px;
-  padding: 24px 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 28px 32px;
-  box-shadow: 0 8px 32px rgba(79, 70, 229, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-}
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1400px;
-  margin: 0 auto;
-  gap: 20px;
-}
-
-.header-brand {
-  flex: 1;
-  min-width: 0;
-}
-
-.header-actions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-shrink: 0;
-}
+/* 壳层布局由 AppShell.css 的 .app 接管；此处不再限制 max-width */
 
 .report-section {
   margin-bottom: 30px;
-}
-
-.app-header h1 {
-  font-size: 2.6rem;
-  margin-bottom: 8px;
-  font-weight: 800;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: -0.5px;
-  text-align: left;
-  line-height: 1.2;
-}
-
-.app-header p {
-  font-size: 1.05rem;
-  opacity: 0.85;
-  text-align: left;
-  color: #64748b;
-  font-weight: 500;
-  letter-spacing: 0.2px;
-}
-
-@media (max-width: 900px) {
-  .header-actions .calendar-compact {
-    display: none;
-  }
-}
-
-@media (max-width: 768px) {
-  .header-content {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-  }
-  
-  .header-brand {
-    text-align: center;
-  }
-  
-  .app-header h1,
-  .app-header p {
-    text-align: center;
-    width: 100%;
-  }
-  
-  .header-actions {
-    justify-content: center;
-    flex-wrap: wrap;
-  }
 }
 
 .app-container {
@@ -1036,10 +947,6 @@ button, input, select, textarea {
 @media (max-width: 968px) {
   .main-content {
     grid-template-columns: 1fr;
-  }
-  
-  .app-header h1 {
-    font-size: 2rem;
   }
 }
 

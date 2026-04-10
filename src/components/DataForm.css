@@ -303,3 +303,44 @@
     padding: 12px;
   }
 }
+
+/* 独立「完整录入」页：分区卡片、单列为主 */
+.data-form--create-page .form {
+  gap: 16px;
+}
+
+.data-form--create-page .form-section {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.data-form--create-page .section-title {
+  font-size: 16px;
+  font-weight: 650;
+  color: #0f172a;
+  margin-bottom: 12px;
+}
+
+.data-form--create-page .form-grid {
+  grid-template-columns: 1fr;
+  max-width: 720px;
+  gap: 14px 16px;
+}
+
+@media (min-width: 900px) {
+  .data-form--create-page .form-grid {
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+    max-width: 900px;
+  }
+}
+
+.form-header-row--create-inline {
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 0;
+}

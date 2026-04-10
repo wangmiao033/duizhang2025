@@ -21,7 +21,9 @@ function DataTable({
   onStatusChange,
   columnPreset = 'full',
   useDrawerForEdit = false,
-  onRequestEdit
+  onRequestEdit,
+  onRequestPageEdit = null,
+  onQuickView = null
 }) {
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({})
@@ -32,6 +34,10 @@ function DataTable({
   const compact = columnPreset === 'compact'
 
   const startEdit = (record) => {
+    if (onRequestPageEdit) {
+      onRequestPageEdit(record)
+      return
+    }
     if (useDrawerForEdit && onRequestEdit) {
       onRequestEdit(record)
       return
@@ -312,6 +318,11 @@ function DataTable({
                             </td>
                             <td>
                               {onCopyRecord && <CopyRecord record={record} onCopy={onCopyRecord} />}
+                              {onQuickView && (
+                                <button type="button" className="edit-btn" onClick={() => onQuickView(record)}>
+                                  查看
+                                </button>
+                              )}
                               <button className="edit-btn" onClick={() => startEdit(record)}>编辑</button>
                               <button className="delete-btn" onClick={() => onDeleteRecord(record.id)}>删除</button>
                             </td>
@@ -607,6 +618,11 @@ function DataTable({
                       </td>
                       <td>
                         {onCopyRecord && <CopyRecord record={record} onCopy={onCopyRecord} />}
+                        {onQuickView && (
+                          <button type="button" className="edit-btn" onClick={() => onQuickView(record)}>
+                            查看
+                          </button>
+                        )}
                         <button className="edit-btn" onClick={() => startEdit(record)}>编辑</button>
                         <button className="delete-btn" onClick={() => onDeleteRecord(record.id)}>删除</button>
                       </td>

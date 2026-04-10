@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { SIDEBAR_GROUPS } from '@/app/routes.js'
+import { SIDEBAR_GROUPS, VIEW_ICONS } from '@/app/routes.js'
 import './Sidebar.css'
 
 function findGroupIdForView(view) {
@@ -48,6 +48,9 @@ function Sidebar({ activeView, onNavigate }) {
                         className={`sidebar-item ${isActive ? 'active' : ''}`}
                         onClick={() => onNavigate && onNavigate(item.view)}
                       >
+                        <span className="sidebar-item-icon" aria-hidden>
+                          {VIEW_ICONS[item.view] || '·'}
+                        </span>
                         <span className="sidebar-item-label">{item.label}</span>
                       </button>
                     )

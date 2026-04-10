@@ -5,6 +5,10 @@
 export const VIEWS = {
   DASHBOARD: 'dashboard',
   RECON_RD: 'recon-rd',
+  /** 完整录入新增（独立页） */
+  RECON_CREATE: 'recon-create',
+  /** 完整编辑（独立页，通常从列表进入，不常驻侧栏） */
+  RECON_EDIT: 'recon-edit',
   RECON_CHANNEL: 'recon-channel',
   RECON_MASTER: 'recon-master',
   RECON_EXCEPTIONS: 'recon-exceptions',
@@ -33,20 +37,6 @@ export const VIEWS = {
   SETTINGS_REMINDERS: 'settings-reminders'
 }
 
-/** 使用浅灰工作台主区（与研发对账页一致） */
-export const ADMIN_GRAY_MAIN_VIEWS = new Set([
-  VIEWS.RECON_RD,
-  VIEWS.RECON_CHANNEL,
-  VIEWS.RECON_MASTER,
-  VIEWS.RECON_EXCEPTIONS,
-  VIEWS.RECON_HISTORY,
-  VIEWS.DATA_BACKUP_RESTORE,
-  VIEWS.REPORTS_IMPORT,
-  VIEWS.REPORTS_EXPORT,
-  VIEWS.REPORTS_STATS,
-  VIEWS.REPORTS_PROFIT
-])
-
 export const SIDEBAR_GROUPS = [
   {
     id: 'workbench',
@@ -58,6 +48,7 @@ export const SIDEBAR_GROUPS = [
     label: '对账管理',
     items: [
       { view: VIEWS.RECON_RD, label: '研发对账' },
+      { view: VIEWS.RECON_CREATE, label: '新增研发对账记录' },
       { view: VIEWS.RECON_CHANNEL, label: '渠道对账' },
       { view: VIEWS.RECON_MASTER, label: '对账总表' },
       { view: VIEWS.RECON_EXCEPTIONS, label: '异常中心' },
@@ -123,6 +114,8 @@ export const SIDEBAR_GROUPS = [
 const VIEW_TITLES = {
   [VIEWS.DASHBOARD]: '工作台',
   [VIEWS.RECON_RD]: '研发对账',
+  [VIEWS.RECON_CREATE]: '新增研发对账记录',
+  [VIEWS.RECON_EDIT]: '编辑研发对账记录',
   [VIEWS.RECON_CHANNEL]: '渠道对账',
   [VIEWS.RECON_MASTER]: '对账总表',
   [VIEWS.RECON_EXCEPTIONS]: '异常中心',
@@ -150,4 +143,102 @@ const VIEW_TITLES = {
 
 export function getPageTitle(view) {
   return VIEW_TITLES[view] || '对账管理系统'
+}
+
+/** 页面副标题 / 说明（顶栏与页头共用） */
+const VIEW_DESCRIPTIONS = {
+  [VIEWS.DASHBOARD]: '快捷入口、待办与常用工具总览',
+  [VIEWS.RECON_RD]: '研发侧对账记录、筛选、统计与导出',
+  [VIEWS.RECON_CREATE]: '完整表单录入新记录，与编辑页共用同一套 DataForm 与校验',
+  [VIEWS.RECON_EDIT]: '完整编辑已有记录；保存后返回研发对账列表',
+  [VIEWS.RECON_CHANNEL]: '渠道对账数据维护与核对',
+  [VIEWS.RECON_MASTER]: '全量对账汇总视图',
+  [VIEWS.RECON_EXCEPTIONS]: '差异与异常集中处理',
+  [VIEWS.RECON_HISTORY]: '本地操作历史（operationHistory）',
+  [VIEWS.DATA_BACKUP_RESTORE]: 'JSON 备份与恢复',
+  [VIEWS.SETTLE_MONTHLY]: '月度结算单生成与查看',
+  [VIEWS.SETTLE_CHANNEL]: '渠道维度结算',
+  [VIEWS.SETTLE_STATUS]: '结算进度与状态跟踪',
+  [VIEWS.INVOICE_MANAGE]: '发票开具与台账',
+  [VIEWS.INVOICE_VERIFY]: '发票核销与勾稽',
+  [VIEWS.INVOICE_PAYMENT]: '回款登记与流水',
+  [VIEWS.PARTNER_CONTACTS]: '合作方联系人维护',
+  [VIEWS.PARTNER_GAMES]: '游戏/项目主数据',
+  [VIEWS.PARTNER_COMPANY]: '本公司信息',
+  [VIEWS.REPORTS_IMPORT]: 'Excel 批量导入',
+  [VIEWS.REPORTS_EXPORT]: '导出任务与下载',
+  [VIEWS.REPORTS_STATS]: '统计图表与汇总',
+  [VIEWS.REPORTS_PROFIT]: '利润与毛利分析',
+  [VIEWS.SETTINGS_TAGS]: '业务标签与分类',
+  [VIEWS.SETTINGS_HISTORY]: '系统内历史记录',
+  [VIEWS.SETTINGS_BACKUP]: '数据备份选项',
+  [VIEWS.SETTINGS_APP]: '主题、格式与默认参数',
+  [VIEWS.SETTINGS_REMINDERS]: '提醒与待办配置'
+}
+
+/** 侧栏与导航图标（纯文本符号，无额外依赖） */
+export const VIEW_ICONS = {
+  [VIEWS.DASHBOARD]: '台',
+  [VIEWS.RECON_RD]: '研',
+  [VIEWS.RECON_CREATE]: '增',
+  [VIEWS.RECON_EDIT]: '改',
+  [VIEWS.RECON_CHANNEL]: '渠',
+  [VIEWS.RECON_MASTER]: '总',
+  [VIEWS.RECON_EXCEPTIONS]: '异',
+  [VIEWS.RECON_HISTORY]: '史',
+  [VIEWS.DATA_BACKUP_RESTORE]: '备',
+  [VIEWS.SETTLE_MONTHLY]: '月',
+  [VIEWS.SETTLE_CHANNEL]: '结',
+  [VIEWS.SETTLE_STATUS]: '态',
+  [VIEWS.INVOICE_MANAGE]: '票',
+  [VIEWS.INVOICE_VERIFY]: '核',
+  [VIEWS.INVOICE_PAYMENT]: '款',
+  [VIEWS.PARTNER_CONTACTS]: '人',
+  [VIEWS.PARTNER_GAMES]: '游',
+  [VIEWS.PARTNER_COMPANY]: '司',
+  [VIEWS.REPORTS_IMPORT]: '导',
+  [VIEWS.REPORTS_EXPORT]: '出',
+  [VIEWS.REPORTS_STATS]: '析',
+  [VIEWS.REPORTS_PROFIT]: '利',
+  [VIEWS.SETTINGS_TAGS]: '签',
+  [VIEWS.SETTINGS_HISTORY]: '志',
+  [VIEWS.SETTINGS_BACKUP]: '档',
+  [VIEWS.SETTINGS_APP]: '设',
+  [VIEWS.SETTINGS_REMINDERS]: '铃'
+}
+
+export function getPageDescription(view) {
+  return VIEW_DESCRIPTIONS[view] || '财务对账与结算管理'
+}
+
+export function getPageMeta(view) {
+  return {
+    title: getPageTitle(view),
+    description: getPageDescription(view)
+  }
+}
+
+/**
+ * 面包屑：工作台 → 分组 → 当前页
+ * @returns {{ label: string, view?: string, current?: boolean }[]}
+ */
+export function getBreadcrumb(view) {
+  if (view === VIEWS.DASHBOARD) {
+    return [{ label: getPageTitle(view), current: true }]
+  }
+  if (view === VIEWS.RECON_EDIT) {
+    return [
+      { label: '工作台', view: VIEWS.DASHBOARD },
+      { label: '对账管理' },
+      { label: getPageTitle(VIEWS.RECON_RD), view: VIEWS.RECON_RD },
+      { label: getPageTitle(VIEWS.RECON_EDIT), current: true }
+    ]
+  }
+  const group = SIDEBAR_GROUPS.find((g) => g.items.some((i) => i.view === view))
+  const crumbs = [{ label: '工作台', view: VIEWS.DASHBOARD }]
+  if (group && group.id !== 'workbench') {
+    crumbs.push({ label: group.label })
+  }
+  crumbs.push({ label: getPageTitle(view), current: true })
+  return crumbs
 }

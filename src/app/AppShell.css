@@ -1,62 +1,59 @@
-.app-shell {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-}
+/* 全宽后台布局：侧栏 + 主列（Header + 工作区） */
 
-.app-main {
-  flex: 1;
-  min-width: 0;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  border-radius: 24px;
-  padding: 28px;
-  box-shadow: 0 20px 60px rgba(79, 70, 229, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+.app {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  margin: 0;
+  max-width: none;
+  overflow-x: hidden;
+}
+
+.app-dashboard {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.app-main-shell {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--admin-page-bg);
+}
+
+.app-workspace {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  background: var(--admin-page-bg);
+  padding: 16px var(--admin-workspace-pad-x, 24px) 20px;
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
 }
 
-.app-main:hover {
-  box-shadow: 0 24px 80px rgba(79, 70, 229, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.6);
-}
-
-[data-theme='dark'] .app-main {
-  background: rgba(30, 30, 46, 0.95);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
-  border-color: rgba(77, 77, 108, 0.5);
+/* 单页根节点：占满工作区高度，内部自行滚动（表格区可 flex 撑满） */
+.app-workspace > * {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
 }
 
 @media (max-width: 960px) {
-  .app-shell {
+  .app-dashboard {
     flex-direction: column;
+    min-height: auto;
   }
 
-  .app-main {
-    width: 100%;
-    padding: 20px 16px;
+  .app-workspace {
+    padding: 14px 16px;
   }
-}
-
-/* 研发对账：浅灰工作台底，弱化主内容区「卡片舞台」感 */
-.app-main--rd-recon {
-  background: #f6f7fb;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-}
-
-.app-main--rd-recon:hover {
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-}
-
-[data-theme='dark'] .app-main--rd-recon {
-  background: #1a1d2e;
-  border-color: rgba(148, 163, 184, 0.2);
 }

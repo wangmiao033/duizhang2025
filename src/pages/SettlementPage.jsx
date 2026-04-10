@@ -10,7 +10,17 @@ import { VIEWS } from '@/app/routes.js'
 
 function SettlementPage({ section }) {
   const { recon, settings, showToast, setActiveView } = useAppState()
-  const { records, statistics, handleLoadBill, handleExportError, channelRecords, onChannelAddRecord, onChannelUpdateRecord, onChannelDeleteRecord } = recon
+  const {
+    records,
+    statistics,
+    handleLoadBill,
+    handleExportError,
+    channelRecords,
+    onChannelAddRecord,
+    onChannelAddRecordsBatch,
+    onChannelUpdateRecord,
+    onChannelDeleteRecord
+  } = recon
   const { partyA, partyB, settlementMonth } = settings
 
   const statusAggregates = computeStatusAggregates(records, STATUS_OPTIONS)
@@ -54,6 +64,7 @@ function SettlementPage({ section }) {
         <ChannelBilling
           channelRecords={channelRecords}
           onAddRecord={onChannelAddRecord}
+          onAddRecordsBatch={onChannelAddRecordsBatch}
           onUpdateRecord={onChannelUpdateRecord}
           onDeleteRecord={onChannelDeleteRecord}
         />

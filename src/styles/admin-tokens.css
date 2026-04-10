@@ -1,0 +1,140 @@
+/**
+ * 后台2.0 设计令牌 — 财务后台统一变量（浅色默认，深色由 [data-theme=dark] 覆盖）
+ */
+:root {
+  --admin-page-bg: #f6f7fb;
+  --admin-card-bg: #ffffff;
+  --admin-elevated-bg: #f8fafc;
+  --admin-primary: #4f46e5;
+  --admin-primary-hover: #4338ca;
+  --admin-primary-muted: #eef2ff;
+  --admin-success: #059669;
+  --admin-success-muted: #ecfdf5;
+  --admin-danger: #dc2626;
+  --admin-danger-muted: #fef2f2;
+  --admin-warning: #d97706;
+  --admin-text-main: #0f172a;
+  --admin-text-sub: #64748b;
+  --admin-text-muted: #94a3b8;
+  --admin-border: #e2e8f0;
+  --admin-border-strong: #cbd5e1;
+  --admin-radius-sm: 8px;
+  --admin-radius: 12px;
+  --admin-radius-lg: 12px;
+  --admin-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --admin-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --admin-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.07);
+  --admin-space-xs: 6px;
+  --admin-space-sm: 10px;
+  --admin-space-md: 14px;
+  --admin-space-lg: 20px;
+  --admin-space-xl: 28px;
+  --admin-header-h: 64px;
+  --admin-sidebar-w: 232px;
+  --admin-workspace-pad-x: 24px;
+  --admin-drawer-w: 440px;
+  --admin-drawer-w-max: 480px;
+  --admin-input-h: 36px;
+  --admin-btn-h: 36px;
+  --admin-toolbar-gap: 10px;
+  --admin-font-sm: 12px;
+  --admin-font-base: 14px;
+  --admin-font-title: 18px;
+  --admin-font-page: 20px;
+}
+
+[data-theme='dark'] {
+  --admin-page-bg: #0f111a;
+  --admin-card-bg: #1a1d2e;
+  --admin-elevated-bg: #222536;
+  --admin-primary-muted: rgba(79, 70, 229, 0.2);
+  --admin-text-main: #f1f5f9;
+  --admin-text-sub: #94a3b8;
+  --admin-text-muted: #64748b;
+  --admin-border: rgba(148, 163, 184, 0.2);
+  --admin-border-strong: rgba(148, 163, 184, 0.35);
+  --admin-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --admin-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  --admin-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+/* 按钮体系 */
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--admin-btn-h);
+  padding: 0 14px;
+  font-size: var(--admin-font-base);
+  font-weight: 500;
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.admin-btn--primary {
+  background: var(--admin-primary);
+  color: #fff;
+  border-color: var(--admin-primary);
+}
+.admin-btn--primary:hover {
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
+}
+
+.admin-btn--secondary {
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
+  border-color: var(--admin-border-strong);
+}
+.admin-btn--secondary:hover {
+  background: var(--admin-elevated-bg);
+  border-color: var(--admin-text-muted);
+}
+
+.admin-btn--danger {
+  background: var(--admin-card-bg);
+  color: var(--admin-danger);
+  border-color: #fecaca;
+}
+.admin-btn--danger:hover {
+  background: var(--admin-danger-muted);
+}
+
+.admin-btn--success {
+  background: var(--admin-success);
+  color: #fff;
+  border-color: var(--admin-success);
+}
+.admin-btn--success:hover {
+  filter: brightness(1.05);
+}
+
+.admin-btn--ghost {
+  background: transparent;
+  color: var(--admin-text-sub);
+  border-color: var(--admin-border-strong);
+}
+.admin-btn--ghost:hover {
+  background: var(--admin-elevated-bg);
+}
+
+.admin-input {
+  min-height: var(--admin-input-h);
+  padding: 0 10px;
+  font-size: var(--admin-font-base);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
+}
+.admin-input:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px var(--admin-primary-muted);
+}

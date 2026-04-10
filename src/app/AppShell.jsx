@@ -1,20 +1,21 @@
 import React from 'react'
 import Header from '@/components/layout/Header.jsx'
 import Sidebar from '@/components/layout/Sidebar.jsx'
-import { ADMIN_GRAY_MAIN_VIEWS } from '@/app/routes.js'
 import './AppShell.css'
 
+/**
+ * 标准后台骨架：左侧固定导航 + 右侧（顶栏 + 全宽工作区）
+ * 不再使用「整页居中大白盒」包裹。
+ */
 function AppShell({ activeView, onNavigate, onSettingsChange, children }) {
-  const mainClass = ADMIN_GRAY_MAIN_VIEWS.has(activeView)
-    ? 'app-main app-main--rd-recon'
-    : 'app-main'
-
   return (
     <div className="app">
-      <Header activeView={activeView} onNavigate={onNavigate} onSettingsChange={onSettingsChange} />
-      <div className="app-shell">
+      <div className="app-dashboard">
         <Sidebar activeView={activeView} onNavigate={onNavigate} />
-        <main className={mainClass}>{children}</main>
+        <div className="app-main-shell">
+          <Header activeView={activeView} onNavigate={onNavigate} onSettingsChange={onSettingsChange} />
+          <main className="app-workspace">{children}</main>
+        </div>
       </div>
     </div>
   )

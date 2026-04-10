@@ -1,4 +1,5 @@
-.channel-billing {
+.channel-billing,
+.channel-rd {
   padding: 0;
   width: 100%;
   max-width: 100%;
@@ -8,7 +9,10 @@
 
 .channel-billing *,
 .channel-billing *::before,
-.channel-billing *::after {
+.channel-billing *::after,
+.channel-rd *,
+.channel-rd *::before,
+.channel-rd *::after {
   box-sizing: border-box;
 }
 
@@ -943,4 +947,146 @@
 
 [data-theme="dark"] .view-toggle {
   background: rgba(77, 77, 108, 0.5);
+}
+
+/* —— 渠道对账 2.0 后台模板（与研发对账条带一致） */
+.channel-rd__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 12px;
+  width: 100%;
+}
+
+.channel-rd__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.channel-rd__field--grow {
+  flex: 1 1 220px;
+}
+
+.channel-rd__label {
+  font-size: 12px;
+  color: var(--admin-text-sub, #64748b);
+  font-weight: 500;
+}
+
+.channel-rd__select,
+.channel-rd__month {
+  min-width: 120px;
+}
+
+.channel-rd__search {
+  width: 100%;
+  min-width: 160px;
+}
+
+.channel-rd__file {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.channel-rd__table-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--admin-border, #e2e8f0);
+  background: var(--admin-elevated-bg, #f8fafc);
+}
+
+.channel-rd__view-toggle {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.channel-rd__toggle-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  border: 1px solid var(--admin-border-strong, #cbd5e1);
+  background: var(--admin-card-bg, #fff);
+  border-radius: var(--admin-radius-sm, 8px);
+  cursor: pointer;
+  color: var(--admin-text-main, #0f172a);
+}
+
+.channel-rd__toggle-btn.is-active {
+  background: var(--admin-primary-muted, #eef2ff);
+  border-color: var(--admin-primary, #4f46e5);
+  color: var(--admin-primary, #4f46e5);
+}
+
+.channel-rd__meta {
+  font-size: 13px;
+  color: var(--admin-text-sub, #64748b);
+  margin-left: auto;
+}
+
+.channel-rd__select-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--admin-text-sub, #64748b);
+  cursor: pointer;
+}
+
+.channel-rd__table-body {
+  padding: 12px;
+  max-height: min(70vh, 760px);
+  overflow: auto;
+}
+
+.channel-rd__th-check {
+  width: 40px;
+}
+
+.channel-rd .readonly-input {
+  background: var(--admin-elevated-bg, #f8fafc);
+}
+
+.channel-rd__drawer {
+  width: min(var(--admin-drawer-w, 440px), 100vw);
+  max-width: var(--admin-drawer-w-max, 480px);
+}
+
+.channel-rd .channel-form--drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.channel-rd .channel-form--drawer .form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.channel-rd .channel-form--drawer .form-group {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+.channel-rd .channel-form--drawer .form-group.full-width {
+  flex: 1 1 100%;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

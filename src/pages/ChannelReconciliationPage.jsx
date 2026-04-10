@@ -1,17 +1,24 @@
 import React from 'react'
-import { useAppState } from '@/app/AppStateContext.jsx'
 import PageContainer from '@/components/layout/PageContainer.jsx'
 import ChannelBilling from '@/components/ChannelBilling.jsx'
+import { useAppState } from '@/app/AppStateContext.jsx'
 
 function ChannelReconciliationPage() {
   const { recon } = useAppState()
-  const { channelRecords, onChannelAddRecord, onChannelUpdateRecord, onChannelDeleteRecord } = recon
+  const {
+    channelRecords,
+    onChannelAddRecord,
+    onChannelAddRecordsBatch,
+    onChannelUpdateRecord,
+    onChannelDeleteRecord
+  } = recon
 
   return (
-    <PageContainer title="渠道对账" description="渠道流水、分成与结算维护">
+    <PageContainer hideHeader className="page-container--recon-rd">
       <ChannelBilling
         channelRecords={channelRecords}
         onAddRecord={onChannelAddRecord}
+        onAddRecordsBatch={onChannelAddRecordsBatch}
         onUpdateRecord={onChannelUpdateRecord}
         onDeleteRecord={onChannelDeleteRecord}
       />

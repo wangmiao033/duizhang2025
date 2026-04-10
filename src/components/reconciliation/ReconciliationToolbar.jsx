@@ -5,10 +5,10 @@ import BatchEdit from '@/components/BatchEdit.jsx'
 import { BatchStatusUpdate } from '@/components/StatusManager.jsx'
 
 /**
- * 研发对账主工作区操作栏：仅高频操作。低频工具已迁至侧边栏二级页。
+ * 研发对账列表操作栏：主路径为独立新增页；Excel / 导出 / 批量。
  */
 function ReconciliationToolbar({
-  onAddClick,
+  onNavigateToCreate,
   records,
   filteredRecords,
   selectedIds,
@@ -27,7 +27,7 @@ function ReconciliationToolbar({
   return (
     <div className="rec-toolbar">
       <div className="rec-toolbar__primary">
-        <button type="button" className="rec-btn rec-btn--primary" onClick={onAddClick}>
+        <button type="button" className="rec-btn rec-btn--primary" onClick={onNavigateToCreate}>
           新增记录
         </button>
         <div className="rec-toolbar__excel">

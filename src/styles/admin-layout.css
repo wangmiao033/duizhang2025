@@ -1,0 +1,94 @@
+/**
+ * 后台 2.0 布局块：与 admin-tokens 配合，供各业务页逐步接入
+ */
+
+.admin-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: var(--admin-space-sm);
+}
+
+.admin-page-header__title {
+  margin: 0;
+  font-size: var(--admin-font-page);
+  font-weight: 700;
+  color: var(--admin-text-main);
+  line-height: 1.25;
+}
+
+.admin-page-header__desc {
+  margin: 0;
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-sub);
+  line-height: 1.45;
+  max-width: 52rem;
+}
+
+.admin-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-space-md);
+  min-width: 0;
+}
+
+.admin-page-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-space-sm);
+  min-width: 0;
+}
+
+.admin-page-section__title {
+  margin: 0;
+  font-size: var(--admin-font-base);
+  font-weight: 600;
+  color: var(--admin-text-main);
+}
+
+.admin-filter-bar,
+.admin-action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--admin-toolbar-gap);
+  min-width: 0;
+}
+
+.admin-filter-bar {
+  padding: var(--admin-space-sm) var(--admin-space-md);
+  background: var(--admin-elevated-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+}
+
+.admin-action-bar {
+  padding: 0;
+  justify-content: flex-start;
+}
+
+.admin-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--admin-space-md);
+}
+
+.admin-table-card {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  box-shadow: var(--admin-shadow-sm);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.admin-table-card__body {
+  padding: 0;
+  overflow: auto;
+}
+
+.admin-drawer-surface {
+  background: var(--admin-card-bg);
+  border-left: 1px solid var(--admin-border);
+  box-shadow: var(--admin-shadow-md);
+}

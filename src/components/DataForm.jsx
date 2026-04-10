@@ -18,7 +18,8 @@ function DataForm({
   formId,
   showSubmitButton = true,
   onSubmitted,
-  onPreviewChange
+  onPreviewChange,
+  submitIntentRef
 }) {
   const [formData, setFormData] = useState({
     settlementMonth: settlementMonth || '',
@@ -174,7 +175,7 @@ function DataForm({
         id: editRecord.id
       })
       if (ok === false) return
-      if (onSubmitted) onSubmitted()
+      if (onSubmitted) onSubmitted(undefined)
       return
     }
 
@@ -195,7 +196,9 @@ function DataForm({
       status: 'pending'
     })
     setLastMatchedPreset(null)
-    if (onSubmitted) onSubmitted()
+    const intent = submitIntentRef?.current === 'continue' ? 'continue' : 'back'
+    if (submitIntentRef) submitIntentRef.current = 'back'
+    if (onSubmitted) onSubmitted(intent)
   }
 
   const handleChange = (field, value) => {
@@ -234,11 +237,14 @@ function DataForm({
   }, [previewAmount, onPreviewChange])
 
   const isDrawer = layout === 'drawer'
+  const isCreatePage = layout === 'createPage'
 
   return (
-    <div className={`data-form ${isDrawer ? 'data-form--drawer' : ''}`}>
+    <div
+      className={`data-form ${isDrawer ? 'data-form--drawer' : ''} ${isCreatePage ? 'data-form--create-page' : ''}`}
+    >
       <form id={formId || undefined} onSubmit={handleSubmit} className="form">
-        {!isDrawer && (
+        {!isDrawer && !isCreatePage && (
           <div className="form-header-row">
             <div>
               <h3>{mode === 'edit' ? '编辑对账记录' : '添加对账记录'}</h3>
@@ -249,6 +255,11 @@ function DataForm({
         )}
         {isDrawer && (
           <div className="form-header-row form-header-row--drawer">
+            <GamePresets onApplyPreset={handleApplyGamePreset} currentGameName={formData.game} />
+          </div>
+        )}
+        {isCreatePage && (
+          <div className="form-header-row form-header-row--create-inline">
             <GamePresets onApplyPreset={handleApplyGamePreset} currentGameName={formData.game} />
           </div>
         )}
@@ -463,7 +474,7 @@ function DataForm({
           </div>
         )}
 
-        {!isDrawer && (
+        {!isDrawer && !isCreatePage && (
           <div className="form-preview">
             <div className="preview-card">
               <span className="preview-label">预计结算金额：</span>

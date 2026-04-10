@@ -11,17 +11,17 @@ import HistoryPanel from '@/components/HistoryPanel.jsx'
 import ExcelImport from '@/components/ExcelImport.jsx'
 import DataBackup from '@/components/DataBackup.jsx'
 import SettlementCycleManager from '@/components/SettlementCycleManager.jsx'
-import ReconciliationPageHeader from '@/components/reconciliation/ReconciliationPageHeader.jsx'
 import ReconciliationStatsCards from '@/components/reconciliation/ReconciliationStatsCards.jsx'
 import ReconciliationToolbar from '@/components/reconciliation/ReconciliationToolbar.jsx'
-import ReconciliationDrawerForm from '@/components/reconciliation/ReconciliationDrawerForm.jsx'
+import ReconciliationLightDrawer from '@/components/reconciliation/ReconciliationLightDrawer.jsx'
 import '@/components/reconciliation/reconciliation-admin.css'
 import { BatchStatusUpdate } from '@/components/StatusManager.jsx'
 import { calculateSettlementAmount } from '@/domain/settlement/calculateSettlementAmount.js'
 import { CYCLE_TYPES, getCurrentCycle } from '@/utils/settlementCycle.js'
+import { VIEWS } from '@/app/routes.js'
 
 function ReconciliationPage({ variant = 'full' }) {
-  const { recon, settings, showToast } = useAppState()
+  const { recon, settings, showToast, setActiveView, openReconciliationEdit } = useAppState()
   const {
     records,
     filteredRecords,
@@ -44,49 +44,20 @@ function ReconciliationPage({ variant = 'full' }) {
     handleStatusChange,
     handleCopyRecord,
     handleReorder,
-    addRecord,
     updateRecord,
     deleteRecord,
     handleExportFiltered,
     handleExportSelected,
     handleExportError,
     handleRestoreFromHistory,
-    handleApplyTemplate,
     handleExcelImport,
     restoreFullData,
-    statistics,
-    quickFillData,
-    setQuickFillData
+    statistics
   } = recon
 
   const { settlementMonth, partyA, partyB, partners, deliveries, setPartners } = settings
 
-  const title = variant === 'master' ? '对账总表' : '研发对账'
-  const description =
-    variant === 'master'
-      ? '按当前筛选查看全部对账记录（与研发对账共用数据）'
-      : '录入与管理研发对账记录'
-
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [drawerMode, setDrawerMode] = useState('add')
-  const [drawerEdit, setDrawerEdit] = useState(null)
-
-  const openDrawerAdd = () => {
-    setDrawerMode('add')
-    setDrawerEdit(null)
-    setDrawerOpen(true)
-  }
-
-  const openDrawerEdit = (record) => {
-    setDrawerMode('edit')
-    setDrawerEdit(record)
-    setDrawerOpen(true)
-  }
-
-  const closeDrawer = () => {
-    setDrawerOpen(false)
-    setDrawerEdit(null)
-  }
+  const [lightDrawerRecord, setLightDrawerRecord] = useState(null)
 
   const cycleBlock = (
     <SettlementCycleManager
@@ -125,9 +96,7 @@ function ReconciliationPage({ variant = 'full' }) {
     return (
       <PageContainer hideHeader className="page-container--recon-rd">
         <div className="reconciliation-rd">
-          <ReconciliationPageHeader title={title} description={description} />
-
-          <div className="reconciliation-rd__filter-layer">
+          <div className="reconciliation-rd__filter-layer reconciliation-rd__filter-layer--single-row">
             <div className="reconciliation-rd__filter-strip">
               {cycleBlock}
             </div>
@@ -171,7 +140,7 @@ function ReconciliationPage({ variant = 'full' }) {
 
           <div className="reconciliation-rd__action-layer">
             <ReconciliationToolbar
-              onAddClick={openDrawerAdd}
+              onNavigateToCreate={() => setActiveView(VIEWS.RECON_CREATE)}
               records={records}
               filteredRecords={filteredRecords}
               selectedIds={selectedIds}
@@ -208,36 +177,20 @@ function ReconciliationPage({ variant = 'full' }) {
               onSortChange={(field, order) => setSortOptions({ field, order })}
               onStatusChange={handleStatusChange}
               columnPreset="compact"
-              useDrawerForEdit
-              onRequestEdit={openDrawerEdit}
+              useDrawerForEdit={false}
+              onRequestPageEdit={(r) => openReconciliationEdit(r.id)}
+              onQuickView={(r) => setLightDrawerRecord(r)}
             />
           </div>
         </div>
 
-        <ReconciliationDrawerForm
-          open={drawerOpen}
-          mode={drawerMode}
-          editRecord={drawerEdit}
-          onClose={closeDrawer}
-          settlementMonth={settlementMonth}
-          addRecord={addRecord}
-          updateRecord={updateRecord}
-          showToast={showToast}
-          quickFillData={quickFillData}
-          setQuickFillData={setQuickFillData}
-          partners={partners}
-          onAddPartner={(name) => {
-            const newPartner = {
-              id: Date.now(),
-              name,
-              category: '游戏研发商',
-              tag2: '',
-              createdAt: new Date().toISOString()
-            }
-            setPartners([...partners, newPartner])
-            showToast(`客户"${name}"已添加到客户库`, 'success')
-          }}
-          handleApplyTemplate={handleApplyTemplate}
+        <ReconciliationLightDrawer
+          open={Boolean(lightDrawerRecord)}
+          record={lightDrawerRecord}
+          onClose={() => setLightDrawerRecord(null)}
+          onStatusChange={handleStatusChange}
+          onUpdateRecord={updateRecord}
+          onNavigateToFullEdit={(id) => openReconciliationEdit(id)}
         />
       </PageContainer>
     )
@@ -245,7 +198,10 @@ function ReconciliationPage({ variant = 'full' }) {
 
   /* 对账总表：保留原结构（无右侧抽屉、表格全列） */
   return (
-    <PageContainer title={title} description={description}>
+    <PageContainer
+      title="对账总表"
+      description="按当前筛选查看全部对账记录（与研发对账共用数据）"
+    >
       <div className="cycle-manager-section">{cycleBlock}</div>
       <div className="toolbar-section">
         <SearchFilter

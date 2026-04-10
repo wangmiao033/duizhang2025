@@ -1,35 +1,113 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useRef, useEffect } from 'react'
+import * as XLSX from 'xlsx'
+import AdminWorkspace from '@/components/admin/AdminWorkspace.jsx'
+import AdminFilterBar from '@/components/admin/AdminFilterBar.jsx'
+import AdminActionBar from '@/components/admin/AdminActionBar.jsx'
+import AdminStatsRow from '@/components/admin/AdminStatsRow.jsx'
+import '@/components/reconciliation/reconciliation-admin.css'
+import { useAppState } from '@/app/AppStateContext.jsx'
 import './ChannelBilling.css'
 
-function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteRecord }) {
-  const [formData, setFormData] = useState({
-    // 基本信息
-    channelName: '',        // 渠道/公司简称（必填）
-    gameName: '',           // 游戏名称（必填）
-    startDate: '',          // 结算开始日期
-    endDate: '',            // 结算结束日期
-    // 流水与费用
-    flow: '',               // 后台流水
-    voucherCost: '',        // 代金券
-    noWorryCost: '',        // 无忧试
-    refundCost: '',         // 玩家退款
-    testCost: '',           // 测试费
-    welfareCost: '',        // 福利币
-    // 分成计算
-    shareRate: '30',        // 分成比例(%)
-    taxRate: '5',           // 税率(%)
-    gatewayCost: '',        // 支付通道费
-    // 结算
-    settlementAmount: '',   // 结算金额
-    remark: ''
-  })
-  
+const PERIOD_OPTIONS = [
+  { value: 'all', label: '全部周期' },
+  { value: 'this_month', label: '本月' },
+  { value: 'last_month', label: '上月' },
+  { value: 'this_quarter', label: '本季度' }
+]
+
+const STATUS_FILTER_OPTIONS = [
+  { value: 'all', label: '全部' },
+  { value: 'dated', label: '已设结算区间' },
+  { value: 'undated', label: '未设齐区间' }
+]
+
+function parseYmd(s) {
+  if (!s) return null
+  const d = new Date(s)
+  return Number.isNaN(d.getTime()) ? null : d
+}
+
+function recordInCalendarMonth(record, year, monthIndex) {
+  const first = new Date(year, monthIndex, 1)
+  const last = new Date(year, monthIndex + 1, 0)
+  const s = parseYmd(record.startDate)
+  const e = parseYmd(record.endDate)
+  if (!s && !e) return false
+  const rs = s || e
+  const re = e || s
+  return rs <= last && re >= first
+}
+
+function recordMatchesPeriod(record, period) {
+  if (period === 'all') return true
+  const now = new Date()
+  if (period === 'this_month') {
+    return recordInCalendarMonth(record, now.getFullYear(), now.getMonth())
+  }
+  if (period === 'last_month') {
+    const lm = now.getMonth() === 0 ? 11 : now.getMonth() - 1
+    const ly = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear()
+    return recordInCalendarMonth(record, ly, lm)
+  }
+  if (period === 'this_quarter') {
+    const q = Math.floor(now.getMonth() / 3)
+    const start = new Date(now.getFullYear(), q * 3, 1)
+    const end = new Date(now.getFullYear(), q * 3 + 3, 0)
+    const s = parseYmd(record.startDate)
+    const e = parseYmd(record.endDate)
+    if (!s && !e) return false
+    const rs = s || e
+    const re = e || s
+    return rs <= end && re >= start
+  }
+  return true
+}
+
+function recordMatchesStatusFilter(record, statusFilter) {
+  if (statusFilter === 'all') return true
+  const hasBoth = Boolean(record.startDate && record.endDate)
+  if (statusFilter === 'dated') return hasBoth
+  if (statusFilter === 'undated') return !hasBoth
+  return true
+}
+
+const initialForm = {
+  channelName: '',
+  gameName: '',
+  startDate: '',
+  endDate: '',
+  flow: '',
+  voucherCost: '',
+  noWorryCost: '',
+  refundCost: '',
+  testCost: '',
+  welfareCost: '',
+  shareRate: '30',
+  taxRate: '5',
+  gatewayCost: '',
+  settlementAmount: '',
+  remark: ''
+}
+
+function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpdateRecord, onDeleteRecord }) {
+  const { showToast } = useAppState()
+  const importRef = useRef(null)
+
+  const [formData, setFormData] = useState(initialForm)
   const [expandedGames, setExpandedGames] = useState({})
-  const [viewMode, setViewMode] = useState('byGame') // 'byGame' or 'list'
+  const [viewMode, setViewMode] = useState('byGame')
   const [editingId, setEditingId] = useState(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
+  const [periodFilter, setPeriodFilter] = useState('all')
+  const [filterMonth, setFilterMonth] = useState('')
+  const [channelFilter, setChannelFilter] = useState('')
+  const [gameFilter, setGameFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
 
-  // 计算计费金额 = 后台流水 - 代金券 - 无忧试 - 玩家退款 - 测试费 - 福利币
+  const [selectedIds, setSelectedIds] = useState([])
+
   const calculateBillingAmount = (data) => {
     const flow = parseFloat(data.flow || 0)
     const voucher = parseFloat(data.voucherCost || 0)
@@ -40,14 +118,12 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
     return flow - voucher - noWorry - refund - test - welfare
   }
 
-  // 计算分成金额 = 计费金额 * 分成比例
   const calculateShareAmount = (data) => {
     const billingAmount = calculateBillingAmount(data)
     const shareRate = parseFloat(data.shareRate || 0) / 100
     return billingAmount * shareRate
   }
 
-  // 计算结算金额 = 分成金额 - 支付通道费 - 税费
   const calculateSettlement = (data) => {
     const shareAmount = calculateShareAmount(data)
     const gatewayCost = parseFloat(data.gatewayCost || 0)
@@ -56,75 +132,204 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
     return shareAmount - gatewayCost - taxAmount
   }
 
+  const buildRecordFromForm = (fd) => {
+    const billingAmount = calculateBillingAmount(fd)
+    const shareAmount = calculateShareAmount(fd)
+    return {
+      ...fd,
+      flow: parseFloat(fd.flow || 0),
+      voucherCost: parseFloat(fd.voucherCost || 0),
+      noWorryCost: parseFloat(fd.noWorryCost || 0),
+      refundCost: parseFloat(fd.refundCost || 0),
+      testCost: parseFloat(fd.testCost || 0),
+      welfareCost: parseFloat(fd.welfareCost || 0),
+      billingAmount,
+      shareRate: parseFloat(fd.shareRate || 0),
+      shareAmount,
+      taxRate: parseFloat(fd.taxRate || 0),
+      gatewayCost: parseFloat(fd.gatewayCost || 0),
+      settlementAmount: parseFloat(fd.settlementAmount || 0)
+    }
+  }
+
+  const channelOptions = useMemo(() => {
+    const set = new Set()
+    channelRecords.forEach((r) => {
+      if (r.channelName) set.add(r.channelName)
+    })
+    return Array.from(set).sort()
+  }, [channelRecords])
+
+  const gameOptions = useMemo(() => {
+    const set = new Set()
+    channelRecords.forEach((r) => {
+      if (r.gameName) set.add(r.gameName)
+    })
+    return Array.from(set).sort()
+  }, [channelRecords])
+
+  const filteredRecords = useMemo(() => {
+    let list = channelRecords
+
+    list = list.filter((r) => recordMatchesPeriod(r, periodFilter))
+
+    if (filterMonth) {
+      const [y, m] = filterMonth.split('-').map(Number)
+      if (y && m) {
+        list = list.filter((r) => recordInCalendarMonth(r, y, m - 1))
+      }
+    }
+
+    if (channelFilter) {
+      list = list.filter((r) => (r.channelName || '') === channelFilter)
+    }
+    if (gameFilter) {
+      list = list.filter((r) => (r.gameName || '') === gameFilter)
+    }
+    list = list.filter((r) => recordMatchesStatusFilter(r, statusFilter))
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase()
+      list = list.filter(
+        (record) =>
+          (record.channelName || '').toLowerCase().includes(term) ||
+          (record.gameName || '').toLowerCase().includes(term)
+      )
+    }
+
+    return list
+  }, [
+    channelRecords,
+    periodFilter,
+    filterMonth,
+    channelFilter,
+    gameFilter,
+    statusFilter,
+    searchTerm
+  ])
+
+  const statistics = useMemo(() => {
+    return filteredRecords.reduce(
+      (acc, record) => ({
+        totalFlow: acc.totalFlow + (parseFloat(record.flow) || 0),
+        totalSettlement: acc.totalSettlement + (parseFloat(record.settlementAmount) || 0),
+        totalServerCost: acc.totalServerCost + (parseFloat(record.serverCost) || 0),
+        totalVoucherCost: acc.totalVoucherCost + (parseFloat(record.voucherCost) || 0)
+      }),
+      { totalFlow: 0, totalSettlement: 0, totalServerCost: 0, totalVoucherCost: 0 }
+    )
+  }, [filteredRecords])
+
+  const uniqueChannelCount = useMemo(() => {
+    return new Set(filteredRecords.map((r) => r.channelName || '')).size
+  }, [filteredRecords])
+
+  const groupedByChannel = useMemo(() => {
+    const grouped = {}
+
+    filteredRecords.forEach((record) => {
+      const channelName = record.channelName || '未命名渠道'
+      if (!grouped[channelName]) {
+        grouped[channelName] = {
+          channelName,
+          records: [],
+          totalFlow: 0,
+          totalSettlement: 0,
+          totalServerCost: 0,
+          totalVoucherCost: 0,
+          totalTestCost: 0,
+          games: new Set()
+        }
+      }
+      grouped[channelName].records.push(record)
+      grouped[channelName].totalFlow += parseFloat(record.flow) || 0
+      grouped[channelName].totalSettlement += parseFloat(record.settlementAmount) || 0
+      grouped[channelName].totalVoucherCost += parseFloat(record.voucherCost) || 0
+      grouped[channelName].totalNoWorryCost =
+        (grouped[channelName].totalNoWorryCost || 0) + (parseFloat(record.noWorryCost) || 0)
+      grouped[channelName].totalRefundCost =
+        (grouped[channelName].totalRefundCost || 0) + (parseFloat(record.refundCost) || 0)
+      grouped[channelName].totalTestCost += parseFloat(record.testCost) || 0
+      grouped[channelName].totalWelfareCost =
+        (grouped[channelName].totalWelfareCost || 0) + (parseFloat(record.welfareCost) || 0)
+      grouped[channelName].games.add(record.gameName)
+    })
+
+    return Object.values(grouped)
+      .map((channel) => ({
+        ...channel,
+        gameCount: channel.games.size,
+        games: Array.from(channel.games),
+        profitRate:
+          channel.totalFlow > 0 ? ((channel.totalSettlement / channel.totalFlow) * 100).toFixed(1) : 0
+      }))
+      .sort((a, b) => b.totalSettlement - a.totalSettlement)
+  }, [filteredRecords])
+
+  useEffect(() => {
+    if (!drawerOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [drawerOpen])
+
   const handleInputChange = (field, value) => {
     const newFormData = { ...formData, [field]: value }
-    
-    // 自动计算结算金额
-    if (['flow', 'voucherCost', 'noWorryCost', 'refundCost', 'testCost', 
-         'welfareCost', 'shareRate', 'taxRate', 'gatewayCost'].includes(field)) {
+
+    if (
+      [
+        'flow',
+        'voucherCost',
+        'noWorryCost',
+        'refundCost',
+        'testCost',
+        'welfareCost',
+        'shareRate',
+        'taxRate',
+        'gatewayCost'
+      ].includes(field)
+    ) {
       const settlement = calculateSettlement(newFormData)
       newFormData.settlementAmount = settlement.toFixed(2)
     }
-    
+
     setFormData(newFormData)
+  }
+
+  const resetForm = () => {
+    setFormData({ ...initialForm })
+    setEditingId(null)
+  }
+
+  const closeDrawer = () => {
+    setDrawerOpen(false)
+    resetForm()
+  }
+
+  const openDrawerAdd = () => {
+    resetForm()
+    setDrawerOpen(true)
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    
+
     if (!formData.channelName || !formData.gameName) {
       window.alert('请填写必填项：渠道名称、游戏名称')
       return
     }
 
-    const billingAmount = calculateBillingAmount(formData)
-    const shareAmount = calculateShareAmount(formData)
-    
-    const record = {
-      ...formData,
-      flow: parseFloat(formData.flow || 0),
-      voucherCost: parseFloat(formData.voucherCost || 0),
-      noWorryCost: parseFloat(formData.noWorryCost || 0),
-      refundCost: parseFloat(formData.refundCost || 0),
-      testCost: parseFloat(formData.testCost || 0),
-      welfareCost: parseFloat(formData.welfareCost || 0),
-      billingAmount: billingAmount,
-      shareRate: parseFloat(formData.shareRate || 0),
-      shareAmount: shareAmount,
-      taxRate: parseFloat(formData.taxRate || 0),
-      gatewayCost: parseFloat(formData.gatewayCost || 0),
-      settlementAmount: parseFloat(formData.settlementAmount || 0)
-    }
+    const record = buildRecordFromForm(formData)
 
     if (editingId) {
       onUpdateRecord(editingId, record)
-      setEditingId(null)
     } else {
       onAddRecord(record)
     }
 
-    resetForm()
-  }
-
-  const resetForm = () => {
-    setFormData({
-      channelName: '',
-      gameName: '',
-      startDate: '',
-      endDate: '',
-      flow: '',
-      voucherCost: '',
-      noWorryCost: '',
-      refundCost: '',
-      testCost: '',
-      welfareCost: '',
-      shareRate: '30',
-      taxRate: '5',
-      gatewayCost: '',
-      settlementAmount: '',
-      remark: ''
-    })
-    setEditingId(null)
+    closeDrawer()
   }
 
   const handleEdit = (record) => {
@@ -146,76 +351,18 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
       remark: record.remark || ''
     })
     setEditingId(record.id)
+    setDrawerOpen(true)
   }
 
   const handleDelete = (id) => {
     if (window.confirm('确定要删除这条渠道记录吗？')) {
       onDeleteRecord(id)
+      setSelectedIds((prev) => prev.filter((x) => x !== id))
     }
   }
 
-  // 过滤记录
-  const filteredRecords = useMemo(() => {
-    if (!searchTerm) return channelRecords
-    const term = searchTerm.toLowerCase()
-    return channelRecords.filter(record => 
-      (record.channelName || '').toLowerCase().includes(term) ||
-      (record.gameName || '').toLowerCase().includes(term)
-    )
-  }, [channelRecords, searchTerm])
-
-  // 统计
-  const statistics = useMemo(() => {
-    return filteredRecords.reduce((acc, record) => ({
-      totalFlow: acc.totalFlow + (parseFloat(record.flow) || 0),
-      totalSettlement: acc.totalSettlement + (parseFloat(record.settlementAmount) || 0),
-      totalServerCost: acc.totalServerCost + (parseFloat(record.serverCost) || 0),
-      totalVoucherCost: acc.totalVoucherCost + (parseFloat(record.voucherCost) || 0)
-    }), { totalFlow: 0, totalSettlement: 0, totalServerCost: 0, totalVoucherCost: 0 })
-  }, [filteredRecords])
-
-  // 按渠道分组（一个渠道下有多个游戏）
-  const groupedByChannel = useMemo(() => {
-    const grouped = {}
-    
-    filteredRecords.forEach(record => {
-      const channelName = record.channelName || '未命名渠道'
-      if (!grouped[channelName]) {
-        grouped[channelName] = {
-          channelName,
-          records: [],
-          totalFlow: 0,
-          totalSettlement: 0,
-          totalServerCost: 0,
-          totalVoucherCost: 0,
-          totalTestCost: 0,
-          games: new Set()
-        }
-      }
-      grouped[channelName].records.push(record)
-      grouped[channelName].totalFlow += parseFloat(record.flow) || 0
-      grouped[channelName].totalSettlement += parseFloat(record.settlementAmount) || 0
-      grouped[channelName].totalVoucherCost += parseFloat(record.voucherCost) || 0
-      grouped[channelName].totalNoWorryCost = (grouped[channelName].totalNoWorryCost || 0) + (parseFloat(record.noWorryCost) || 0)
-      grouped[channelName].totalRefundCost = (grouped[channelName].totalRefundCost || 0) + (parseFloat(record.refundCost) || 0)
-      grouped[channelName].totalTestCost += parseFloat(record.testCost) || 0
-      grouped[channelName].totalWelfareCost = (grouped[channelName].totalWelfareCost || 0) + (parseFloat(record.welfareCost) || 0)
-      grouped[channelName].games.add(record.gameName)
-    })
-
-    // 计算每个渠道的统计
-    return Object.values(grouped).map(channel => ({
-      ...channel,
-      gameCount: channel.games.size,
-      games: Array.from(channel.games),
-      profitRate: channel.totalFlow > 0 
-        ? ((channel.totalSettlement / channel.totalFlow) * 100).toFixed(1)
-        : 0
-    })).sort((a, b) => b.totalSettlement - a.totalSettlement)
-  }, [filteredRecords])
-
   const toggleChannelExpand = (channelName) => {
-    setExpandedGames(prev => ({
+    setExpandedGames((prev) => ({
       ...prev,
       [channelName]: !prev[channelName]
     }))
@@ -224,13 +371,176 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
   const formatMoney = (amount) => {
     if (amount >= 100000000) {
       return `¥${(amount / 100000000).toFixed(2)}亿`
-    } else if (amount >= 10000) {
+    }
+    if (amount >= 10000) {
       return `¥${(amount / 10000).toFixed(2)}万`
     }
-    return `¥${amount.toFixed(2)}`
+    return `¥${Number(amount).toFixed(2)}`
   }
 
-  // 常用渠道列表
+  const fmtPlain = (n) => `¥${(Number(n) || 0).toFixed(2)}`
+
+  const allFilteredIds = useMemo(() => filteredRecords.map((r) => r.id), [filteredRecords])
+  const allSelected =
+    allFilteredIds.length > 0 && allFilteredIds.every((id) => selectedIds.includes(id))
+
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }
+
+  const toggleSelectAll = () => {
+    if (allSelected) setSelectedIds([])
+    else setSelectedIds([...allFilteredIds])
+  }
+
+  const exportFilteredXlsx = () => {
+    if (filteredRecords.length === 0) {
+      showToast('没有可导出的记录', 'info')
+      return
+    }
+    const rows = filteredRecords.map((r) => ({
+      渠道: r.channelName,
+      游戏: r.gameName,
+      结算开始: r.startDate,
+      结算结束: r.endDate,
+      后台流水: r.flow,
+      代金券: r.voucherCost,
+      无忧试: r.noWorryCost,
+      玩家退款: r.refundCost,
+      测试费: r.testCost,
+      福利币: r.welfareCost,
+      分成比例: r.shareRate,
+      税率: r.taxRate,
+      通道费: r.gatewayCost,
+      结算金额: r.settlementAmount,
+      备注: r.remark
+    }))
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, '渠道对账')
+    XLSX.writeFile(wb, `渠道对账导出_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    showToast('已导出当前筛选结果', 'success')
+  }
+
+  const exportSelectedXlsx = () => {
+    const rows = channelRecords.filter((r) => selectedIds.includes(r.id))
+    if (rows.length === 0) {
+      showToast('请先勾选记录', 'info')
+      return
+    }
+    const data = rows.map((r) => ({
+      渠道: r.channelName,
+      游戏: r.gameName,
+      后台流水: r.flow,
+      结算金额: r.settlementAmount
+    }))
+    const ws = XLSX.utils.json_to_sheet(data)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, '选中')
+    XLSX.writeFile(wb, `渠道对账选中_${rows.length}条.xlsx`)
+    showToast('已导出选中记录', 'success')
+  }
+
+  const normalizeKey = (k) => String(k || '').trim().toLowerCase()
+
+  const mapExcelRowToForm = (row) => {
+    const out = { ...initialForm }
+    const keyMap = {}
+    Object.keys(row).forEach((k) => {
+      keyMap[normalizeKey(k)] = row[k]
+    })
+    const get = (...names) => {
+      for (const n of names) {
+        const k = normalizeKey(n)
+        if (!Object.prototype.hasOwnProperty.call(keyMap, k)) continue
+        const v = keyMap[k]
+        if (v !== undefined && v !== null && String(v).trim() !== '') return v
+      }
+      return undefined
+    }
+    const str = (v, fallback = '') => (v === undefined || v === null ? fallback : String(v))
+    out.channelName = str(get('渠道', '渠道名称', 'channel', 'channelname'), '')
+    out.gameName = str(get('游戏', '游戏名称', 'game', 'gamename'), '')
+    out.startDate = str(get('结算开始', '开始日期', 'startdate'), '')
+    out.endDate = str(get('结算结束', '结束日期', 'enddate'), '')
+    out.flow = str(get('后台流水', '流水', 'flow'), '')
+    out.voucherCost = str(get('代金券', 'vouchercost'), '')
+    out.noWorryCost = str(get('无忧试', 'noworrycost'), '')
+    out.refundCost = str(get('玩家退款', '退款', 'refundcost'), '')
+    out.testCost = str(get('测试费', 'testcost'), '')
+    out.welfareCost = str(get('福利币', 'welfarecost'), '')
+    out.shareRate = str(get('分成比例', 'sharerate', '分成%'), '30')
+    out.taxRate = str(get('税率', 'taxrate'), '5')
+    out.gatewayCost = str(get('支付通道费', '通道费', 'gatewaycost'), '')
+    out.settlementAmount = str(get('结算金额', 'settlementamount'), '')
+    out.remark = str(get('备注', 'remark'), '')
+    return out
+  }
+
+  const handleImportFile = (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      try {
+        const data = new Uint8Array(ev.target.result)
+        const workbook = XLSX.read(data, { type: 'array' })
+        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+        const json = XLSX.utils.sheet_to_json(sheet, { defval: '' })
+        let count = 0
+        const batch = []
+        json.forEach((row) => {
+          const fd = mapExcelRowToForm(row)
+          if (!fd.channelName || !fd.gameName) return
+          batch.push(buildRecordFromForm(fd))
+        })
+        if (batch.length > 0) {
+          if (onAddRecordsBatch) {
+            onAddRecordsBatch(batch)
+            count = batch.length
+          } else {
+            batch.forEach((rec) => onAddRecord(rec))
+            count = batch.length
+          }
+        }
+        if (!onAddRecordsBatch) {
+          showToast(
+            count > 0 ? `已导入 ${count} 条渠道记录` : '未解析到有效行（需含渠道、游戏列）',
+            count > 0 ? 'success' : 'info'
+          )
+        } else if (count === 0) {
+          showToast('未解析到有效行（需含渠道、游戏列）', 'info')
+        }
+      } catch (err) {
+        console.error(err)
+        showToast('Excel 解析失败', 'error')
+      }
+    }
+    reader.readAsArrayBuffer(file)
+  }
+
+  const hasActiveFilters =
+    periodFilter !== 'all' ||
+    Boolean(filterMonth) ||
+    Boolean(channelFilter) ||
+    Boolean(gameFilter) ||
+    statusFilter !== 'all' ||
+    Boolean(searchTerm)
+
+  const resetFilters = () => {
+    setPeriodFilter('all')
+    setFilterMonth('')
+    setChannelFilter('')
+    setGameFilter('')
+    setStatusFilter('all')
+    setSearchTerm('')
+    setSelectedIds([])
+    showToast('已重置筛选条件', 'info')
+  }
+
+  const previewSettlement = calculateSettlement(formData)
+
   const commonChannels = [
     '广州触点互联网科技有限公司',
     '广州能动科技有限公司',
@@ -249,305 +559,197 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
   ]
 
   return (
-    <div className="channel-billing">
-      <div className="channel-header">
-        <h2>📤 渠道对账单</h2>
-        <p className="subtitle">管理渠道分成与结算记录（参考渠道产品表格式）</p>
-      </div>
-
-      <div className="channel-stats">
-        <div className="stat-card">
-          <span className="stat-icon">💰</span>
-          <div className="stat-content">
-            <span className="stat-label">渠道流水总额</span>
-            <span className="stat-value">{formatMoney(statistics.totalFlow)}</span>
-          </div>
+    <AdminWorkspace className="channel-rd">
+      <AdminFilterBar>
+        <div className="channel-rd__filters">
+          <label className="channel-rd__field">
+            <span className="channel-rd__label">周期</span>
+            <select
+              className="admin-input channel-rd__select"
+              value={periodFilter}
+              onChange={(e) => setPeriodFilter(e.target.value)}
+            >
+              {PERIOD_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="channel-rd__field">
+            <span className="channel-rd__label">月份</span>
+            <input
+              type="month"
+              className="admin-input channel-rd__month"
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(e.target.value)}
+            />
+          </label>
+          <label className="channel-rd__field">
+            <span className="channel-rd__label">渠道</span>
+            <select
+              className="admin-input channel-rd__select"
+              value={channelFilter}
+              onChange={(e) => setChannelFilter(e.target.value)}
+            >
+              <option value="">全部</option>
+              {channelOptions.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="channel-rd__field">
+            <span className="channel-rd__label">游戏</span>
+            <select
+              className="admin-input channel-rd__select"
+              value={gameFilter}
+              onChange={(e) => setGameFilter(e.target.value)}
+            >
+              <option value="">全部</option>
+              {gameOptions.map((g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="channel-rd__field">
+            <span className="channel-rd__label">状态</span>
+            <select
+              className="admin-input channel-rd__select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              {STATUS_FILTER_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="channel-rd__field channel-rd__field--grow">
+            <span className="channel-rd__label">搜索</span>
+            <input
+              type="search"
+              className="admin-input channel-rd__search"
+              placeholder="渠道、游戏关键词"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </label>
+          {hasActiveFilters && (
+            <button type="button" className="rec-btn rec-btn--ghost" onClick={resetFilters}>
+              重置
+            </button>
+          )}
         </div>
-        <div className="stat-card success">
-          <span className="stat-icon">📥</span>
-          <div className="stat-content">
-            <span className="stat-label">结算总额</span>
-            <span className="stat-value">{formatMoney(statistics.totalSettlement)}</span>
-          </div>
-        </div>
-        <div className="stat-card warning">
-          <span className="stat-icon">🖥️</span>
-          <div className="stat-content">
-            <span className="stat-label">服务器成本</span>
-            <span className="stat-value">{formatMoney(statistics.totalServerCost)}</span>
-          </div>
-        </div>
-        <div className="stat-card info">
-          <span className="stat-icon">🎫</span>
-          <div className="stat-content">
-            <span className="stat-label">代金券成本</span>
-            <span className="stat-value">{formatMoney(statistics.totalVoucherCost)}</span>
-          </div>
-        </div>
-      </div>
+      </AdminFilterBar>
 
-      <div className="channel-content">
-        <div className="channel-form-section">
-          <h3>{editingId ? '✏️ 编辑渠道记录' : '➕ 添加渠道记录'}</h3>
-          <form onSubmit={handleSubmit} className="channel-form">
-            <div className="form-section-title">渠道信息</div>
-            <div className="form-row">
-              <div className="form-group full-width">
-                <label>渠道/公司简称 *</label>
-                <input
-                  type="text"
-                  list="channel-list"
-                  value={formData.channelName}
-                  onChange={(e) => handleInputChange('channelName', e.target.value)}
-                  placeholder="如：广州触点互联网科技有限公司"
-                  required
-                />
-                <datalist id="channel-list">
-                  {commonChannels.map(ch => (
-                    <option key={ch} value={ch} />
-                  ))}
-                </datalist>
-              </div>
-            </div>
-
-            <div className="form-section-title">游戏与结算周期</div>
-            <div className="form-row">
-              <div className="form-group full-width">
-                <label>游戏名称 *</label>
-                <input
-                  type="text"
-                  value={formData.gameName}
-                  onChange={(e) => handleInputChange('gameName', e.target.value)}
-                  placeholder="如：一起来修仙(0.05折)"
-                  required
-                />
-              </div>
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label>结算开始日期</label>
-                <input
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => handleInputChange('startDate', e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>结算结束日期</label>
-                <input
-                  type="date"
-                  value={formData.endDate}
-                  onChange={(e) => handleInputChange('endDate', e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="form-section-title">流水与费用</div>
-            <div className="form-row">
-              <div className="form-group">
-                <label>后台流水</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.flow}
-                  onChange={(e) => handleInputChange('flow', e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
-              <div className="form-group">
-                <label>代金券</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.voucherCost}
-                  onChange={(e) => handleInputChange('voucherCost', e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-            </div>
-            <div className="form-row three-col">
-              <div className="form-group">
-                <label>无忧试</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.noWorryCost}
-                  onChange={(e) => handleInputChange('noWorryCost', e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-              <div className="form-group">
-                <label>玩家退款</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.refundCost}
-                  onChange={(e) => handleInputChange('refundCost', e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-              <div className="form-group">
-                <label>测试费</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.testCost}
-                  onChange={(e) => handleInputChange('testCost', e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label>福利币</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.welfareCost}
-                  onChange={(e) => handleInputChange('welfareCost', e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-              <div className="form-group">
-                <label>计费金额（自动）</label>
-                <input
-                  type="text"
-                  value={formatMoney(calculateBillingAmount(formData))}
-                  readOnly
-                  className="readonly-input"
-                />
-              </div>
-            </div>
-
-            <div className="form-section-title">分成计算</div>
-            <div className="form-row three-col">
-              <div className="form-group">
-                <label>分成比例(%)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.shareRate}
-                  onChange={(e) => handleInputChange('shareRate', e.target.value)}
-                  placeholder="30"
-                />
-              </div>
-              <div className="form-group">
-                <label>分成金额（自动）</label>
-                <input
-                  type="text"
-                  value={formatMoney(calculateShareAmount(formData))}
-                  readOnly
-                  className="readonly-input"
-                />
-              </div>
-              <div className="form-group">
-                <label>税率(%)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.taxRate}
-                  onChange={(e) => handleInputChange('taxRate', e.target.value)}
-                  placeholder="5"
-                />
-              </div>
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label>支付通道费</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.gatewayCost}
-                  onChange={(e) => handleInputChange('gatewayCost', e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-            </div>
-
-            <div className="form-section-title">结算</div>
-            <div className="form-row">
-              <div className="form-group settlement-group">
-                <label>结算金额</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.settlementAmount}
-                  onChange={(e) => handleInputChange('settlementAmount', e.target.value)}
-                  placeholder="自动计算或手动输入"
-                  className="settlement-input"
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group full-width">
-                <label>备注</label>
-                <input
-                  type="text"
-                  value={formData.remark}
-                  onChange={(e) => handleInputChange('remark', e.target.value)}
-                  placeholder="可选备注"
-                />
-              </div>
-            </div>
-
-            <div className="form-actions">
-              <button type="submit" className="submit-btn">
-                {editingId ? '💾 保存修改' : '➕ 添加记录'}
+      <AdminActionBar>
+        <div className="rec-toolbar">
+          <div className="rec-toolbar__primary">
+            <button type="button" className="rec-btn rec-btn--primary" onClick={openDrawerAdd}>
+              快速新增
+            </button>
+            <button
+              type="button"
+              className="rec-btn rec-btn--secondary"
+              disabled
+              title="渠道独立完整录入页将在后续版本提供"
+            >
+              完整录入
+            </button>
+            <button type="button" className="rec-btn rec-btn--secondary" onClick={() => importRef.current?.click()}>
+              Excel导入
+            </button>
+            <input ref={importRef} type="file" accept=".xlsx,.xls" className="channel-rd__file" onChange={handleImportFile} />
+            <button type="button" className="rec-btn rec-btn--secondary" onClick={exportFilteredXlsx}>
+              导出
+            </button>
+            {selectedIds.length > 0 && (
+              <button type="button" className="rec-btn rec-btn--secondary" onClick={exportSelectedXlsx}>
+                导出选中 ({selectedIds.length})
               </button>
-              {editingId && (
-                <button type="button" className="cancel-btn" onClick={resetForm}>
-                  取消编辑
-                </button>
-              )}
-            </div>
-          </form>
-        </div>
-
-        <div className="channel-list-section">
-          <div className="list-header">
-            <h3>📋 渠道对账列表</h3>
-            <div className="list-tools">
-              <div className="view-toggle">
-                <button 
-                  className={`toggle-btn ${viewMode === 'byGame' ? 'active' : ''}`}
-                  onClick={() => setViewMode('byGame')}
-                >
-                  按渠道
-                </button>
-                <button 
-                  className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
-                  onClick={() => setViewMode('list')}
-                >
-                  列表
-                </button>
-              </div>
-              <input
-                type="text"
-                className="search-input"
-                placeholder="搜索渠道、游戏..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <span className="record-count">{groupedByChannel.length} 个渠道 / {filteredRecords.length} 条</span>
-            </div>
+            )}
           </div>
+        </div>
+      </AdminActionBar>
 
+      <AdminStatsRow>
+        <div className="rec-stats-cards rec-stats-cards--compact" aria-label="渠道筛选概览">
+          {[
+            { label: '记录数', value: String(filteredRecords.length), sub: '当前筛选' },
+            { label: '渠道数', value: String(uniqueChannelCount) },
+            { label: '流水合计', value: formatMoney(statistics.totalFlow) },
+            { label: '结算合计', value: formatMoney(statistics.totalSettlement), emphasize: true },
+            { label: '代金券成本', value: formatMoney(statistics.totalVoucherCost) },
+            { label: '服务器成本', value: formatMoney(statistics.totalServerCost) }
+          ].map((c) => (
+            <div
+              key={c.label}
+              className={`rec-stat-card ${c.emphasize ? 'rec-stat-card--emphasis' : ''}`}
+            >
+              <div className="rec-stat-card__label">{c.label}</div>
+              <div className="rec-stat-card__value">{c.value}</div>
+              {c.sub && <div className="rec-stat-card__sub">{c.sub}</div>}
+            </div>
+          ))}
+        </div>
+      </AdminStatsRow>
+
+      <div className="admin-table-card channel-rd__table-card">
+        <div className="channel-rd__table-head">
+          <div className="channel-rd__view-toggle">
+            <button
+              type="button"
+              className={`channel-rd__toggle-btn ${viewMode === 'byGame' ? 'is-active' : ''}`}
+              onClick={() => setViewMode('byGame')}
+            >
+              按渠道
+            </button>
+            <button
+              type="button"
+              className={`channel-rd__toggle-btn ${viewMode === 'list' ? 'is-active' : ''}`}
+              onClick={() => setViewMode('list')}
+            >
+              列表
+            </button>
+          </div>
+          <span className="channel-rd__meta">
+            {groupedByChannel.length} 个渠道 / {filteredRecords.length} 条
+            {selectedIds.length > 0 ? ` · 已选 ${selectedIds.length}` : ''}
+          </span>
+          {viewMode === 'list' && filteredRecords.length > 0 && (
+            <label className="channel-rd__select-all">
+              <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} />
+              全选当页筛选
+            </label>
+          )}
+        </div>
+        <div className="admin-table-card__body channel-rd__table-body">
           {viewMode === 'byGame' ? (
             <div className="games-list">
               {groupedByChannel.length === 0 ? (
                 <div className="empty-games">暂无渠道记录</div>
               ) : (
-                groupedByChannel.map(channel => (
+                groupedByChannel.map((channel) => (
                   <div key={channel.channelName} className="game-card channel-card">
-                    <div 
+                    <div
                       className="game-card-header"
                       onClick={() => toggleChannelExpand(channel.channelName)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          toggleChannelExpand(channel.channelName)
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
                     >
                       <div className="game-info">
-                        <span className="expand-icon">
-                          {expandedGames[channel.channelName] ? '▼' : '▶'}
-                        </span>
+                        <span className="expand-icon">{expandedGames[channel.channelName] ? '\u25be' : '\u25b8'}</span>
                         <h4 className="game-title">{channel.channelName}</h4>
                         <span className="channel-badge">{channel.gameCount} 个游戏</span>
                       </div>
@@ -561,19 +763,22 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
                           <span className="value settlement">{formatMoney(channel.totalSettlement)}</span>
                         </span>
                         <span className="stat">
-                          <span className="label">分成率</span>
-                          <span className={`value ${parseFloat(channel.profitRate) >= 0 ? 'positive' : 'negative'}`}>
+                          <span className="label">占比</span>
+                          <span
+                            className={`value ${parseFloat(channel.profitRate) >= 0 ? 'positive' : 'negative'}`}
+                          >
                             {channel.profitRate}%
                           </span>
                         </span>
                       </div>
                     </div>
-                    
+
                     {expandedGames[channel.channelName] && (
                       <div className="game-channels">
                         <table className="channel-detail-table">
                           <thead>
                             <tr>
+                              <th className="channel-rd__th-check" aria-label="选择" />
                               <th>游戏名称</th>
                               <th>后台流水</th>
                               <th>代金券</th>
@@ -587,8 +792,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
                             </tr>
                           </thead>
                           <tbody>
-                            {channel.records.map(record => {
-                              // 兼容旧数据
+                            {channel.records.map((record) => {
                               const flow = parseFloat(record.flow) || 0
                               const voucher = parseFloat(record.voucherCost) || 0
                               const noWorry = parseFloat(record.noWorryCost) || 0
@@ -599,9 +803,17 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
                               const shareRate = parseFloat(record.shareRate || record.cfChannelRate || 30)
                               const shareAmount = billingAmount * shareRate / 100
                               const settlement = parseFloat(record.settlementAmount) || shareAmount
-                              
+
                               return (
                                 <tr key={record.id}>
+                                  <td>
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedIds.includes(record.id)}
+                                      onChange={() => toggleSelect(record.id)}
+                                      aria-label="选择行"
+                                    />
+                                  </td>
                                   <td className="game-name-cell">{record.gameName}</td>
                                   <td>{formatMoney(flow)}</td>
                                   <td>{voucher}</td>
@@ -612,8 +824,12 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
                                   <td>{record.taxRate || 5}%</td>
                                   <td className="settlement">{formatMoney(settlement)}</td>
                                   <td className="actions">
-                                    <button className="edit-btn" onClick={() => handleEdit(record)}>编辑</button>
-                                    <button className="delete-btn" onClick={() => handleDelete(record.id)}>删除</button>
+                                    <button type="button" className="edit-btn" onClick={() => handleEdit(record)}>
+                                      编辑
+                                    </button>
+                                    <button type="button" className="delete-btn" onClick={() => handleDelete(record.id)}>
+                                      删除
+                                    </button>
                                   </td>
                                 </tr>
                               )
@@ -621,31 +837,39 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
                           </tbody>
                           <tfoot>
                             <tr>
+                              <td />
                               <td className="total-label">合计</td>
                               <td>{formatMoney(channel.totalFlow)}</td>
                               <td>{formatMoney(channel.totalVoucherCost)}</td>
                               <td>{formatMoney(channel.totalTestCost)}</td>
-                              <td>{formatMoney(
-                                channel.totalFlow - 
-                                channel.totalVoucherCost - 
-                                (channel.totalNoWorryCost || 0) - 
-                                (channel.totalRefundCost || 0) - 
-                                channel.totalTestCost - 
-                                (channel.totalWelfareCost || 0)
-                              )}</td>
+                              <td>
+                                {formatMoney(
+                                  channel.totalFlow -
+                                    channel.totalVoucherCost -
+                                    (channel.totalNoWorryCost || 0) -
+                                    (channel.totalRefundCost || 0) -
+                                    channel.totalTestCost -
+                                    (channel.totalWelfareCost || 0)
+                                )}
+                              </td>
                               <td>-</td>
-                              <td>{formatMoney(
-                                (channel.totalFlow - 
-                                channel.totalVoucherCost - 
-                                (channel.totalNoWorryCost || 0) - 
-                                (channel.totalRefundCost || 0) - 
-                                channel.totalTestCost - 
-                                (channel.totalWelfareCost || 0)) * 
-                                (channel.records[0] ? parseFloat(channel.records[0].shareRate || channel.records[0].cfChannelRate || 30) / 100 : 0.3)
-                              )}</td>
+                              <td>
+                                {formatMoney(
+                                  (channel.totalFlow -
+                                    channel.totalVoucherCost -
+                                    (channel.totalNoWorryCost || 0) -
+                                    (channel.totalRefundCost || 0) -
+                                    channel.totalTestCost -
+                                    (channel.totalWelfareCost || 0)) *
+                                    (channel.records[0]
+                                      ? parseFloat(channel.records[0].shareRate || channel.records[0].cfChannelRate || 30) /
+                                        100
+                                      : 0.3)
+                                )}
+                              </td>
                               <td>-</td>
                               <td className="settlement">{formatMoney(channel.totalSettlement)}</td>
-                              <td></td>
+                              <td />
                             </tr>
                           </tfoot>
                         </table>
@@ -660,6 +884,9 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
               <table className="channel-table">
                 <thead>
                   <tr>
+                    <th className="channel-rd__th-check">
+                      <span className="visually-hidden">选择</span>
+                    </th>
                     <th>游戏</th>
                     <th>渠道</th>
                     <th>流水</th>
@@ -676,14 +903,24 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
                 <tbody>
                   {filteredRecords.length === 0 ? (
                     <tr>
-                      <td colSpan="11" className="empty-row">
+                      <td colSpan="12" className="empty-row">
                         暂无渠道记录
                       </td>
                     </tr>
                   ) : (
-                    filteredRecords.map(record => (
+                    filteredRecords.map((record) => (
                       <tr key={record.id}>
-                        <td className="game-name" title={record.gameName}>{record.gameName}</td>
+                        <td>
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(record.id)}
+                            onChange={() => toggleSelect(record.id)}
+                            aria-label="选择行"
+                          />
+                        </td>
+                        <td className="game-name" title={record.gameName}>
+                          {record.gameName}
+                        </td>
                         <td className="channel-name">{record.channelName}</td>
                         <td>{formatMoney(parseFloat(record.flow) || 0)}</td>
                         <td>{record.discountType}</td>
@@ -698,8 +935,12 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
                         <td>{record.voucherCost || '-'}</td>
                         <td className="settlement">{formatMoney(parseFloat(record.settlementAmount) || 0)}</td>
                         <td className="actions">
-                          <button className="edit-btn" onClick={() => handleEdit(record)}>编辑</button>
-                          <button className="delete-btn" onClick={() => handleDelete(record.id)}>删除</button>
+                          <button type="button" className="edit-btn" onClick={() => handleEdit(record)}>
+                            编辑
+                          </button>
+                          <button type="button" className="delete-btn" onClick={() => handleDelete(record.id)}>
+                            删除
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -708,13 +949,16 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
                 {filteredRecords.length > 0 && (
                   <tfoot>
                     <tr>
-                      <td colSpan="2" className="total-label">合计</td>
+                      <td />
+                      <td colSpan="2" className="total-label">
+                        合计
+                      </td>
                       <td>{formatMoney(statistics.totalFlow)}</td>
-                      <td colSpan="4"></td>
+                      <td colSpan="4" />
                       <td>{formatMoney(statistics.totalServerCost)}</td>
                       <td>{formatMoney(statistics.totalVoucherCost)}</td>
                       <td className="settlement">{formatMoney(statistics.totalSettlement)}</td>
-                      <td></td>
+                      <td />
                     </tr>
                   </tfoot>
                 )}
@@ -723,7 +967,232 @@ function ChannelBilling({ channelRecords, onAddRecord, onUpdateRecord, onDeleteR
           )}
         </div>
       </div>
-    </div>
+
+      {drawerOpen && (
+        <>
+          <button type="button" className="rec-drawer-backdrop" aria-label="关闭抽屉" onClick={closeDrawer} />
+          <aside className="rec-drawer channel-rd__drawer" role="dialog" aria-modal="true" aria-labelledby="channel-drawer-title">
+            <div className="rec-drawer__head">
+              <h2 id="channel-drawer-title" className="rec-drawer__title">
+                {editingId ? '编辑渠道记录' : '快速新增 · 渠道'}
+              </h2>
+              <button type="button" className="rec-drawer__close" onClick={closeDrawer} aria-label="关闭">
+                ×
+              </button>
+            </div>
+            <div className="rec-drawer__body">
+              <form id="channel-drawer-form" onSubmit={handleSubmit} className="channel-form channel-form--drawer">
+                <div className="form-section-title">渠道信息</div>
+                <div className="form-row">
+                  <div className="form-group full-width">
+                    <label>渠道/公司简称 *</label>
+                    <input
+                      type="text"
+                      list="channel-list-drawer"
+                      value={formData.channelName}
+                      onChange={(e) => handleInputChange('channelName', e.target.value)}
+                      placeholder="如：广州触点互联网科技有限公司"
+                      required className="admin-input"
+                    />
+                    <datalist id="channel-list-drawer">
+                      {commonChannels.map((ch) => (
+                        <option key={ch} value={ch} />
+                      ))}
+                    </datalist>
+                  </div>
+                </div>
+
+                <div className="form-section-title">游戏与结算周期</div>
+                <div className="form-row">
+                  <div className="form-group full-width">
+                    <label>游戏名称 *</label>
+                    <input
+                      type="text"
+                      value={formData.gameName}
+                      onChange={(e) => handleInputChange('gameName', e.target.value)}
+                      placeholder="如：一起来修仙(0.05折)"
+                      required
+                      className="admin-input"
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>结算开始日期</label>
+                    <input
+                      type="date"
+                      value={formData.startDate}
+                      onChange={(e) => handleInputChange('startDate', e.target.value)}
+                      className="admin-input"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>结算结束日期</label>
+                    <input
+                      type="date"
+                      value={formData.endDate}
+                      onChange={(e) => handleInputChange('endDate', e.target.value)}
+                      className="admin-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-section-title">流水与费用</div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>后台流水</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.flow}
+                      onChange={(e) => handleInputChange('flow', e.target.value)}
+                      className="admin-input"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>代金券</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.voucherCost}
+                      onChange={(e) => handleInputChange('voucherCost', e.target.value)}
+                      className="admin-input"
+                    />
+                  </div>
+                </div>
+                <div className="form-row three-col">
+                  <div className="form-group">
+                    <label>无忧试</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.noWorryCost}
+                      onChange={(e) => handleInputChange('noWorryCost', e.target.value)}
+                      className="admin-input"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>玩家退款</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.refundCost}
+                      onChange={(e) => handleInputChange('refundCost', e.target.value)}
+                      className="admin-input"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>测试费</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.testCost}
+                      onChange={(e) => handleInputChange('testCost', e.target.value)}
+                      className="admin-input"
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>福利币</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.welfareCost}
+                      onChange={(e) => handleInputChange('welfareCost', e.target.value)}
+                      className="admin-input"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>计费金额（自动）</label>
+                    <input type="text" value={formatMoney(calculateBillingAmount(formData))} readOnly className="admin-input readonly-input" />
+                  </div>
+                </div>
+
+                <div className="form-section-title">分成计算</div>
+                <div className="form-row three-col">
+                  <div className="form-group">
+                    <label>分成比例(%)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.shareRate}
+                      onChange={(e) => handleInputChange('shareRate', e.target.value)}
+                      className="admin-input"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>分成金额（自动）</label>
+                    <input type="text" value={formatMoney(calculateShareAmount(formData))} readOnly className="admin-input readonly-input" />
+                  </div>
+                  <div className="form-group">
+                    <label>税率(%)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.taxRate}
+                      onChange={(e) => handleInputChange('taxRate', e.target.value)}
+                      className="admin-input"
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>支付通道费</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.gatewayCost}
+                      onChange={(e) => handleInputChange('gatewayCost', e.target.value)}
+                      className="admin-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-section-title">结算</div>
+                <div className="form-row">
+                  <div className="form-group settlement-group full-width">
+                    <label>结算金额</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.settlementAmount}
+                      onChange={(e) => handleInputChange('settlementAmount', e.target.value)}
+                      className="admin-input settlement-input"
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group full-width">
+                    <label>备注</label>
+                    <input
+                      type="text"
+                      value={formData.remark}
+                      onChange={(e) => handleInputChange('remark', e.target.value)}
+                      className="admin-input"
+                    />
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div className="rec-drawer__footer">
+              <div className="rec-drawer__preview">
+                <span className="rec-drawer__preview-label">预计结算金额</span>
+                <span className="rec-drawer__preview-value">{fmtPlain(previewSettlement)}</span>
+              </div>
+              <div className="rec-drawer__footer-actions">
+                <button type="button" className="rec-btn rec-btn--ghost" onClick={closeDrawer}>
+                  取消
+                </button>
+                <button type="submit" className="rec-btn rec-btn--primary" form="channel-drawer-form">
+                  保存
+                </button>
+              </div>
+            </div>
+          </aside>
+        </>
+      )}
+    </AdminWorkspace>
   )
 }
 

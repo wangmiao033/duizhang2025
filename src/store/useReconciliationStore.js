@@ -372,6 +372,18 @@ export function useReconciliationStore(settings, showToast) {
     [showToast]
   )
 
+  /** Excel 等批量导入：单次写入、单次提示，避免逐条 toast */
+  const onChannelAddRecordsBatch = useCallback(
+    (records) => {
+      if (!records || records.length === 0) return
+      const base = Date.now()
+      const withIds = records.map((r, i) => ({ ...r, id: base + i }))
+      setChannelRecords((prev) => [...prev, ...withIds])
+      showToast(`已批量添加 ${withIds.length} 条渠道记录`, 'success')
+    },
+    [showToast]
+  )
+
   const onChannelUpdateRecord = useCallback((id, record) => {
     setChannelRecords((prev) => prev.map((r) => (r.id === id ? { ...record, id } : r)))
     showToast('渠道记录更新成功', 'success')
@@ -441,6 +453,7 @@ export function useReconciliationStore(settings, showToast) {
     handleExportSelected,
     handleExportError,
     onChannelAddRecord,
+    onChannelAddRecordsBatch,
     onChannelUpdateRecord,
     onChannelDeleteRecord,
     restoreFullData,

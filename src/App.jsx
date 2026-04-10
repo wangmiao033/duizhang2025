@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import './App.css'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import ConfirmDialog from './components/ConfirmDialog.jsx'
@@ -24,9 +24,13 @@ import SettingsHubPage from './pages/SettingsHubPage.jsx'
 import RemindersPage from './pages/RemindersPage.jsx'
 import OperationHistoryPage from './pages/OperationHistoryPage.jsx'
 import BackupRestorePage from './pages/BackupRestorePage.jsx'
+import ReconciliationCreatePage from './pages/ReconciliationCreatePage.jsx'
+import ReconciliationEditPage from './pages/ReconciliationEditPage.jsx'
 
 function App() {
   const [activeView, setActiveView] = useState(VIEWS.DASHBOARD)
+  const [reconEditRecordId, setReconEditRecordId] = useState(null)
+  const prevActiveViewRef = useRef(activeView)
   const [toast, setToast] = useState({ isVisible: false, message: '', type: 'success' })
 
   const showToast = useCallback((message, type = 'success') => {
@@ -42,14 +46,22 @@ function App() {
     setToast((t) => ({ ...t, isVisible: false }))
   }, [])
 
+  useEffect(() => {
+    if (prevActiveViewRef.current === VIEWS.RECON_EDIT && activeView !== VIEWS.RECON_EDIT) {
+      setReconEditRecordId(null)
+    }
+    prevActiveViewRef.current = activeView
+  }, [activeView])
+
   useKeyboardShortcuts({
     'ctrl+s': (e) => {
       e?.preventDefault()
     },
     'ctrl+f': (e) => {
       e?.preventDefault()
+      const globalSearch = document.querySelector('#global-admin-search')
       const searchInput = document.querySelector('.search-input')
-      if (searchInput) searchInput.focus()
+      ;(globalSearch || searchInput)?.focus()
     },
     'ctrl+p': (e) => {
       e?.preventDefault()
@@ -60,13 +72,20 @@ function App() {
     }
   })
 
+  const openReconciliationEdit = useCallback((id) => {
+    setReconEditRecordId(id)
+    setActiveView(VIEWS.RECON_EDIT)
+  }, [])
+
   const appCtx = {
     settings,
     recon,
     invoice,
     showToast,
     setActiveView,
-    activeView
+    activeView,
+    reconEditRecordId,
+    openReconciliationEdit
   }
 
   const handleHeaderSettingsChange = (s) => {
@@ -81,6 +100,10 @@ function App() {
         return <DashboardPage />
       case VIEWS.RECON_RD:
         return <ReconciliationPage variant="full" />
+      case VIEWS.RECON_CREATE:
+        return <ReconciliationCreatePage />
+      case VIEWS.RECON_EDIT:
+        return <ReconciliationEditPage />
       case VIEWS.RECON_MASTER:
         return <ReconciliationPage variant="master" />
       case VIEWS.RECON_CHANNEL:
