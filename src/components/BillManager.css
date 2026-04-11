@@ -5,35 +5,165 @@
   margin-bottom: 30px;
 }
 
-.bill-manager-header {
+.bill-manager--embedded {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: 0;
+}
+
+.bill-manager-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
-.bill-manager-header h3 {
+.bill-manager-toolbar__spacer {
+  flex: 1;
+  min-width: 8px;
+}
+
+.bill-manager-title {
   margin: 0;
-  color: #333;
-  font-size: 1.3rem;
+  color: var(--admin-text-main, #333);
+  font-size: 1.15rem;
+  font-weight: 650;
 }
 
-.save-bill-btn {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.bill-manager-save-btn {
+  padding: 8px 16px;
+  background: var(--admin-primary, #4f46e5);
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: var(--admin-radius-sm, 8px);
+  font-size: var(--admin-font-base, 14px);
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  transition:
+    background 0.15s ease,
+    filter 0.15s ease;
+  min-height: var(--admin-btn-h, 36px);
 }
 
-.save-bill-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+.bill-manager-save-btn:hover {
+  filter: brightness(1.06);
+}
+
+.bill-manager-table-wrap {
+  margin-top: 4px;
+}
+
+.bill-manager-table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--admin-border, #e2e8f0);
+  border-radius: var(--admin-radius-sm, 8px);
+  background: var(--admin-card-bg, #fff);
+}
+
+.bill-manager-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--admin-table-font-size, 13px);
+  min-width: 720px;
+}
+
+.bill-manager-table thead {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  color: #fff;
+}
+
+.bill-manager-table th {
+  padding: var(--admin-table-th-py, 9px) var(--admin-table-th-px, 10px);
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.bill-manager-table th.bill-manager-table__num {
+  text-align: right;
+}
+
+.bill-manager-table th.bill-manager-table__actions {
+  text-align: center;
+}
+
+.bill-manager-table td {
+  padding: var(--admin-table-td-py, 8px) var(--admin-table-td-px, 10px);
+  border-bottom: 1px solid var(--admin-border, #e9ecef);
+  color: var(--admin-text-main, #334155);
+  vertical-align: middle;
+}
+
+.bill-manager-table tbody tr:hover {
+  background: var(--admin-primary-muted, rgba(79, 70, 229, 0.06));
+}
+
+.bill-manager-table__name {
+  font-weight: 600;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bill-manager-table__muted {
+  color: var(--admin-text-muted, #94a3b8);
+  white-space: nowrap;
+}
+
+.bill-manager-table__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.bill-manager-table__actions {
+  text-align: center;
+  width: 200px;
+}
+
+.bill-manager-table__action-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--admin-table-action-gap, 6px);
+  justify-content: center;
+}
+
+.bill-manager-load-btn,
+.bill-manager-export-btn,
+.bill-manager-delete-btn {
+  min-height: var(--admin-table-action-btn-h, 32px);
+  padding: 0 var(--admin-table-action-pad-x, 12px);
+  border: none;
+  border-radius: var(--admin-radius-sm, 8px);
+  font-size: var(--admin-table-font-size, 13px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.bill-manager-load-btn {
+  background: #059669;
+  color: #fff;
+}
+
+.bill-manager-export-btn {
+  background: #0ea5e9;
+  color: #fff;
+}
+
+.bill-manager-delete-btn {
+  background: #dc2626;
+  color: #fff;
+}
+
+.bill-manager-load-btn:hover,
+.bill-manager-export-btn:hover,
+.bill-manager-delete-btn:hover {
+  filter: brightness(1.05);
 }
 
 .save-dialog-overlay {
@@ -168,144 +298,35 @@
   background: #5568d3;
 }
 
-.saved-bills-list {
-  margin-top: 20px;
+[data-theme='dark'] .bill-manager:not(.bill-manager--embedded) {
+  background: var(--admin-elevated-bg, #222536);
 }
 
-.empty-bills {
-  text-align: center;
-  padding: 60px 20px;
-  color: #6c757d;
+[data-theme='dark'] .save-dialog {
+  background: var(--admin-card-bg, #1a1d2e);
+  color: var(--admin-text-main, #f1f5f9);
 }
 
-.empty-bills p {
-  margin: 10px 0;
+[data-theme='dark'] .save-dialog h4 {
+  color: var(--admin-text-main, #f1f5f9);
 }
 
-.empty-hint {
-  font-size: 0.9rem;
-  color: #999;
+[data-theme='dark'] .bill-manager-table-scroll {
+  border-color: var(--admin-border, #334155);
 }
 
-.bills-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.bill-card {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.bill-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-}
-
-.bill-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 15px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid #e9ecef;
-}
-
-.bill-card-header h4 {
-  margin: 0;
-  color: #333;
-  font-size: 1.1rem;
-  flex: 1;
-}
-
-.bill-date {
-  font-size: 0.85rem;
-  color: #6c757d;
-  white-space: nowrap;
-  margin-left: 10px;
-}
-
-.bill-card-info {
-  margin-bottom: 15px;
-}
-
-.info-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
-}
-
-.info-label {
-  color: #6c757d;
-}
-
-.info-value {
-  color: #333;
-  font-weight: 500;
-}
-
-.bill-card-actions {
-  display: flex;
-  gap: 8px;
-  padding-top: 15px;
-  border-top: 1px solid #e9ecef;
-}
-
-.bill-card-actions button {
-  flex: 1;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.load-btn {
-  background: #28a745;
-  color: white;
-}
-
-.load-btn:hover {
-  background: #218838;
-}
-
-.export-btn {
-  background: #17a2b8;
-  color: white;
-}
-
-.export-btn:hover {
-  background: #138496;
-}
-
-.delete-btn {
-  background: #dc3545;
-  color: white;
-}
-
-.delete-btn:hover {
-  background: #c82333;
+[data-theme='dark'] .bill-manager-table td {
+  border-color: var(--admin-border, #334155);
+  color: var(--admin-text-main, #e2e8f0);
 }
 
 @media (max-width: 768px) {
-  .bills-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .bill-manager-header {
+  .bill-manager-toolbar {
     flex-direction: column;
-    gap: 15px;
     align-items: stretch;
   }
-  
-  .save-bill-btn {
+
+  .bill-manager-save-btn {
     width: 100%;
   }
 }
-

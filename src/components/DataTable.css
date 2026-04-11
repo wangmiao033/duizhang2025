@@ -5,6 +5,13 @@
   flex-direction: column;
 }
 
+.data-table__empty-block {
+  padding: var(--admin-space-md, 14px) 0;
+  border: 1px dashed var(--admin-border, #e2e8f0);
+  border-radius: var(--admin-radius-sm, 8px);
+  background: var(--admin-elevated-bg, #f8fafc);
+}
+
 .settlement-number-cell {
   font-family: 'Courier New', monospace;
   font-weight: 600;
@@ -42,7 +49,7 @@
 }
 
 .table-content {
-  padding-top: 16px;
+  padding-top: var(--admin-space-sm, 10px);
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -107,10 +114,10 @@ thead {
 }
 
 thead th {
-  padding: 12px 10px;
+  padding: var(--admin-table-th-py, 9px) var(--admin-table-th-px, 10px);
   text-align: left;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: var(--admin-table-font-size, 13px);
   letter-spacing: 0.3px;
   text-transform: none;
   white-space: nowrap;
@@ -146,15 +153,13 @@ tbody tr {
 
 tbody tr:hover {
   background: linear-gradient(90deg, rgba(79, 70, 229, 0.05) 0%, rgba(124, 58, 237, 0.05) 50%, rgba(236, 72, 153, 0.05) 100%);
-  transform: scale(1.01);
-  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 tbody td {
-  padding: 10px;
+  padding: var(--admin-table-td-py, 8px) var(--admin-table-td-px, 10px);
   color: #334155;
-  font-size: 0.85rem;
+  font-size: var(--admin-table-font-size, 13px);
   vertical-align: middle;
   white-space: nowrap;
   border-bottom: 1px solid #f1f5f9;
@@ -216,7 +221,7 @@ tbody td {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--admin-space-sm, 10px);
   gap: 10px;
 }
 
@@ -379,16 +384,16 @@ tbody td {
 }
 
 .partner-detail-table th {
-  padding: 12px;
+  padding: var(--admin-table-th-py, 9px) var(--admin-table-th-px, 10px);
   text-align: left;
-  font-size: 0.85rem;
+  font-size: var(--admin-table-font-size, 13px);
   font-weight: 600;
 }
 
 .partner-detail-table td {
-  padding: 12px;
+  padding: var(--admin-table-td-py, 8px) var(--admin-table-td-px, 10px);
   border-bottom: 1px solid #f1f5f9;
-  font-size: 0.875rem;
+  font-size: var(--admin-table-font-size, 13px);
 }
 
 .partner-detail-table tbody tr:hover {
@@ -467,12 +472,13 @@ tbody td {
 }
 
 .edit-btn, .save-btn, .cancel-btn, .delete-btn {
-  padding: 8px 16px;
-  margin: 0 4px;
+  min-height: var(--admin-table-action-btn-h, 32px);
+  padding: 0 var(--admin-table-action-pad-x, 12px);
+  margin: 0 2px;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--admin-radius-sm, 8px);
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: var(--admin-table-font-size, 13px);
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -632,5 +638,6 @@ tbody td:last-child {
 .table-actions-row {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--admin-table-action-gap, 6px);
+  flex-wrap: wrap;
 }

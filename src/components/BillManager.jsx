@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import './BillManager.css'
 import ConfirmDialog from './ConfirmDialog.jsx'
+import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
 
-function BillManager({ 
-  records, 
-  partyA, 
-  partyB, 
+function BillManager({
+  records,
+  partyA,
+  partyB,
   settlementMonth,
-  onLoadBill 
+  onLoadBill,
+  embedded = false
 }) {
   const [savedBills, setSavedBills] = useState([])
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -15,7 +17,6 @@ function BillManager({
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [billName, setBillName] = useState('')
 
-  // 加载已保存的账单列表
   useEffect(() => {
     loadSavedBills()
   }, [])
@@ -74,7 +75,7 @@ function BillManager({
 
   const confirmDelete = () => {
     if (deleteBillId) {
-      const updatedBills = savedBills.filter(bill => bill.id !== deleteBillId)
+      const updatedBills = savedBills.filter((bill) => bill.id !== deleteBillId)
       localStorage.setItem('savedBills', JSON.stringify(updatedBills))
       setSavedBills(updatedBills)
       setShowDeleteConfirm(false)
@@ -94,15 +95,14 @@ function BillManager({
     URL.revokeObjectURL(url)
   }
 
+  const rootClass = ['bill-manager', embedded ? 'bill-manager--embedded' : ''].filter(Boolean).join(' ')
+
   return (
-    <div className="bill-manager">
-      <div className="bill-manager-header">
-        <h3>账单管理</h3>
-        <button 
-          className="save-bill-btn" 
-          onClick={() => setShowSaveDialog(true)}
-        >
-          💾 保存当前账单
+    <div className={rootClass}>
+      <div className="bill-manager-toolbar">
+        {!embedded ? <h3 className="bill-manager-title">账单管理</h3> : <span className="bill-manager-toolbar__spacer" />}
+        <button type="button" className="bill-manager-save-btn" onClick={() => setShowSaveDialog(true)}>
+          保存当前账单
         </button>
       </div>
 
@@ -120,9 +120,7 @@ function BillManager({
                 autoFocus
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
-                    if (saveBill()) {
-                      // 成功保存
-                    }
+                    saveBill()
                   }
                 }}
               />
@@ -137,13 +135,17 @@ function BillManager({
               </div>
             </div>
             <div className="save-dialog-buttons">
-              <button className="cancel-btn" onClick={() => {
-                setShowSaveDialog(false)
-                setBillName('')
-              }}>
+              <button
+                type="button"
+                className="cancel-btn"
+                onClick={() => {
+                  setShowSaveDialog(false)
+                  setBillName('')
+                }}
+              >
                 取消
               </button>
-              <button className="confirm-btn" onClick={saveBill}>
+              <button type="button" className="confirm-btn" onClick={saveBill}>
                 保存
               </button>
             </div>
@@ -151,67 +153,77 @@ function BillManager({
         </div>
       )}
 
-      <div className="saved-bills-list">
+      <div className="bill-manager-table-wrap">
         {savedBills.length === 0 ? (
-          <div className="empty-bills">
-            <p>暂无已保存的账单</p>
-            <p className="empty-hint">点击"保存当前账单"按钮保存您的对账单</p>
-          </div>
+          <AdminListEmptyState
+            title="暂无已保存的账单"
+            description="将当前对账结果保存为快照后，可在此加载、导出或删除。"
+            primaryAction={{ label: '保存当前账单', onClick: () => setShowSaveDialog(true) }}
+          />
         ) : (
-          <div className="bills-grid">
-            {savedBills.map((bill) => (
-              <div key={bill.id} className="bill-card">
-                <div className="bill-card-header">
-                  <h4>{bill.name}</h4>
-                  <span className="bill-date">{bill.saveDateFormatted}</span>
-                </div>
-                <div className="bill-card-info">
-                  <div className="info-item">
-                    <span className="info-label">记录数：</span>
-                    <span className="info-value">{bill.records.length} 条</span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">结算月份：</span>
-                    <span className="info-value">{bill.settlementMonth || '未设置'}</span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">流水总额：</span>
-                    <span className="info-value">
-                      ¥{bill.records.reduce((sum, r) => sum + (parseFloat(r.gameFlow) || 0), 0).toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="info-item">
-                    <span className="info-label">结算总额：</span>
-                    <span className="info-value">
-                      ¥{bill.records.reduce((sum, r) => sum + (parseFloat(r.settlementAmount) || 0), 0).toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-                <div className="bill-card-actions">
-                  <button 
-                    className="load-btn" 
-                    onClick={() => loadBill(bill)}
-                    title="加载此账单"
-                  >
-                    📂 加载
-                  </button>
-                  <button 
-                    className="export-btn" 
-                    onClick={() => exportBill(bill)}
-                    title="导出账单文件"
-                  >
-                    📥 导出
-                  </button>
-                  <button 
-                    className="delete-btn" 
-                    onClick={() => deleteBill(bill.id)}
-                    title="删除此账单"
-                  >
-                    🗑️ 删除
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div className="bill-manager-table-scroll">
+            <table className="bill-manager-table">
+              <thead>
+                <tr>
+                  <th>账单名称</th>
+                  <th>保存时间</th>
+                  <th>记录数</th>
+                  <th>结算月份</th>
+                  <th className="bill-manager-table__num">流水总额</th>
+                  <th className="bill-manager-table__num">结算总额</th>
+                  <th className="bill-manager-table__actions">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {savedBills.map((bill) => {
+                  const flowTotal = bill.records.reduce((sum, r) => sum + (parseFloat(r.gameFlow) || 0), 0)
+                  const settlementTotal = bill.records.reduce(
+                    (sum, r) => sum + (parseFloat(r.settlementAmount) || 0),
+                    0
+                  )
+                  return (
+                    <tr key={bill.id}>
+                      <td className="bill-manager-table__name" title={bill.name}>
+                        {bill.name}
+                      </td>
+                      <td className="bill-manager-table__muted">{bill.saveDateFormatted}</td>
+                      <td>{bill.records.length}</td>
+                      <td>{bill.settlementMonth || '—'}</td>
+                      <td className="bill-manager-table__num">¥{flowTotal.toFixed(2)}</td>
+                      <td className="bill-manager-table__num">¥{settlementTotal.toFixed(2)}</td>
+                      <td className="bill-manager-table__actions">
+                        <div className="bill-manager-table__action-btns">
+                          <button
+                            type="button"
+                            className="bill-manager-load-btn"
+                            onClick={() => loadBill(bill)}
+                            title="加载此账单"
+                          >
+                            加载
+                          </button>
+                          <button
+                            type="button"
+                            className="bill-manager-export-btn"
+                            onClick={() => exportBill(bill)}
+                            title="导出账单文件"
+                          >
+                            导出
+                          </button>
+                          <button
+                            type="button"
+                            className="bill-manager-delete-btn"
+                            onClick={() => deleteBill(bill.id)}
+                            title="删除此账单"
+                          >
+                            删除
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
@@ -233,4 +245,3 @@ function BillManager({
 }
 
 export default BillManager
-

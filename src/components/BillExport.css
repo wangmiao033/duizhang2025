@@ -4,6 +4,19 @@
   z-index: 1;
 }
 
+/* 结算工作台等场景：紧凑工具栏按钮，不改变导出逻辑 */
+.bill-export--toolbar .bill-export-btn {
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--admin-radius-sm, 8px);
+  box-shadow: var(--admin-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.06));
+}
+
+.bill-export--toolbar .bill-export-btn:hover:not(:disabled) {
+  transform: none;
+}
+
 .bill-export-btn {
   padding: 10px 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

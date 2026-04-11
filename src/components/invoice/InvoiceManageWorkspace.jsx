@@ -5,6 +5,7 @@ import AdminFilterBar from '@/components/admin/AdminFilterBar.jsx'
 import AdminActionBar from '@/components/admin/AdminActionBar.jsx'
 import AdminStatsRow from '@/components/admin/AdminStatsRow.jsx'
 import AdminTableCard from '@/components/admin/AdminTableCard.jsx'
+import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
 import InvoiceLightDrawer from '@/components/invoice/InvoiceLightDrawer.jsx'
 import '@/components/reconciliation/reconciliation-admin.css'
 import { sumVerifiedSettlementAmount } from '@/domain/invoice/invoiceVerification.js'
@@ -138,7 +139,19 @@ function InvoiceManageWorkspace({ variant = 'manage' }) {
 
       <AdminTableCard className="invoice-rd__table-card">
         {filteredInvoices.length === 0 ? (
-          <div className="empty-invoice">暂无发票记录</div>
+          <AdminListEmptyState
+            title="暂无发票记录"
+            description={
+              variant === 'manage'
+                ? '可新增发票或通过列表页导入 JSON / PDF。'
+                : '调整搜索或状态筛选；核销请在列表中点击「核销」。'
+            }
+            primaryAction={
+              variant === 'manage'
+                ? { label: '新增发票', onClick: () => setActiveView(VIEWS.INVOICE_CREATE) }
+                : undefined
+            }
+          />
         ) : (
           <div className="invoice-table invoice-table--workspace">
             <div className="invoice-table-head">

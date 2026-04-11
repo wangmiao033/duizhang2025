@@ -7,6 +7,7 @@ import AdminStatsRow from '@/components/admin/AdminStatsRow.jsx'
 import '@/components/reconciliation/reconciliation-admin.css'
 import { useAppState } from '@/app/AppStateContext.jsx'
 import ChannelLightDrawer from '@/components/channel/ChannelLightDrawer.jsx'
+import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
 import { initialForm, buildRecordFromForm } from '@/domain/channel/channelBillingForm.js'
 import { VIEWS } from '@/app/routes.js'
 import './ChannelBilling.css'
@@ -558,7 +559,14 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
           {viewMode === 'byGame' ? (
             <div className="games-list">
               {groupedByChannel.length === 0 ? (
-                <div className="empty-games">暂无渠道记录</div>
+                <AdminListEmptyState
+                  title="暂无渠道记录"
+                  description="新增一条渠道对账记录，或使用 Excel 导入；也可放宽筛选条件。"
+                  primaryAction={{
+                    label: '新增记录',
+                    onClick: () => setActiveView(VIEWS.CHANNEL_RECON_CREATE)
+                  }}
+                />
               ) : (
                 groupedByChannel.map((channel) => (
                   <div key={channel.channelName} className="game-card channel-card">
@@ -740,8 +748,16 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                 <tbody>
                   {filteredRecords.length === 0 ? (
                     <tr>
-                      <td colSpan="12" className="empty-row">
-                        暂无渠道记录
+                      <td colSpan="12" className="admin-list-empty-cell">
+                        <AdminListEmptyState
+                          variant="inline"
+                          title="暂无渠道记录"
+                          description="新增记录或调整筛选；支持 Excel 导入与导出。"
+                          primaryAction={{
+                            label: '新增记录',
+                            onClick: () => setActiveView(VIEWS.CHANNEL_RECON_CREATE)
+                          }}
+                        />
                       </td>
                     </tr>
                   ) : (

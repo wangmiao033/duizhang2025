@@ -5,6 +5,7 @@ import AdminFilterBar from '@/components/admin/AdminFilterBar.jsx'
 import AdminActionBar from '@/components/admin/AdminActionBar.jsx'
 import AdminStatsRow from '@/components/admin/AdminStatsRow.jsx'
 import AdminTableCard from '@/components/admin/AdminTableCard.jsx'
+import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
 import PaymentLightDrawer from '@/components/payment/PaymentLightDrawer.jsx'
 import '@/components/reconciliation/reconciliation-admin.css'
 import '@/components/DeliveryCenter.css'
@@ -126,9 +127,24 @@ function PaymentRegisterWorkspace() {
 
       <AdminTableCard className="payment-rd__table-card">
         {filteredDeliveries.length === 0 ? (
-          <div className="empty-deliveries">
-            {deliveries.length === 0 ? '暂无登记记录，点击「新增登记」开始创建' : '没有匹配的记录'}
-          </div>
+          <AdminListEmptyState
+            title={deliveries.length === 0 ? '暂无回款登记' : '没有匹配的记录'}
+            description={
+              deliveries.length === 0
+                ? '登记快递/寄送台账，便于与发票、对账流程衔接。'
+                : '尝试调整状态筛选或清空搜索关键词。'
+            }
+            primaryAction={
+              deliveries.length === 0
+                ? { label: '新增登记', onClick: () => setActiveView(VIEWS.PAYMENT_CREATE) }
+                : undefined
+            }
+            secondaryAction={
+              deliveries.length > 0
+                ? { label: '清空筛选条件', onClick: () => { setFilterStatus('全部'); setSearchTerm('') } }
+                : undefined
+            }
+          />
         ) : (
           <div className="delivery-table-wrapper">
             <table className="delivery-table">

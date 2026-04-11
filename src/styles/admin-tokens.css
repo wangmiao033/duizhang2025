@@ -36,6 +36,19 @@
   --admin-drawer-w-max: 480px;
   --admin-input-h: 36px;
   --admin-btn-h: 36px;
+  /** 列表区纵向节奏：筛选 / 操作 / 统计 / 表格卡片 */
+  --admin-page-stack-gap: 10px;
+  /** 核心数据表密度（研发 / 渠道 / 发票 / 回款等） */
+  --admin-table-th-py: 9px;
+  --admin-table-th-px: 10px;
+  --admin-table-td-py: 8px;
+  --admin-table-td-px: 10px;
+  --admin-table-font-size: 13px;
+  --admin-table-action-btn-h: 32px;
+  --admin-table-action-pad-x: 12px;
+  --admin-table-action-gap: 6px;
+  --admin-table-card-head-py: 10px;
+  --admin-table-card-head-px: 12px;
   --admin-toolbar-gap: 10px;
   --admin-font-sm: 12px;
   --admin-font-base: 14px;

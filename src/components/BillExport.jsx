@@ -3,14 +3,16 @@ import * as XLSX from 'xlsx'
 import dayjs from 'dayjs'
 import './BillExport.css'
 
-function BillExport({ 
-  records, 
-  partyA, 
-  partyB, 
+function BillExport({
+  records,
+  partyA,
+  partyB,
   settlementMonth,
   statistics,
   onExportSuccess,
-  onExportError
+  onExportError,
+  variant = 'default',
+  className = ''
 }) {
   const [showMenu, setShowMenu] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 })
@@ -507,8 +509,12 @@ function BillExport({
     e.stopPropagation()
   }
 
+  const rootClass = ['bill-export', variant === 'toolbar' ? 'bill-export--toolbar' : '', className]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <div className="bill-export">
+    <div className={rootClass}>
       <button 
         ref={buttonRef}
         className={`bill-export-btn ${showMenu ? 'menu-open' : ''} ${!records || records.length === 0 ? 'disabled' : ''}`}

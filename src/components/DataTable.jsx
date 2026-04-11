@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react'
 import DragSort from './DragSort.jsx'
 import CopyRecord from './CopyRecord.jsx'
 import { StatusSelector } from './StatusManager.jsx'
+import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
 import './DataTable.css'
 
 function DataTable({ 
@@ -239,7 +240,12 @@ function DataTable({
       {viewMode === 'byPartner' ? (
         <div className="partner-group-view">
           {groupedByPartner.length === 0 ? (
-            <div className="empty-message">暂无对账记录</div>
+            <div className="data-table__empty-block">
+              <AdminListEmptyState
+                title="暂无对账记录"
+                description="新增一条记录、使用 Excel 导入，或调整筛选条件后再试。"
+              />
+            </div>
           ) : (
             groupedByPartner.map(group => (
               <div key={group.partner} className="partner-card">
@@ -426,7 +432,13 @@ function DataTable({
           <tbody>
             {records.length === 0 ? (
               <tr>
-                <td colSpan={compact ? 10 : 16} className="empty-message">暂无对账记录</td>
+                <td colSpan={compact ? 10 : 16} className="admin-list-empty-cell">
+                  <AdminListEmptyState
+                    variant="inline"
+                    title="暂无对账记录"
+                    description="新增一条记录、使用 Excel 导入，或调整筛选条件后再试。"
+                  />
+                </td>
               </tr>
             ) : (
               records.map((record, index) => (

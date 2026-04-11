@@ -231,17 +231,17 @@
 }
 
 .delivery-table th {
-  padding: 14px 12px;
+  padding: var(--admin-table-th-py, 9px) var(--admin-table-th-px, 10px);
   text-align: left;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: var(--admin-table-font-size, 13px);
   letter-spacing: 0.3px;
 }
 
 .delivery-table tbody td {
-  padding: 12px;
+  padding: var(--admin-table-td-py, 8px) var(--admin-table-td-px, 10px);
   color: #334155;
-  font-size: 0.875rem;
+  font-size: var(--admin-table-font-size, 13px);
   border-bottom: 1px solid #f1f5f9;
 }
 

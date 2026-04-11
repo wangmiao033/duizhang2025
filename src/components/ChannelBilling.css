@@ -351,11 +351,11 @@
 }
 
 .channel-table th {
-  padding: 14px 12px;
+  padding: var(--admin-table-th-py, 9px) var(--admin-table-th-px, 10px);
   text-align: left;
   color: white;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: var(--admin-table-font-size, 13px);
   white-space: nowrap;
   position: sticky;
   top: 0;
@@ -395,8 +395,8 @@
 }
 
 .channel-table td {
-  padding: 12px;
-  font-size: 0.9rem;
+  padding: var(--admin-table-td-py, 8px) var(--admin-table-td-px, 10px);
+  font-size: var(--admin-table-font-size, 13px);
   color: #475569;
   white-space: nowrap;
 }
@@ -806,13 +806,13 @@
 .channel-detail-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: var(--admin-table-font-size, 13px);
   min-width: 1000px;
   table-layout: auto;
 }
 
 .channel-detail-table th {
-  padding: 10px 12px;
+  padding: var(--admin-table-th-py, 9px) var(--admin-table-th-px, 10px);
   text-align: left;
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
@@ -857,7 +857,7 @@
 }
 
 .channel-detail-table td {
-  padding: 10px 12px;
+  padding: var(--admin-table-td-py, 8px) var(--admin-table-td-px, 10px);
   border-bottom: 1px solid rgba(226, 232, 240, 0.6);
   color: #475569;
   white-space: nowrap;
@@ -998,7 +998,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
+  padding: var(--admin-table-card-head-py, 10px) var(--admin-table-card-head-px, 12px);
   border-bottom: 1px solid var(--admin-border, #e2e8f0);
   background: var(--admin-elevated-bg, #f8fafc);
 }
