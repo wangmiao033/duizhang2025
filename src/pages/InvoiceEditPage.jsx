@@ -33,7 +33,7 @@ function InvoiceEditPage() {
         previewAmount={0}
         footerActions={
           <button type="button" className="rec-btn rec-btn--primary" onClick={goList}>
-                       返回发票管理
+            返回列表
           </button>
         }
       >
@@ -51,7 +51,7 @@ function InvoiceEditPage() {
         previewAmount={0}
         footerActions={
           <button type="button" className="rec-btn rec-btn--primary" onClick={goList}>
-            返回发票管理
+            返回列表
           </button>
         }
       >

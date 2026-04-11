@@ -54,6 +54,22 @@
   --admin-font-base: 14px;
   --admin-font-title: 18px;
   --admin-font-page: 20px;
+  /** 统计卡片（全站一致） */
+  --admin-stat-card-min-height: 76px;
+  --admin-stat-label-size: 12px;
+  --admin-stat-value-size: 15px;
+  --admin-stat-value-weight: 650;
+  /** 筛选区标签 */
+  --admin-filter-label-size: 12px;
+  --admin-filter-label-weight: 500;
+  /** 表格卡片标题 */
+  --admin-table-card-title-size: 15px;
+  --admin-table-card-title-weight: 600;
+  /** 轻量抽屉摘要列表 */
+  --admin-drawer-dl-size: 13px;
+  /** 确认弹层 */
+  --admin-dialog-radius: var(--admin-radius);
+  --admin-dialog-pad: var(--admin-space-lg);
 }
 
 [data-theme='dark'] {

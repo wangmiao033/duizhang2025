@@ -49,7 +49,7 @@ function ReconciliationEditPage() {
         previewAmount={0}
         footerActions={
           <button type="button" className="rec-btn rec-btn--primary" onClick={goList}>
-            返回研发对账列表
+            返回列表
           </button>
         }
       >
@@ -67,7 +67,7 @@ function ReconciliationEditPage() {
         previewAmount={0}
         footerActions={
           <button type="button" className="rec-btn rec-btn--primary" onClick={goList}>
-            返回研发对账列表
+            返回列表
           </button>
         }
       >

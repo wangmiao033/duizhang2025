@@ -39,7 +39,7 @@ function ChannelReconciliationEditPage() {
         previewAmount={0}
         footerActions={
           <button type="button" className="rec-btn rec-btn--primary" onClick={goList}>
-            返回渠道对账列表
+            返回列表
           </button>
         }
       >
@@ -57,7 +57,7 @@ function ChannelReconciliationEditPage() {
         previewAmount={0}
         footerActions={
           <button type="button" className="rec-btn rec-btn--primary" onClick={goList}>
-            返回渠道对账列表
+            返回列表
           </button>
         }
       >

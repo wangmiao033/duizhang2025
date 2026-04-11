@@ -1,0 +1,327 @@
+/**
+ * 全站 UI / 交互一致性收口（按钮、筛选标签、统计卡、抽屉）
+ * 由 App.jsx 引入，选择器带 .app 前缀以覆盖业务页按需加载的局部 CSS。
+ */
+
+/* —— 工具栏 / 表单底栏：与 .admin-btn 同高同字重 —— */
+.app .rec-btn,
+.app .rec-create-footer .rec-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--admin-btn-h);
+  padding: 0 14px;
+  font-size: var(--admin-font-base);
+  font-weight: 500;
+  line-height: 1.25;
+  border-radius: var(--admin-radius-sm);
+  box-sizing: border-box;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    filter 0.15s ease;
+}
+
+.app .rec-btn--primary,
+.app .rec-create-footer .rec-btn--primary {
+  background: var(--admin-primary);
+  color: #fff;
+  border: 1px solid var(--admin-primary);
+}
+
+.app .rec-btn--primary:hover,
+.app .rec-create-footer .rec-btn--primary:hover {
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
+  filter: none;
+}
+
+.app .rec-btn--secondary,
+.app .rec-create-footer .rec-btn--secondary {
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
+  border: 1px solid var(--admin-border-strong);
+}
+
+.app .rec-btn--secondary:hover,
+.app .rec-create-footer .rec-btn--secondary:hover {
+  background: var(--admin-elevated-bg);
+  border-color: var(--admin-text-muted);
+}
+
+.app .rec-btn--ghost,
+.app .rec-create-footer .rec-btn--ghost {
+  background: transparent;
+  color: var(--admin-text-sub);
+  border: 1px solid var(--admin-border-strong);
+}
+
+.app .rec-btn--ghost:hover,
+.app .rec-create-footer .rec-btn--ghost:hover {
+  background: var(--admin-elevated-bg);
+  color: var(--admin-text-main);
+}
+
+/* —— 统计卡片 —— */
+.app .rec-stat-card {
+  min-height: var(--admin-stat-card-min-height);
+  padding: var(--admin-space-sm) var(--admin-space-md);
+}
+
+.app .rec-stat-card__label {
+  font-size: var(--admin-stat-label-size);
+  font-weight: var(--admin-filter-label-weight);
+  color: var(--admin-text-sub);
+  margin-bottom: var(--admin-space-xs);
+}
+
+.app .rec-stat-card__value {
+  font-size: var(--admin-stat-value-size);
+  font-weight: var(--admin-stat-value-weight);
+  color: var(--admin-text-main);
+}
+
+.app .rec-stat-card__sub {
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-muted);
+  margin-top: 4px;
+}
+
+.app .rec-stats-cards--compact .rec-stat-card {
+  padding: var(--admin-space-sm) var(--admin-space-md);
+}
+
+/* —— 筛选标签（渠道 / 发票 / 回款 / FilterSort 内联） —— */
+.channel-rd__label,
+.settlement-workbench__meta-label {
+  font-size: var(--admin-filter-label-size);
+  font-weight: var(--admin-filter-label-weight);
+  color: var(--admin-text-muted);
+}
+
+.filter-sort--inline label {
+  font-size: var(--admin-filter-label-size);
+  font-weight: var(--admin-filter-label-weight);
+  color: var(--admin-text-muted);
+}
+
+/* —— 工作台卡片标题 —— */
+.admin-workspace__card-title,
+.admin-page-section__title,
+.settlement-saved-bills-card__head .admin-page-section__title {
+  font-size: var(--admin-table-card-title-size);
+  font-weight: var(--admin-table-card-title-weight);
+  color: var(--admin-text-main);
+  letter-spacing: -0.01em;
+}
+
+/* —— 侧栏抽屉（完整录入 + 轻量查看）：提高选择器优先级以覆盖各页按需引入的局部样式 —— */
+.app .rec-drawer__head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: var(--admin-space-md);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.app .rec-drawer__title {
+  margin: 0;
+  font-size: var(--admin-font-title);
+  font-weight: 650;
+  color: var(--admin-text-main);
+  line-height: 1.3;
+}
+
+.app .rec-drawer__close {
+  border: none;
+  background: var(--admin-elevated-bg);
+  width: var(--admin-btn-h);
+  height: var(--admin-btn-h);
+  border-radius: var(--admin-radius-sm);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--admin-text-sub);
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app .rec-drawer__close:hover {
+  background: var(--admin-border);
+  color: var(--admin-text-main);
+}
+
+.app .rec-drawer__preview-label {
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-sub);
+  display: block;
+}
+
+.app .rec-drawer__preview-value {
+  font-size: var(--admin-font-title);
+  font-weight: 700;
+  color: var(--admin-primary);
+}
+
+.app .rec-drawer__body--light {
+  padding: var(--admin-space-md) var(--admin-space-md) var(--admin-space-lg);
+  overflow-y: auto;
+}
+
+.app .rec-drawer__footer--light {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: var(--admin-space-md);
+  gap: var(--admin-space-sm);
+  border-top: 1px solid var(--admin-border);
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
+}
+
+.app .rec-light-dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  margin: 0 0 var(--admin-space-md);
+  font-size: var(--admin-drawer-dl-size);
+  gap: 8px 14px;
+}
+
+.app .rec-light-dl dt {
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-weight: 500;
+}
+
+.app .rec-light-dl dd {
+  margin: 0;
+  color: var(--admin-text-main);
+  word-break: break-word;
+}
+
+.app .rec-light-dl__emph {
+  color: var(--admin-primary);
+  font-weight: 650;
+}
+
+.app .rec-light-field {
+  margin-bottom: var(--admin-space-md);
+}
+
+.app .rec-light-field:last-child {
+  margin-bottom: 0;
+}
+
+.app .rec-light-field__label {
+  display: block;
+  font-size: var(--admin-font-sm);
+  font-weight: 600;
+  color: var(--admin-text-sub);
+  margin-bottom: 6px;
+}
+
+.app .rec-light-memo,
+.app .rec-drawer__body--light .admin-input.rec-light-memo {
+  width: 100%;
+  min-height: 80px;
+  padding: var(--admin-space-sm);
+  font-size: var(--admin-font-base);
+  border-radius: var(--admin-radius-sm);
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.app .rec-drawer__body--light .admin-input:not(.rec-light-memo) {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* —— 表格区标题（对账总表等） —— */
+.app .data-table .table-header h3 {
+  margin: 0;
+  font-size: var(--admin-table-card-title-size);
+  font-weight: var(--admin-table-card-title-weight);
+  color: var(--admin-text-main);
+}
+
+/* 渠道表头切换与研发工具栏按钮同高 */
+.channel-rd__toggle-btn {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: var(--admin-font-sm);
+  border-radius: var(--admin-radius-sm);
+}
+
+[data-theme='dark'] .app .rec-btn--secondary,
+[data-theme='dark'] .app .rec-create-footer .rec-btn--secondary {
+  background: var(--admin-card-bg);
+}
+
+[data-theme='dark'] .app .rec-light-dl dd {
+  color: var(--admin-text-main);
+}
+
+/* —— 筛选控件高度与输入框对齐 —— */
+.app .filter-sort--inline input,
+.app .filter-sort--inline select {
+  min-height: var(--admin-input-h);
+}
+
+/* —— 表单底栏预览数字 —— */
+.app .rec-create-footer__preview-label {
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-sub);
+}
+
+.app .rec-create-footer__preview-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--admin-primary);
+}
+
+/* —— BillManager 保存弹窗按钮与全站一致 —— */
+.app .save-dialog-buttons .cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--admin-btn-h);
+  padding: 0 16px;
+  font-size: var(--admin-font-base);
+  font-weight: 500;
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
+  border: 1px solid var(--admin-border-strong);
+  cursor: pointer;
+}
+
+.app .save-dialog-buttons .cancel-btn:hover {
+  background: var(--admin-elevated-bg);
+}
+
+.app .save-dialog-buttons .confirm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--admin-btn-h);
+  padding: 0 16px;
+  font-size: var(--admin-font-base);
+  font-weight: 500;
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-primary);
+  color: #fff;
+  border: 1px solid var(--admin-primary);
+  cursor: pointer;
+}
+
+.app .save-dialog-buttons .confirm-btn:hover {
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
+}

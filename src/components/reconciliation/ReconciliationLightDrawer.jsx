@@ -46,7 +46,6 @@ function ReconciliationLightDrawer({
         role="dialog"
         aria-modal="true"
         aria-labelledby="rec-light-drawer-title"
-        style={{ maxWidth: '400px', width: 'min(400px, 100vw)' }}
       >
         <div className="rec-drawer__head">
           <h2 id="rec-light-drawer-title" className="rec-drawer__title">

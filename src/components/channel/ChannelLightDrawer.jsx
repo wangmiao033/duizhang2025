@@ -49,7 +49,6 @@ function ChannelLightDrawer({
         role="dialog"
         aria-modal="true"
         aria-labelledby="channel-light-drawer-title"
-        style={{ maxWidth: '400px', width: 'min(400px, 100vw)' }}
       >
         <div className="rec-drawer__head">
           <h2 id="channel-light-drawer-title" className="rec-drawer__title">

@@ -31,7 +31,7 @@ function PaymentEditPage() {
         footerSummary={null}
         footerActions={
           <button type="button" className="rec-btn rec-btn--primary" onClick={goList}>
-            返回回款登记
+            返回列表
           </button>
         }
       >
@@ -49,7 +49,7 @@ function PaymentEditPage() {
         footerSummary={null}
         footerActions={
           <button type="button" className="rec-btn rec-btn--primary" onClick={goList}>
-            返回回款登记
+            返回列表
           </button>
         }
       >

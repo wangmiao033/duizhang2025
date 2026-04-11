@@ -47,7 +47,6 @@ function InvoiceLightDrawer({ open, record, onClose, onUpdateRecord, onNavigateT
         role="dialog"
         aria-modal="true"
         aria-labelledby="invoice-light-drawer-title"
-        style={{ maxWidth: '400px', width: 'min(400px, 100vw)' }}
       >
         <div className="rec-drawer__head">
           <h2 id="invoice-light-drawer-title" className="rec-drawer__title">
@@ -105,6 +104,9 @@ function InvoiceLightDrawer({ open, record, onClose, onUpdateRecord, onNavigateT
           </div>
         </div>
         <div className="rec-drawer__footer rec-drawer__footer--light">
+          <button type="button" className="rec-btn rec-btn--ghost" onClick={onClose}>
+            关闭
+          </button>
           {onOpenVerification ? (
             <button
               type="button"
@@ -117,9 +119,6 @@ function InvoiceLightDrawer({ open, record, onClose, onUpdateRecord, onNavigateT
               去核销
             </button>
           ) : null}
-          <button type="button" className="rec-btn rec-btn--ghost" onClick={onClose}>
-            关闭
-          </button>
           <button
             type="button"
             className="rec-btn rec-btn--primary"

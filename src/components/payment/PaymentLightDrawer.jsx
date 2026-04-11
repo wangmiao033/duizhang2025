@@ -46,7 +46,6 @@ function PaymentLightDrawer({ open, record, onClose, onUpdateRecord, onNavigateT
         role="dialog"
         aria-modal="true"
         aria-labelledby="payment-light-drawer-title"
-        style={{ maxWidth: '400px', width: 'min(400px, 100vw)' }}
       >
         <div className="rec-drawer__head">
           <h2 id="payment-light-drawer-title" className="rec-drawer__title">
