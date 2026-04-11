@@ -60,6 +60,9 @@
 
 .cycle-manager-section {
   margin-bottom: 24px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .clear-filters-btn {
@@ -175,6 +178,44 @@
   gap: 24px;
   margin-bottom: 30px;
   align-items: start;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* 对账总表：仅含列表区，整行占满（避免 1.2fr | 2.5fr 栅格中空列） */
+.reconciliation-ledger-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.reconciliation-ledger-page .main-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 0;
+  gap: 0;
+}
+
+.reconciliation-ledger-page .table-section {
+  width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.page-container--reconciliation-ledger .page-container-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .form-section {
@@ -244,6 +285,9 @@
   border: 1px solid rgba(226, 232, 240, 0.6);
   box-shadow: 0 8px 32px rgba(79, 70, 229, 0.06), 0 0 0 1px rgba(255, 255, 255, 0.5);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .table-section:hover {
@@ -283,6 +327,9 @@
   border-radius: 16px;
   border: 1px solid rgba(226, 232, 240, 0.6);
   box-shadow: 0 4px 16px rgba(79, 70, 229, 0.04);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .toolbar-buttons {

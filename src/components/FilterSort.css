@@ -155,21 +155,24 @@
 }
 
 .filter-sort--inline {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  align-items: end;
   gap: 10px 12px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .filter-sort--inline .filter-inline-group {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-width: 100px;
+  min-width: 0;
 }
 
 .filter-sort--inline .filter-inline-group--narrow {
-  min-width: 88px;
+  min-width: 0;
 }
 
 .filter-sort--inline label {
@@ -186,6 +189,9 @@
   border-radius: 8px;
   background: #fff;
   min-height: 34px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .filter-sort--inline .filter-inline-reset {
@@ -197,6 +203,8 @@
   color: #475569;
   cursor: pointer;
   margin-bottom: 1px;
+  justify-self: start;
+  white-space: nowrap;
 }
 
 .filter-sort--inline .filter-inline-reset:hover {

@@ -1,8 +1,11 @@
 .data-table {
   width: 100%;
+  min-width: 0;
   height: 100%;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
 .data-table__empty-block {
@@ -50,17 +53,21 @@
 
 .table-content {
   padding-top: var(--admin-space-sm, 10px);
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
 }
 
 .table-wrapper {
   overflow-x: auto;
   overflow-y: auto;
-  flex: 1;
+  flex: 1 1 auto;
   position: relative;
+  width: 100%;
+  min-width: 0;
   background: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.8) 100%);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(226, 232, 240, 0.6);

@@ -13,6 +13,8 @@
   flex-direction: column;
   gap: var(--admin-page-stack-gap, 10px);
   min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
   font-size: 14px;
 }
 
@@ -71,6 +73,9 @@
   border: 1px solid var(--admin-border, #e2e8f0);
   box-shadow: var(--admin-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.04));
   flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .reconciliation-rd__filter-strip {
@@ -96,7 +101,8 @@
 
 .reconciliation-rd__search {
   flex: 1 1 200px;
-  min-width: 180px;
+  min-width: 0;
+  width: 100%;
 }
 
 .reconciliation-rd__search .search-filter {
@@ -121,25 +127,48 @@
   align-items: flex-end;
   gap: 8px;
   flex-wrap: wrap;
+  min-width: 0;
+  width: 100%;
 }
 
-/* 筛选栏单行：周期 + 搜索/筛选同一视觉行内 */
+/* 筛选区：纵向堆叠，避免单行 flex 挤压导致排序/按钮重叠 */
 .reconciliation-rd__filter-layer--single-row {
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 8px 12px;
-  padding: 8px 10px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--admin-space-sm, 10px);
+  padding: var(--admin-space-sm, 10px) var(--admin-space-md, 12px);
 }
 
 .reconciliation-rd__filter-layer--single-row .reconciliation-rd__filter-strip {
-  flex: 1 1 260px;
+  flex: none;
+  width: 100%;
   min-width: 0;
 }
 
 .reconciliation-rd__filter-layer--single-row .reconciliation-rd__filter-row {
-  flex: 2 1 320px;
+  width: 100%;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--admin-space-sm, 10px);
+}
+
+@media (min-width: 1024px) {
+  .reconciliation-rd__filter-layer--single-row .reconciliation-rd__filter-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: end;
+    gap: var(--admin-space-sm, 10px);
+  }
+
+  .reconciliation-rd__filter-layer--single-row .reconciliation-rd__search {
+    grid-column: 1 / -1;
+  }
+
+  .reconciliation-rd__filter-layer--single-row .reconciliation-rd__filter-actions {
+    grid-column: 1 / -1;
+  }
 }
 
 .rec-toolbar {
@@ -275,8 +304,11 @@
 
 .rec-stats-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--admin-space-md, 14px);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .rec-stat-card {
@@ -285,6 +317,11 @@
   border-radius: 12px;
   padding: 12px 14px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  min-height: 72px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .rec-stat-card--emphasis {
@@ -321,6 +358,8 @@
   padding: var(--admin-space-sm, 10px);
   box-shadow: var(--admin-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.04));
   min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
   flex: 1 1 auto;
   min-height: 180px;
   display: flex;
@@ -542,6 +581,8 @@
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 12px 16px;
+  width: 100%;
+  min-width: 0;
 }
 
 .reconciliation-rd__action-layer {
@@ -551,6 +592,9 @@
   padding: 8px 12px;
   box-shadow: var(--admin-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.04));
   flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .page-container--recon-rd .page-container-body {
@@ -571,20 +615,21 @@
   flex-shrink: 0;
 }
 
-/* 统计条：紧凑单行 */
+/* 统计条：紧凑但整行 responsive grid（避免 flex  nowrap + 父级 grid 导致宽度异常） */
 .rec-stats-cards--compact {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 2px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--admin-space-md, 14px);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: visible;
+  padding-bottom: 0;
 }
 
 .rec-stats-cards--compact .rec-stat-card {
-  flex: 1 1 0;
-  min-width: 108px;
-  padding: 8px 10px;
+  min-width: 0;
+  padding: 10px 12px;
 }
 
 .rec-stats-cards--compact .rec-stat-card__label {
@@ -607,6 +652,10 @@
   flex-direction: column;
   gap: var(--admin-page-stack-gap, 14px);
   min-width: 0;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  box-sizing: border-box;
   font-size: 14px;
 }
 

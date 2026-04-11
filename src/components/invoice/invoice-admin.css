@@ -3,6 +3,36 @@
   min-height: 0;
 }
 
+/* 发票 / 回款列表工作台：与研发/渠道一致占满主列 */
+.invoice-rd-workspace.admin-workspace,
+.payment-rd-workspace.admin-workspace {
+  width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.invoice-rd__table-card .admin-table-card__body,
+.payment-rd__table-card .admin-table-card__body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+.invoice-rd__table-card .admin-list-empty,
+.payment-rd__table-card .admin-list-empty {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 220px;
+  box-sizing: border-box;
+}
+
+.invoice-table--workspace {
+  width: 100%;
+  min-width: 0;
+}
+
 .invoice-form--page {
   display: flex;
   flex-direction: column;

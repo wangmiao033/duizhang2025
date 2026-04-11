@@ -30,6 +30,10 @@
   flex-direction: column;
   gap: var(--admin-page-stack-gap, var(--admin-space-md));
   min-width: 0;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  box-sizing: border-box;
 }
 
 /* —— 列表空态（与业务无关的展示统一） —— */
@@ -145,6 +149,8 @@
   align-items: center;
   gap: var(--admin-toolbar-gap);
   min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .admin-filter-bar {
@@ -159,10 +165,21 @@
   justify-content: flex-start;
 }
 
+/**
+ * 统计条容器：内部通常是一个「整行」的 rec-stats-cards，不能用 auto-fill 多列
+ * 否则单个子元素只占第一轨（约 1/N 宽度），导致统计区塌陷在左侧。
+ */
 .admin-stats-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: var(--admin-space-md);
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.admin-stats-row > * {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .admin-table-card {
@@ -172,11 +189,19 @@
   box-shadow: var(--admin-shadow-sm);
   overflow: hidden;
   min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
 }
 
 .admin-table-card__body {
   padding: 0;
   overflow: auto;
+  min-width: 0;
+  width: 100%;
+  flex: 1 1 auto;
 }
 
 .admin-drawer-surface {
