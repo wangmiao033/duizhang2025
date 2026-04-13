@@ -1,67 +1,72 @@
 .tag-manager {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  padding: 24px;
-  border: 1px solid rgba(226, 232, 240, 0.6);
-  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.06);
+  background: var(--admin-card-bg);
+  border-radius: var(--admin-radius);
+  padding: var(--admin-space-lg);
+  border: 1px solid var(--admin-border-soft);
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .tag-manager-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--admin-space-lg);
 }
 
 .tag-manager-header h3 {
   margin: 0;
-  color: #0f172a;
-  font-size: 1.3rem;
-  font-weight: 700;
+  color: var(--admin-text-main);
+  font-size: var(--admin-font-title);
+  font-weight: 600;
 }
 
 .add-tag-btn {
-  padding: 10px 20px;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-  color: white;
-  border: none;
-  border-radius: 10px;
+  padding: 0 18px;
+  min-height: var(--admin-btn-h);
+  background: var(--admin-primary);
+  color: #fff;
+  border: 1px solid var(--admin-primary);
+  border-radius: var(--admin-radius-sm);
   font-weight: 600;
+  font-size: var(--admin-font-base);
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .add-tag-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
 }
 
 .add-tag-form {
-  background: rgba(248, 250, 252, 0.8);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 20px;
+  background: var(--admin-elevated-bg);
+  border-radius: var(--admin-radius-sm);
+  padding: var(--admin-space-md);
+  margin-bottom: var(--admin-space-lg);
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  border: 1px solid rgba(226, 232, 240, 0.6);
+  gap: var(--admin-space-sm);
+  border: 1px solid var(--admin-border-soft);
 }
 
 .tag-name-input {
-  padding: 12px 16px;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 10px;
-  font-size: 0.95rem;
-  background: white;
-  transition: all 0.3s ease;
+  padding: 10px 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-base);
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .tag-name-input:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px var(--admin-primary-muted);
 }
 
 .color-picker {
@@ -73,44 +78,49 @@
 .color-option {
   width: 36px;
   height: 36px;
-  border-radius: 8px;
-  border: 3px solid transparent;
+  border-radius: var(--admin-radius-sm);
+  border: 2px solid transparent;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .color-option:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--admin-shadow-md);
 }
 
 .color-option.selected {
-  border-color: #0f172a;
-  transform: scale(1.15);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  border-color: var(--admin-text-main);
+  box-shadow: 0 0 0 2px var(--admin-card-bg), 0 0 0 4px var(--admin-primary);
 }
 
 .submit-tag-btn {
-  padding: 10px 20px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  border: none;
-  border-radius: 10px;
+  padding: 0 18px;
+  min-height: var(--admin-btn-h);
+  align-self: flex-start;
+  background: var(--admin-primary);
+  color: #fff;
+  border: 1px solid var(--admin-primary);
+  border-radius: var(--admin-radius-sm);
   font-weight: 600;
+  font-size: var(--admin-font-base);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .submit-tag-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
 }
 
 .tags-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--admin-space-sm);
   max-height: 400px;
   overflow-y: auto;
 }
@@ -119,84 +129,90 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 12px;
-  border: 1px solid rgba(226, 232, 240, 0.6);
-  transition: all 0.3s ease;
+  padding: var(--admin-space-sm) var(--admin-space-md);
+  background: var(--admin-card-bg);
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border-soft);
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .tag-item:hover {
-  background: rgba(255, 255, 255, 1);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
-  transform: translateX(4px);
+  box-shadow: var(--admin-shadow-sm);
+  border-color: var(--admin-border);
 }
 
 .tag-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 0.9rem;
+  padding: 6px 12px;
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-sm);
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--admin-border-soft);
+  box-shadow: none;
 }
 
 .tag-count {
-  font-size: 0.8rem;
+  font-size: var(--admin-font-sm);
   opacity: 0.9;
 }
 
 .tag-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .edit-tag-btn,
 .delete-tag-btn {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  padding: 0 12px;
+  min-height: 32px;
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-sm);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .edit-tag-btn {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  background: var(--admin-card-bg);
+  color: var(--admin-primary);
+  border: 1px solid var(--admin-border-strong);
 }
 
 .edit-tag-btn:hover {
-  background: #3b82f6;
-  color: white;
+  background: var(--admin-primary-muted);
+  border-color: var(--admin-primary);
 }
 
 .delete-tag-btn {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: var(--admin-danger-muted);
+  color: var(--admin-danger);
+  border: 1px solid #fecaca;
 }
 
 .delete-tag-btn:hover {
-  background: #ef4444;
-  color: white;
+  background: #fee2e2;
 }
 
 .empty-tags {
   text-align: center;
   padding: 40px;
-  color: #64748b;
+  color: var(--admin-text-muted);
   font-style: italic;
 }
 
 .tag-usage-hint {
-  margin-top: 20px;
-  padding: 12px;
-  background: rgba(59, 130, 246, 0.1);
-  border-radius: 10px;
-  color: #1e40af;
-  font-size: 0.9rem;
+  margin-top: var(--admin-space-lg);
+  padding: var(--admin-space-sm) var(--admin-space-md);
+  background: var(--admin-primary-muted);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  color: var(--admin-text-main);
+  font-size: var(--admin-font-sm);
   text-align: center;
 }

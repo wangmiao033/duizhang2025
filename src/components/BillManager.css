@@ -1,23 +1,27 @@
 .bill-manager {
-  background: #f8f9fa;
-  border-radius: 15px;
-  padding: 25px;
-  margin-bottom: 30px;
+  background: var(--admin-page-bg);
+  border: 1px solid var(--admin-border-soft);
+  border-radius: var(--admin-radius);
+  padding: var(--admin-space-lg);
+  margin-bottom: var(--admin-space-xl);
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .bill-manager--embedded {
   background: transparent;
+  border: none;
   border-radius: 0;
   padding: 0;
   margin-bottom: 0;
+  box-shadow: none;
 }
 
 .bill-manager-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: var(--admin-space-sm);
+  margin-bottom: var(--admin-space-sm);
   flex-wrap: wrap;
 }
 
@@ -28,28 +32,29 @@
 
 .bill-manager-title {
   margin: 0;
-  color: var(--admin-text-main, #333);
-  font-size: 1.15rem;
-  font-weight: 650;
+  color: var(--admin-text-main);
+  font-size: var(--admin-table-card-title-size);
+  font-weight: var(--admin-table-card-title-weight);
 }
 
 .bill-manager-save-btn {
-  padding: 8px 16px;
-  background: var(--admin-primary, #4f46e5);
-  color: white;
-  border: none;
-  border-radius: var(--admin-radius-sm, 8px);
-  font-size: var(--admin-font-base, 14px);
+  padding: 0 16px;
+  background: var(--admin-primary);
+  color: #fff;
+  border: 1px solid var(--admin-primary);
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-base);
   font-weight: 600;
   cursor: pointer;
   transition:
     background 0.15s ease,
-    filter 0.15s ease;
-  min-height: var(--admin-btn-h, 36px);
+    border-color 0.15s ease;
+  min-height: var(--admin-btn-h);
 }
 
 .bill-manager-save-btn:hover {
-  filter: brightness(1.06);
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
 }
 
 .bill-manager-table-wrap {
@@ -58,27 +63,29 @@
 
 .bill-manager-table-scroll {
   overflow-x: auto;
-  border: 1px solid var(--admin-border, #e2e8f0);
-  border-radius: var(--admin-radius-sm, 8px);
-  background: var(--admin-card-bg, #fff);
+  border: 1px solid var(--admin-border-soft);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-card-bg);
 }
 
 .bill-manager-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--admin-table-font-size, 13px);
+  font-size: var(--admin-table-font-size);
   min-width: 720px;
 }
 
 .bill-manager-table thead {
-  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-  color: #fff;
+  background: var(--admin-elevated-bg);
+  color: var(--admin-text-sub);
+  border-bottom: 1px solid var(--admin-border);
 }
 
 .bill-manager-table th {
-  padding: var(--admin-table-th-py, 9px) var(--admin-table-th-px, 10px);
+  padding: var(--admin-table-th-py) var(--admin-table-th-px);
   text-align: left;
-  font-weight: 600;
+  font-weight: 500;
+  font-size: var(--admin-font-sm);
   white-space: nowrap;
 }
 
@@ -91,14 +98,14 @@
 }
 
 .bill-manager-table td {
-  padding: var(--admin-table-td-py, 8px) var(--admin-table-td-px, 10px);
-  border-bottom: 1px solid var(--admin-border, #e9ecef);
-  color: var(--admin-text-main, #334155);
+  padding: var(--admin-table-td-py) var(--admin-table-td-px);
+  border-bottom: 1px solid var(--admin-border-soft);
+  color: var(--admin-text-main);
   vertical-align: middle;
 }
 
 .bill-manager-table tbody tr:hover {
-  background: var(--admin-primary-muted, rgba(79, 70, 229, 0.06));
+  background: var(--admin-elevated-bg);
 }
 
 .bill-manager-table__name {
@@ -110,7 +117,7 @@
 }
 
 .bill-manager-table__muted {
-  color: var(--admin-text-muted, #94a3b8);
+  color: var(--admin-text-muted);
   white-space: nowrap;
 }
 
@@ -128,42 +135,51 @@
 .bill-manager-table__action-btns {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--admin-table-action-gap, 6px);
+  gap: var(--admin-table-action-gap);
   justify-content: center;
 }
 
 .bill-manager-load-btn,
 .bill-manager-export-btn,
 .bill-manager-delete-btn {
-  min-height: var(--admin-table-action-btn-h, 32px);
-  padding: 0 var(--admin-table-action-pad-x, 12px);
-  border: none;
-  border-radius: var(--admin-radius-sm, 8px);
-  font-size: var(--admin-table-font-size, 13px);
-  font-weight: 600;
+  min-height: var(--admin-table-action-btn-h);
+  padding: 0 var(--admin-table-action-pad-x);
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-table-font-size);
+  font-weight: 500;
   cursor: pointer;
-  transition: filter 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    filter 0.15s ease;
+  border: 1px solid transparent;
 }
 
 .bill-manager-load-btn {
-  background: #059669;
+  background: var(--admin-success);
   color: #fff;
+  border-color: var(--admin-success);
 }
 
 .bill-manager-export-btn {
-  background: #0ea5e9;
-  color: #fff;
+  background: var(--admin-card-bg);
+  color: var(--admin-primary);
+  border-color: var(--admin-border-strong);
 }
 
 .bill-manager-delete-btn {
-  background: #dc2626;
-  color: #fff;
+  background: var(--admin-danger-muted);
+  color: var(--admin-danger);
+  border-color: #fecaca;
 }
 
 .bill-manager-load-btn:hover,
-.bill-manager-export-btn:hover,
-.bill-manager-delete-btn:hover {
+.bill-manager-export-btn:hover {
   filter: brightness(1.05);
+}
+
+.bill-manager-delete-btn:hover {
+  background: #fee2e2;
 }
 
 .save-dialog-overlay {
@@ -172,15 +188,15 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(15, 23, 42, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fadeIn 0.2s;
+  animation: bill-dialog-fade 0.2s ease;
 }
 
-@keyframes fadeIn {
+@keyframes bill-dialog-fade {
   from {
     opacity: 0;
   }
@@ -190,18 +206,19 @@
 }
 
 .save-dialog {
-  background: white;
-  border-radius: 12px;
-  padding: 30px;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-soft);
+  border-radius: var(--admin-radius);
+  padding: var(--admin-space-xl);
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.3s;
+  box-shadow: var(--admin-shadow-md);
+  animation: bill-dialog-up 0.2s ease;
 }
 
-@keyframes slideUp {
+@keyframes bill-dialog-up {
   from {
-    transform: translateY(20px);
+    transform: translateY(12px);
     opacity: 0;
   }
   to {
@@ -211,54 +228,62 @@
 }
 
 .save-dialog h4 {
-  margin: 0 0 20px 0;
-  color: #333;
-  font-size: 1.3rem;
+  margin: 0 0 var(--admin-space-lg) 0;
+  color: var(--admin-text-main);
+  font-size: var(--admin-font-title);
+  font-weight: 600;
 }
 
 .save-dialog-content {
-  margin-bottom: 25px;
+  margin-bottom: var(--admin-space-lg);
 }
 
 .save-dialog-content label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
   font-weight: 500;
-  color: #495057;
+  color: var(--admin-text-sub);
+  font-size: var(--admin-font-sm);
 }
 
 .save-dialog-content input {
   width: 100%;
-  padding: 12px;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
+  padding: 10px 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-base);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   box-sizing: border-box;
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
 }
 
 .save-dialog-content input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px var(--admin-primary-muted);
 }
 
 .save-dialog-info {
-  margin-top: 20px;
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  margin-top: var(--admin-space-lg);
+  padding: var(--admin-space-md);
+  background: var(--admin-elevated-bg);
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border-soft);
 }
 
 .save-dialog-info p {
   margin: 0 0 10px 0;
   font-weight: 500;
-  color: #495057;
+  color: var(--admin-text-main);
 }
 
 .save-dialog-info ul {
   margin: 0;
   padding-left: 20px;
-  color: #6c757d;
+  color: var(--admin-text-sub);
 }
 
 .save-dialog-info li {
@@ -267,57 +292,63 @@
 
 .save-dialog-buttons {
   display: flex;
-  gap: 12px;
+  gap: var(--admin-space-sm);
   justify-content: flex-end;
 }
 
 .save-dialog-buttons button {
-  padding: 10px 24px;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 0 18px;
+  min-height: var(--admin-btn-h);
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-base);
   cursor: pointer;
-  transition: all 0.2s;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .save-dialog-buttons .cancel-btn {
-  background: #e9ecef;
-  color: #495057;
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
+  border: 1px solid var(--admin-border-strong);
 }
 
 .save-dialog-buttons .cancel-btn:hover {
-  background: #dee2e6;
+  background: var(--admin-elevated-bg);
 }
 
 .save-dialog-buttons .confirm-btn {
-  background: #667eea;
-  color: white;
+  background: var(--admin-primary);
+  color: #fff;
+  border: 1px solid var(--admin-primary);
 }
 
 .save-dialog-buttons .confirm-btn:hover {
-  background: #5568d3;
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
 }
 
 [data-theme='dark'] .bill-manager:not(.bill-manager--embedded) {
-  background: var(--admin-elevated-bg, #222536);
+  background: var(--admin-elevated-bg);
+  border-color: var(--admin-border);
 }
 
 [data-theme='dark'] .save-dialog {
-  background: var(--admin-card-bg, #1a1d2e);
-  color: var(--admin-text-main, #f1f5f9);
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
 }
 
 [data-theme='dark'] .save-dialog h4 {
-  color: var(--admin-text-main, #f1f5f9);
+  color: var(--admin-text-main);
 }
 
 [data-theme='dark'] .bill-manager-table-scroll {
-  border-color: var(--admin-border, #334155);
+  border-color: var(--admin-border);
 }
 
 [data-theme='dark'] .bill-manager-table td {
-  border-color: var(--admin-border, #334155);
-  color: var(--admin-text-main, #e2e8f0);
+  border-color: var(--admin-border);
+  color: var(--admin-text-main);
 }
 
 @media (max-width: 768px) {
