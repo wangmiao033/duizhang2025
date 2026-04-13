@@ -3,6 +3,8 @@ import { useAppState } from '@/app/AppStateContext.jsx'
 import PageContainer from '@/components/layout/PageContainer.jsx'
 import DataValidator from '@/components/DataValidator.jsx'
 import DataRecoveryHelper from '@/components/DataRecoveryHelper.jsx'
+import ExceptionCenterPanel from '@/components/exceptions/ExceptionCenterPanel.jsx'
+import { useExceptionItems } from '@/hooks/useExceptionItems.js'
 import { calculateSettlementAmount } from '@/domain/settlement/calculateSettlementAmount.js'
 import { VIEWS } from '@/app/routes.js'
 import '@/components/reconciliation/reconciliation-admin.css'
@@ -10,10 +12,24 @@ import '@/components/reconciliation/reconciliation-admin.css'
 function ExceptionsPage() {
   const { recon, showToast, setActiveView } = useAppState()
   const { records, updateRecord, restoreFullData } = recon
+  const { items: exceptionItems, refresh: refreshExceptions } = useExceptionItems()
 
   return (
     <PageContainer hideHeader className="page-container--admin-workspace">
       <div className="admin-workspace">
+        <section className="admin-workspace__card">
+          <h3 className="admin-workspace__card-title">业务异常 2.0</h3>
+          <p className="admin-workspace__card-desc">
+            自动识别发票/回款关联、渠道状态、研发结算等异常；仅展示与状态管理，不自动修复。处理状态保存在本地浏览器。
+          </p>
+          <ExceptionCenterPanel
+            items={exceptionItems}
+            refresh={refreshExceptions}
+            setActiveView={setActiveView}
+            showToast={showToast}
+          />
+        </section>
+
         <section className="admin-workspace__card">
           <h3 className="admin-workspace__card-title">数据诊断与恢复</h3>
           <p className="admin-workspace__card-desc">

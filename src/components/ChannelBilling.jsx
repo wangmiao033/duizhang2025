@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react'
+import React, { useState, useMemo, useRef, useEffect } from 'react'
 import * as XLSX from 'xlsx'
 import AdminWorkspace from '@/components/admin/AdminWorkspace.jsx'
 import AdminFilterBar from '@/components/admin/AdminFilterBar.jsx'
@@ -11,6 +11,7 @@ import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
 import { initialForm, buildRecordFromForm } from '@/domain/channel/channelBillingForm.js'
 import { getChannelRecordId } from '@/lib/api/channel.ts'
 import { VIEWS } from '@/app/routes.js'
+import { consumeChannelFocus } from '@/lib/exceptions/navFocus.ts'
 import './ChannelBilling.css'
 
 const PERIOD_OPTIONS = [
@@ -93,6 +94,11 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
 
   const [selectedIds, setSelectedIds] = useState([])
 
+  useEffect(() => {
+    const id = consumeChannelFocus()
+    if (id) setSearchTerm(id)
+  }, [])
+
   const channelOptions = useMemo(() => {
     const set = new Set()
     channelRecords.forEach((r) => {
@@ -133,6 +139,9 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
       const term = searchTerm.toLowerCase()
       list = list.filter(
         (record) =>
+          String(getChannelRecordId(record) || '')
+            .toLowerCase()
+            .includes(term) ||
           (record.channelName || '').toLowerCase().includes(term) ||
           (record.gameName || '').toLowerCase().includes(term)
       )

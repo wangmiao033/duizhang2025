@@ -11,6 +11,7 @@ import { STATUS_OPTIONS } from '@/components/StatusManager.jsx'
 import { calculateSettlementAmount } from '@/domain/settlement/calculateSettlementAmount.js'
 import { computeStatusAggregates } from '@/domain/reconciliation/reconciliationStats.js'
 import { VIEWS } from '@/app/routes.js'
+import { useExceptionItems } from '@/hooks/useExceptionItems.js'
 
 const ICON = {
   save: '\u{1F4BE}',
@@ -21,11 +22,13 @@ const ICON = {
   chart: '\u{1F4CA}',
   refund: '\u{21A9}\u{FE0F}',
   lab: '\u{1F9EA}',
-  trend: '\u{1F4C8}'
+  trend: '\u{1F4C8}',
+  alert: '\u{26A0}\u{FE0F}'
 }
 
 function DashboardPage() {
   const { recon, showToast, setActiveView } = useAppState()
+  const { pendingCount: pendingExceptionCount } = useExceptionItems()
   const {
     records,
     statistics,
@@ -96,6 +99,12 @@ function DashboardPage() {
         <SummaryCard title="退款总额" value={`¥${statistics.totalRefund.toFixed(2)}`} icon={ICON.refund} />
         <SummaryCard title="测试费总额" value={`¥${statistics.totalTestingFee.toFixed(2)}`} icon={ICON.lab} />
         <SummaryCard title="平均游戏流水" value={`¥${statistics.avgGameFlow.toFixed(2)}`} icon={ICON.trend} />
+        <SummaryCard
+          title="待处理业务异常"
+          value={pendingExceptionCount}
+          icon={ICON.alert}
+          onClick={() => setActiveView(VIEWS.RECON_EXCEPTIONS)}
+        />
       </div>
       <div className="status-summary-section">
         <h3 className="status-summary-title">

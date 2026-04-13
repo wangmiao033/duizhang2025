@@ -1,7 +1,7 @@
 import React from 'react'
 import './SummaryCard.css'
 
-function SummaryCard({ title, value, icon }) {
+function SummaryCard({ title, value, icon, onClick }) {
   // 检测值是否过长（超过10个字符）
   const valueStr = String(value)
   const isLongValue = valueStr.length > 10
@@ -24,8 +24,8 @@ function SummaryCard({ title, value, icon }) {
 
   const displayValue = formatValue(value)
 
-  return (
-    <div className="summary-card">
+  const inner = (
+    <>
       <div className="card-icon">{icon}</div>
       <div className="card-content">
         <h3>{title}</h3>
@@ -33,8 +33,18 @@ function SummaryCard({ title, value, icon }) {
           {displayValue}
         </p>
       </div>
-    </div>
+    </>
   )
+
+  if (onClick) {
+    return (
+      <button type="button" className="summary-card summary-card--clickable" onClick={onClick}>
+        {inner}
+      </button>
+    )
+  }
+
+  return <div className="summary-card">{inner}</div>
 }
 
 export default SummaryCard

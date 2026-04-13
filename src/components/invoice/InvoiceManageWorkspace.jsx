@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
 import InvoicePaymentLinkTools from '@/components/invoice/InvoicePaymentLinkTools.jsx'
 import { useInvoicePaymentLinks } from '@/hooks/useInvoicePaymentLinks.js'
@@ -14,6 +14,7 @@ import { sumVerifiedSettlementAmount } from '@/domain/invoice/invoiceVerificatio
 import { getInvoiceRecordId } from '@/lib/api/invoice.ts'
 import { getPaymentRecordId } from '@/lib/api/payment.ts'
 import { VIEWS } from '@/app/routes.js'
+import { consumeInvoiceFocus } from '@/lib/exceptions/navFocus.ts'
 
 /**
  * 发票管理 / 发票核销 共用列表工作台（无完整表单）
@@ -39,6 +40,11 @@ function InvoiceManageWorkspace({ variant = 'manage' }) {
   const [drawerRecord, setDrawerRecord] = useState(null)
   const { refresh: refreshIpLinks, byInvoiceId } = useInvoicePaymentLinks()
   const [focusInvoiceForLink, setFocusInvoiceForLink] = useState('')
+
+  useEffect(() => {
+    const id = consumeInvoiceFocus()
+    if (id) setFocusInvoiceForLink(id)
+  }, [])
 
   const paymentLabelById = useMemo(() => {
     const m = new Map()

@@ -22,6 +22,7 @@ export function filterAndSortReconciliationRecords({
     const term = searchTerm.toLowerCase()
     result = result.filter(
       (record) =>
+        (record.id && String(record.id).toLowerCase().includes(term)) ||
         (record.game && record.game.toLowerCase().includes(term)) ||
         (record.partner && record.partner.toLowerCase().includes(term)) ||
         (record.settlementMonth && record.settlementMonth.toLowerCase().includes(term)) ||

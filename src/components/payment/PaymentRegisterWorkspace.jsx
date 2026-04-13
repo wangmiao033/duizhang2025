@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
 import InvoicePaymentLinkTools from '@/components/invoice/InvoicePaymentLinkTools.jsx'
 import { useInvoicePaymentLinks } from '@/hooks/useInvoicePaymentLinks.js'
@@ -15,6 +15,7 @@ import { VIEWS } from '@/app/routes.js'
 import { DELIVERY_STATUSES } from '@/domain/payment/deliveryForm.js'
 import { getInvoiceRecordId } from '@/lib/api/invoice.ts'
 import { getPaymentRecordId } from '@/lib/api/payment.ts'
+import { consumePaymentFocus } from '@/lib/exceptions/navFocus.ts'
 
 function getStatusClass(status) {
   const statusMap = {
@@ -37,6 +38,11 @@ function PaymentRegisterWorkspace() {
   const [drawerRecord, setDrawerRecord] = useState(null)
   const { refresh: refreshIpLinks, byPaymentId } = useInvoicePaymentLinks()
   const [focusPaymentForLink, setFocusPaymentForLink] = useState('')
+
+  useEffect(() => {
+    const id = consumePaymentFocus()
+    if (id) setFocusPaymentForLink(id)
+  }, [])
 
   const invoiceLabelById = useMemo(() => {
     const m = new Map()

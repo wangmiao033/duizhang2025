@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
 import PageContainer from '@/components/layout/PageContainer.jsx'
 import SearchFilter from '@/components/SearchFilter.jsx'
@@ -20,6 +20,7 @@ import { calculateSettlementAmount } from '@/domain/settlement/calculateSettleme
 import { CYCLE_TYPES, getCurrentCycle } from '@/utils/settlementCycle.js'
 import { VIEWS } from '@/app/routes.js'
 import { getReconciliationRecordId } from '@/lib/api/reconciliation.ts'
+import { consumeReconciliationFocus } from '@/lib/exceptions/navFocus.ts'
 
 function ReconciliationPage({ variant = 'full' }) {
   const { recon, settings, showToast, setActiveView, openReconciliationEdit } = useAppState()
@@ -55,6 +56,11 @@ function ReconciliationPage({ variant = 'full' }) {
     restoreFullData,
     statistics
   } = recon
+
+  useEffect(() => {
+    const id = consumeReconciliationFocus()
+    if (id) setSearchTerm(id)
+  }, [setSearchTerm])
 
   const { settlementMonth, partyA, partyB, partners, deliveries, setPartners } = settings
 
