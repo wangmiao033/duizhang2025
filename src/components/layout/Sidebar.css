@@ -1,4 +1,4 @@
-/* 侧栏：分组层级 + 选中左侧高亮条，无渐变、无位移 hover */
+/* 侧栏：Notion / Linear 式极简层级 — 无渐变、无重阴影、无位移 */
 
 .app-sidebar {
   flex: 0 0 var(--admin-sidebar-w);
@@ -18,13 +18,63 @@
   max-height: 100vh;
   overflow-y: auto;
   overflow-x: visible;
-  padding: var(--space-5) var(--space-3) var(--space-6);
+  padding: 0 var(--space-3) var(--admin-space-lg);
+  padding-top: var(--admin-space-md);
   background: transparent;
   scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--admin-border) transparent;
+}
+
+.app-sidebar-inner::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-sidebar-inner::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-sidebar-inner::-webkit-scrollbar-thumb {
+  background: var(--admin-border-soft);
+  border-radius: 999px;
+}
+
+.app-sidebar-inner::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-border);
+}
+
+/* 极简品牌区（非页面标题，不与内容区重复） */
+.sidebar-brand {
+  padding: var(--admin-sidebar-brand-pad-y) var(--admin-space-sm) var(--admin-space-md);
+  margin-bottom: var(--admin-space-sm);
+  border-bottom: 1px solid var(--admin-border-soft);
+}
+
+.sidebar-brand__title {
+  font-size: var(--admin-font-sm);
+  font-weight: 600;
+  color: var(--admin-text-primary);
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+
+.sidebar-brand__subtitle {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--admin-text-tertiary);
+  letter-spacing: 0.02em;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-top: var(--space-2);
 }
 
 .sidebar-group {
-  margin-bottom: 10px;
+  margin-bottom: var(--admin-sidebar-group-gap);
 }
 
 .sidebar-group:last-child {
@@ -32,18 +82,17 @@
 }
 
 .sidebar-group--singleton {
-  margin-bottom: 10px;
+  margin-bottom: var(--admin-sidebar-group-gap);
 }
 
-/* 可折叠分组：标题行（点击展开） */
 .sidebar-group-toggle {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   width: 100%;
-  min-height: 28px;
+  min-height: 26px;
   padding: 0;
-  margin: 0 0 4px;
+  margin: 0 0 2px;
   border: none;
   border-radius: var(--admin-radius-sm);
   background: transparent;
@@ -55,69 +104,71 @@
   background: var(--admin-bg-soft);
 }
 
+/* 分组标题：弱化，区别于菜单项 */
 .sidebar-group-title {
   font-size: 11px;
   color: var(--admin-text-tertiary);
-  padding: 16px 16px 6px;
+  padding: 18px 16px 6px;
   margin: 0;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
   font-weight: 500;
   text-align: left;
-  line-height: 1.3;
+  line-height: 1.25;
   flex: 1;
   min-width: 0;
 }
 
 .sidebar-group-chevron {
-  align-self: center;
-  width: 6px;
-  height: 6px;
-  border-right: 2px solid var(--admin-text-muted);
-  border-top: 2px solid var(--admin-text-muted);
+  width: 5px;
+  height: 5px;
+  margin-top: 21px;
+  margin-right: 14px;
+  flex-shrink: 0;
+  border-right: 1.5px solid var(--admin-text-tertiary);
+  border-top: 1.5px solid var(--admin-text-tertiary);
   transform: rotate(45deg);
   transition: transform 0.15s ease;
-  flex-shrink: 0;
-  margin-right: 12px;
-  opacity: 0.75;
+  opacity: 0.55;
 }
 
 .sidebar-group-chevron.is-open {
   transform: rotate(135deg);
 }
 
+/* 当前路由所在分组：标题略提亮，不抢主色 */
 .sidebar-group.active .sidebar-group-title {
-  color: var(--admin-text-primary);
+  color: var(--admin-text-secondary);
 }
 
-/* 子菜单容器 */
+/* 子列表：轻实线，偏 Notion 文档层级 */
 .sidebar-sub-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding-left: 12px;
-  border-left: 1px dashed var(--admin-border-soft);
-  margin-left: 16px;
+  gap: 1px;
+  margin-left: 18px;
+  padding-left: 10px;
+  border-left: 1px solid var(--admin-border-soft);
 }
 
 .sidebar-group--singleton .sidebar-sub-list {
+  margin-left: 0;
   padding-left: 0;
   border-left: none;
-  margin-left: 0;
 }
 
 .sidebar-item {
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--admin-sidebar-item-gap);
   width: 100%;
-  height: 40px;
-  min-height: 40px;
+  height: var(--admin-sidebar-item-h);
+  min-height: var(--admin-sidebar-item-h);
   text-align: left;
   border: none;
   border-radius: 10px;
   margin: 2px 8px;
-  padding: 0 16px;
+  padding: 0 14px;
   font-size: var(--admin-font-base);
   font-weight: 400;
   color: var(--admin-text-secondary);
@@ -130,12 +181,23 @@
 }
 
 .sidebar-item-icon {
-  flex: 0 0 1.25rem;
-  width: 1.25rem;
+  flex: 0 0 var(--admin-sidebar-icon-size);
+  width: var(--admin-sidebar-icon-size);
+  height: var(--admin-sidebar-icon-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  font-size: 14px;
+  font-size: var(--admin-sidebar-icon-size);
   line-height: 1;
-  color: var(--admin-text-muted);
+  color: var(--admin-text-tertiary);
+}
+
+.sidebar-item svg,
+.sidebar-group-toggle svg {
+  width: var(--admin-sidebar-icon-size);
+  height: var(--admin-sidebar-icon-size);
+  flex-shrink: 0;
 }
 
 .sidebar-item-label {
@@ -152,32 +214,31 @@
 }
 
 .sidebar-item:hover .sidebar-item-icon {
-  color: var(--admin-text-sub);
+  color: var(--admin-text-secondary);
 }
 
 .sidebar-item.active {
   background: var(--admin-primary-muted);
   color: var(--admin-primary);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .sidebar-item.active .sidebar-item-icon {
   color: var(--admin-primary);
 }
 
-/* 选中态左侧高亮条 */
 .sidebar-item.active::before {
   content: '';
   position: absolute;
   left: -8px;
-  top: 6px;
-  bottom: 6px;
+  top: 7px;
+  bottom: 7px;
   width: 3px;
-  border-radius: 2px;
+  border-radius: 999px;
   background: var(--admin-primary);
 }
 
-/* 收起侧栏时隐藏文案（若根节点带 .sidebar-collapsed） */
+.sidebar-collapsed .sidebar-brand,
 .sidebar-collapsed .sidebar-item-label,
 .sidebar-collapsed .sidebar-group-title {
   display: none;
@@ -185,6 +246,10 @@
 
 .sidebar-collapsed .sidebar-group-chevron {
   display: none;
+}
+
+[data-theme='dark'] .app-sidebar-inner::-webkit-scrollbar-thumb {
+  background: var(--admin-border);
 }
 
 @media (max-width: 960px) {

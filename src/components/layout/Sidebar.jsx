@@ -43,34 +43,41 @@ function Sidebar({ activeView, onNavigate }) {
   return (
     <aside className="app-sidebar" aria-label="主导航">
       <div className="app-sidebar-inner">
-        {SIDEBAR_GROUPS.map((group) => {
-          const isSingleton = group.items.length === 1
-          const open = isSingleton || expandedId === group.id
-          const groupActive = activeGroupId === group.id
+        <div className="sidebar-brand">
+          <div className="sidebar-brand__title">对账管理系统</div>
+          <div className="sidebar-brand__subtitle">财务后台</div>
+        </div>
 
-          if (isSingleton) {
+        <nav className="sidebar-nav" aria-label="功能分组">
+          {SIDEBAR_GROUPS.map((group) => {
+            const isSingleton = group.items.length === 1
+            const open = isSingleton || expandedId === group.id
+            const groupActive = activeGroupId === group.id
+
+            if (isSingleton) {
+              return (
+                <div key={group.id} className="sidebar-group sidebar-group--singleton">
+                  {renderItems(group)}
+                </div>
+              )
+            }
+
             return (
-              <div key={group.id} className="sidebar-group sidebar-group--singleton">
-                {renderItems(group)}
+              <div key={group.id} className={`sidebar-group ${groupActive ? 'active' : ''}`}>
+                <button
+                  type="button"
+                  className="sidebar-group-toggle"
+                  aria-expanded={open}
+                  onClick={() => toggleGroup(group.id)}
+                >
+                  <div className="sidebar-group-title">{group.label}</div>
+                  <span className={`sidebar-group-chevron ${open ? 'is-open' : ''}`} aria-hidden />
+                </button>
+                {open && renderItems(group)}
               </div>
             )
-          }
-
-          return (
-            <div key={group.id} className={`sidebar-group ${groupActive ? 'active' : ''}`}>
-              <button
-                type="button"
-                className="sidebar-group-toggle"
-                aria-expanded={open}
-                onClick={() => toggleGroup(group.id)}
-              >
-                <div className="sidebar-group-title">{group.label}</div>
-                <span className={`sidebar-group-chevron ${open ? 'is-open' : ''}`} aria-hidden />
-              </button>
-              {open && renderItems(group)}
-            </div>
-          )
-        })}
+          })}
+        </nav>
       </div>
     </aside>
   )

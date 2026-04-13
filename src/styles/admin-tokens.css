@@ -46,6 +46,12 @@
   --admin-space-xl: 28px;
   --admin-header-h: 64px;
   --admin-sidebar-w: 228px;
+  /* 侧栏导航（SaaS 密度与图标） */
+  --admin-sidebar-item-h: 38px;
+  --admin-sidebar-icon-size: 16px;
+  --admin-sidebar-item-gap: 10px;
+  --admin-sidebar-group-gap: 14px;
+  --admin-sidebar-brand-pad-y: 4px;
   --admin-workspace-pad-x: 24px;
   --admin-drawer-w: 440px;
   --admin-drawer-w-max: 480px;
