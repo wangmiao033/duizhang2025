@@ -3,6 +3,7 @@ import { useAppState } from '@/app/AppStateContext.jsx'
 import PageContainer from '@/components/layout/PageContainer.jsx'
 import BankPasteAutoParseBlock from '@/components/bank/BankPasteAutoParseBlock.jsx'
 import { parseBankText } from '@/utils/parseBankText.js'
+import { parseBankReceipt } from '@/utils/parseBankReceipt.js'
 import '@/components/reconciliation/reconciliation-admin.css'
 
 const INITIAL = {
@@ -22,13 +23,54 @@ function BankStatementImportPage() {
   const { showToast } = useAppState()
   const [form, setForm] = useState(INITIAL)
   const [pasteText, setPasteText] = useState('')
+  const [receiptText, setReceiptText] = useState('')
+  const [receiptParse, setReceiptParse] = useState(null)
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
   const handleReset = () => {
     setForm(INITIAL)
     setPasteText('')
+    setReceiptText('')
+    setReceiptParse(null)
     showToast('已清空表单', 'info')
+  }
+
+  const handleReceiptRecognize = () => {
+    try {
+      const r = parseBankReceipt(receiptText)
+      setReceiptParse(r)
+      if (!r.recognized) {
+        showToast('未能从文本中识别出有效字段，可换行粘贴或检查是否含回单关键词', 'info')
+        return
+      }
+      showToast('已解析，请核对预览后点击「确认填充」', 'success')
+    } catch {
+      showToast('识别过程异常，请简化文本后重试', 'info')
+    }
+  }
+
+  const handleReceiptConfirmFill = () => {
+    if (!receiptParse?.formPatch) return
+    try {
+      const patch = receiptParse.formPatch
+      const { remark: patchRemark, ...rest } = patch
+      setForm((prev) => {
+        const next = { ...prev }
+        for (const [k, v] of Object.entries(rest)) {
+          if (v == null || String(v).trim() === '') continue
+          if (k in next) next[k] = String(v).trim()
+        }
+        if (patchRemark && String(patchRemark).trim()) {
+          const add = String(patchRemark).trim()
+          next.remark = [prev.remark, add].filter(Boolean).join('\n').trim()
+        }
+        return next
+      })
+      showToast('已按预览填充表单', 'success')
+    } catch {
+      showToast('填充失败，请手动核对', 'info')
+    }
   }
 
   const handleAutoFill = () => {
@@ -78,6 +120,77 @@ function BankStatementImportPage() {
           <p className="admin-workspace__card-desc" style={{ marginTop: 0 }}>
             录入或粘贴单条流水字段，后续可扩展 Excel 导入与自动匹配；当前不落库。
           </p>
+
+          <div className="bank-paste-auto-parse" style={{ marginBottom: 24 }}>
+            <h3 className="bank-paste-auto-parse__title" style={{ fontSize: '1rem', margin: '0 0 8px' }}>
+              粘贴回单文本
+            </h3>
+            <p className="admin-workspace__card-desc" style={{ margin: '0 0 8px' }}>
+              支持工行等电子回单粘贴（标签+值）与分行键值；识别后请预览再确认写入表单。
+            </p>
+            <textarea
+              className="admin-input"
+              value={receiptText}
+              onChange={(e) => {
+                setReceiptText(e.target.value)
+                setReceiptParse(null)
+              }}
+              rows={6}
+              placeholder="粘贴整段电子回单或银行回单文本…"
+              style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical', minHeight: 120 }}
+            />
+            <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <button type="button" className="rec-btn rec-btn--secondary" onClick={handleReceiptRecognize}>
+                自动识别
+              </button>
+              <button
+                type="button"
+                className="rec-btn rec-btn--primary"
+                onClick={handleReceiptConfirmFill}
+                disabled={!receiptParse?.recognized}
+              >
+                确认填充
+              </button>
+            </div>
+            {receiptParse?.previewRows?.length > 0 ? (
+              <div
+                className="bank-receipt-preview"
+                style={{
+                  marginTop: 14,
+                  padding: 12,
+                  borderRadius: 8,
+                  border: '1px solid var(--admin-border, #e2e8f0)',
+                  background: 'var(--admin-surface-2, #f8fafc)',
+                  fontSize: 13,
+                  maxHeight: 280,
+                  overflow: 'auto'
+                }}
+              >
+                <strong style={{ display: 'block', marginBottom: 8 }}>识别预览</strong>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <tbody>
+                    {receiptParse.previewRows.map((row, i) => (
+                      <tr key={`${row.label}-${i}`}>
+                        <td
+                          style={{
+                            padding: '4px 8px 4px 0',
+                            verticalAlign: 'top',
+                            color: 'var(--admin-text-sub, #64748b)',
+                            width: '36%',
+                            wordBreak: 'break-word'
+                          }}
+                        >
+                          {row.label}
+                        </td>
+                        <td style={{ padding: '4px 0', wordBreak: 'break-word' }}>{row.value || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : null}
+          </div>
+
           <BankPasteAutoParseBlock
             pasteText={pasteText}
             onPasteTextChange={setPasteText}
