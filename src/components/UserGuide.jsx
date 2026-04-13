@@ -33,7 +33,6 @@ function UserGuide() {
             <li><strong>添加记录：</strong>填写表单添加新的对账记录</li>
             <li><strong>编辑记录：</strong>点击表格中的"编辑"按钮修改记录</li>
             <li><strong>删除记录：</strong>点击"删除"按钮，需要确认操作</li>
-            <li><strong>复制记录：</strong>点击"复制"按钮快速创建相似记录</li>
           </ul>
           
           <h4>批量操作</h4>
@@ -136,7 +135,6 @@ function UserGuide() {
           <h4>提高效率</h4>
           <ul>
             <li>使用模板预设快速设置常用参数</li>
-            <li>使用复制功能快速创建相似记录</li>
             <li>使用批量编辑同时修改多条记录</li>
             <li>保存常用账单模板，方便重复使用</li>
           </ul>

@@ -453,41 +453,6 @@ export function useReconciliationStore(settings, showToast) {
     [records, showToast, reconciliationApiEnabled, refetchReconciliationFromApi]
   )
 
-  const handleCopyRecord = useCallback(
-    async (newRecord) => {
-      const roundedStr = formatSettlementAmountString(newRecord)
-      const settlementNumber = generateSettlementNumber(
-        records,
-        newRecord.settlementMonth ? new Date(newRecord.settlementMonth + '-01') : new Date(),
-        settlementNumberFormat,
-        newRecord.partner
-      )
-      const merged = {
-        ...newRecord,
-        settlementAmount: roundedStr,
-        settlementNumber,
-        status: newRecord.status || 'pending'
-      }
-
-      if (reconciliationApiEnabled) {
-        try {
-          await createReconciliationRecord(frontendRecordToApiPayload(merged))
-          await refetchReconciliationFromApi()
-          showToast('记录已复制', 'success')
-          return
-        } catch (e) {
-          console.error(e)
-          showToast('复制到服务器失败', 'error')
-          return
-        }
-      }
-
-      setRecords((prev) => [...prev, { ...merged, id: String(Date.now()) }])
-      showToast('记录已复制', 'success')
-    },
-    [records, settlementNumberFormat, showToast, reconciliationApiEnabled, refetchReconciliationFromApi]
-  )
-
   const handleReorder = useCallback(
     (newRecords) => {
       setRecords(newRecords)
@@ -784,7 +749,6 @@ export function useReconciliationStore(settings, showToast) {
     handleBatchUpdate,
     handleBatchStatusUpdate,
     handleStatusChange,
-    handleCopyRecord,
     handleReorder,
     handleRestoreFromHistory,
     handleApplyTemplate,

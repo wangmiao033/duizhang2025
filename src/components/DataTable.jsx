@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react'
 import DragSort from './DragSort.jsx'
-import CopyRecord from './CopyRecord.jsx'
 import { StatusSelector } from './StatusManager.jsx'
 import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
 import { getReconciliationRecordId } from '@/lib/api/reconciliation.ts'
@@ -20,7 +19,6 @@ function DataTable({
   onSelectAll,
   onSelectRecord,
   onBatchDelete,
-  onCopyRecord,
   onReorder,
   sortOptions = { field: '', order: 'asc' },
   onSortChange,
@@ -346,7 +344,6 @@ function DataTable({
                             </td>
                             <td className="data-table__col-actions">
                               <div className="data-table__row-actions">
-                                {onCopyRecord && <CopyRecord record={record} onCopy={onCopyRecord} />}
                                 {onQuickView && (
                                   <button type="button" className="edit-btn" onClick={() => onQuickView(record)}>
                                     查看
@@ -690,7 +687,6 @@ function DataTable({
                       </td>
                       <td className="data-table__col-actions">
                         <div className="data-table__row-actions">
-                          {onCopyRecord && <CopyRecord record={record} onCopy={onCopyRecord} />}
                           {onBankPayment && (
                             <button
                               type="button"

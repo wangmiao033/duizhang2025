@@ -57,7 +57,6 @@ function ReconciliationPage({ variant = 'full' }) {
     handleBatchUpdate,
     handleBatchStatusUpdate,
     handleStatusChange,
-    handleCopyRecord,
     handleReorder,
     updateRecord,
     deleteRecord,
@@ -238,7 +237,6 @@ function ReconciliationPage({ variant = 'full' }) {
               onSelectAll={handleSelectAll}
               onSelectRecord={handleSelectRecord}
               onBatchDelete={handleBatchDelete}
-              onCopyRecord={handleCopyRecord}
               onReorder={handleReorder}
               sortOptions={sortOptions}
               onSortChange={(field, order) => setSortOptions({ field, order })}
@@ -386,7 +384,6 @@ function ReconciliationPage({ variant = 'full' }) {
             onSelectAll={handleSelectAll}
             onSelectRecord={handleSelectRecord}
             onBatchDelete={handleBatchDelete}
-            onCopyRecord={handleCopyRecord}
             onReorder={handleReorder}
             sortOptions={sortOptions}
             onSortChange={(field, order) => setSortOptions({ field, order })}
