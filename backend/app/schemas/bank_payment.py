@@ -57,3 +57,18 @@ class BankPaymentRead(BaseModel):
     is_personal_payee: bool
     created_at: datetime
     updated_at: datetime
+
+
+class BankPaymentAttachmentRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    bank_payment_id: str
+    file_name: str
+    file_url: str
+    file_type: str | None
+    created_at: datetime
+
+
+class BankPaymentAttachmentListResponse(BaseModel):
+    items: list[BankPaymentAttachmentRead]

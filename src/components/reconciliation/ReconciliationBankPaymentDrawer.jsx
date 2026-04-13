@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { API_BASE_URL } from '@/lib/api/client.ts'
 import {
+  deleteBankPaymentAttachment,
   getReconciliationBankPayment,
   getReconciliationRecordId,
+  listBankPaymentAttachments,
+  uploadBankPaymentAttachment,
   upsertReconciliationBankPayment
 } from '@/lib/api/reconciliation.ts'
 
@@ -96,7 +100,9 @@ function formToPayload(form) {
 function ReconciliationBankPaymentDrawer({ open, record, onClose, onSaved, showToast }) {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [form, setForm] = useState(() => ({ ...EMPTY_FORM }))
+  const [attachments, setAttachments] = useState([])
 
   const reconId = record ? getReconciliationRecordId(record) : ''
   const payable = useMemo(
@@ -114,16 +120,69 @@ function ReconciliationBankPaymentDrawer({ open, record, onClose, onSaved, showT
     if (!reconId) return
     setLoading(true)
     try {
-      const row = await getReconciliationBankPayment(reconId)
+      const [row, attRes] = await Promise.all([
+        getReconciliationBankPayment(reconId),
+        listBankPaymentAttachments(reconId)
+      ])
       setForm(apiRowToForm(row))
+      setAttachments(attRes.items || [])
     } catch (e) {
       console.error(e)
       showToast?.('加载付款流水单失败', 'error')
       setForm({ ...EMPTY_FORM })
+      setAttachments([])
     } finally {
       setLoading(false)
     }
   }, [reconId, showToast])
+
+  const openAttachment = async (att) => {
+    const path = att.file_url.startsWith('http') ? att.file_url : `${API_BASE_URL}${att.file_url}`
+    try {
+      const res = await fetch(path, { credentials: 'include' })
+      if (!res.ok) throw new Error(String(res.status))
+      const blob = await res.blob()
+      const objUrl = URL.createObjectURL(blob)
+      window.open(objUrl, '_blank', 'noopener,noreferrer')
+      window.setTimeout(() => URL.revokeObjectURL(objUrl), 60_000)
+    } catch (err) {
+      console.error(err)
+      showToast?.('无法打开附件，请检查登录或网络', 'error')
+    }
+  }
+
+  const onPickFile = async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !reconId) return
+    setUploading(true)
+    try {
+      await uploadBankPaymentAttachment(reconId, file)
+      showToast?.('附件已上传', 'success')
+      const { items } = await listBankPaymentAttachments(reconId)
+      setAttachments(items || [])
+      onSaved?.()
+    } catch (err) {
+      console.error(err)
+      showToast?.('上传失败：仅支持图片或 PDF，且单文件不超过 20MB', 'error')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const removeAttachment = async (att) => {
+    if (!reconId || !att?.id) return
+    if (!window.confirm(`确定删除附件「${att.file_name}」？`)) return
+    try {
+      await deleteBankPaymentAttachment(reconId, att.id)
+      showToast?.('已删除附件', 'success')
+      setAttachments((prev) => prev.filter((a) => a.id !== att.id))
+      onSaved?.()
+    } catch (err) {
+      console.error(err)
+      showToast?.('删除失败', 'error')
+    }
+  }
 
   useEffect(() => {
     if (!open || !reconId) return
@@ -389,6 +448,57 @@ function ReconciliationBankPaymentDrawer({ open, record, onClose, onSaved, showT
                     <span>是否向个人账户汇款</span>
                   </label>
                 </div>
+              </section>
+
+              <section className="rec-bank-payment__section">
+                <h3 className="rec-bank-payment__section-title">付款附件</h3>
+                <p className="rec-bank-payment__attach-hint">
+                  支持银行回单截图或 PDF（单文件不超过 20MB）。上传会自动创建付款流水单空记录（若尚未保存表单）。
+                </p>
+                <div className="rec-bank-payment__attach-toolbar">
+                  <label className="rec-btn rec-btn--ghost rec-bank-payment__upload-label">
+                    {uploading ? '上传中…' : '选择文件上传'}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.pdf"
+                      className="rec-bank-payment__file-input"
+                      disabled={uploading || saving}
+                      onChange={onPickFile}
+                    />
+                  </label>
+                </div>
+                {attachments.length === 0 ? (
+                  <p className="rec-bank-payment__attach-empty">暂无附件</p>
+                ) : (
+                  <ul className="rec-bank-payment__attach-list">
+                    {attachments.map((att) => (
+                      <li key={att.id} className="rec-bank-payment__attach-item">
+                        <span className="rec-bank-payment__attach-name" title={att.file_name}>
+                          {att.file_name}
+                        </span>
+                        <span className="rec-bank-payment__attach-meta">
+                          {att.file_type?.includes('pdf') ? 'PDF' : '图片'}
+                        </span>
+                        <div className="rec-bank-payment__attach-actions">
+                          <button
+                            type="button"
+                            className="rec-btn rec-btn--ghost rec-btn--xs"
+                            onClick={() => openAttachment(att)}
+                          >
+                            查看
+                          </button>
+                          <button
+                            type="button"
+                            className="rec-btn rec-btn--ghost rec-btn--xs"
+                            onClick={() => removeAttachment(att)}
+                          >
+                            删除
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </section>
             </>
           )}

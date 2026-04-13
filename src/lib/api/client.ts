@@ -57,7 +57,17 @@ export async function apiDelete(path: string): Promise<void> {
   await parseResponse<unknown>(res)
 }
 
-async function parseResponse<T>(res: Response): Promise<T> {
+/** multipart/form-data（不设置 Content-Type，由浏览器带 boundary） */
+export async function apiPostMultipart<T>(path: string, formData: FormData): Promise<T> {
+  const res = await fetch(joinUrl(path), {
+    method: 'POST',
+    credentials: 'include',
+    body: formData
+  })
+  return parseResponse<T>(res)
+}
+
+export async function parseResponse<T>(res: Response): Promise<T> {
   const text = await res.text()
   let data: unknown = null
   if (text) {

@@ -2,7 +2,7 @@
  * 研发对账 REST API
  */
 
-import { apiDelete, apiGet, apiPost, apiPut } from '@/lib/api/client.ts'
+import { apiDelete, apiGet, apiPost, apiPostMultipart, apiPut } from '@/lib/api/client.ts'
 
 export type ApiReconciliationRow = {
   id: string
@@ -54,6 +54,16 @@ export type ApiBankPaymentRow = {
   is_personal_payee: boolean
   created_at: string
   updated_at: string
+}
+
+export type ApiBankPaymentAttachmentRow = {
+  id: string
+  bank_payment_id: string
+  file_name: string
+  /** 相对 API 根的下载路径，如 /api/reconciliation/.../file */
+  file_url: string
+  file_type: string | null
+  created_at: string
 }
 
 export type BankPaymentUpsertPayload = {
@@ -163,6 +173,35 @@ export function upsertReconciliationBankPayment(
   return apiPut<ApiBankPaymentRow>(
     `${PATH}/${encodeURIComponent(reconciliationId)}/bank-payment`,
     payload
+  )
+}
+
+export function listBankPaymentAttachments(
+  reconciliationId: string
+): Promise<{ items: ApiBankPaymentAttachmentRow[] }> {
+  return apiGet<{ items: ApiBankPaymentAttachmentRow[] }>(
+    `${PATH}/${encodeURIComponent(reconciliationId)}/bank-payment/attachments`
+  )
+}
+
+export function uploadBankPaymentAttachment(
+  reconciliationId: string,
+  file: File
+): Promise<ApiBankPaymentAttachmentRow> {
+  const fd = new FormData()
+  fd.append('file', file)
+  return apiPostMultipart<ApiBankPaymentAttachmentRow>(
+    `${PATH}/${encodeURIComponent(reconciliationId)}/bank-payment/attachments`,
+    fd
+  )
+}
+
+export function deleteBankPaymentAttachment(
+  reconciliationId: string,
+  attachmentId: string
+): Promise<void> {
+  return apiDelete(
+    `${PATH}/${encodeURIComponent(reconciliationId)}/bank-payment/attachments/${encodeURIComponent(attachmentId)}`
   )
 }
 

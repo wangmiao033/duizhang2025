@@ -1164,3 +1164,85 @@
   background: var(--admin-elevated-bg);
   border-color: var(--admin-border);
 }
+
+.rec-bank-payment__attach-hint {
+  margin: 0 0 var(--admin-space-sm, 10px);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-body);
+  line-height: var(--line-height-caption);
+  color: var(--admin-text-muted, #94a3b8);
+}
+
+.rec-bank-payment__attach-toolbar {
+  margin-bottom: var(--admin-space-sm, 10px);
+}
+
+.rec-bank-payment__upload-label {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.rec-bank-payment__file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0;
+}
+
+.rec-bank-payment__attach-empty {
+  margin: 0;
+  font-size: var(--font-size-caption);
+  color: var(--admin-text-muted, #94a3b8);
+}
+
+.rec-bank-payment__attach-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rec-bank-payment__attach-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--admin-border-soft, #e5e7eb);
+  border-radius: var(--admin-radius-sm, 8px);
+  background: var(--admin-elevated-bg, #f8fafc);
+}
+
+.rec-bank-payment__attach-name {
+  flex: 1 1 140px;
+  min-width: 0;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-menu);
+  color: var(--admin-text-main, #0f172a);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rec-bank-payment__attach-meta {
+  font-size: var(--font-size-small);
+  color: var(--admin-text-muted, #94a3b8);
+}
+
+.rec-bank-payment__attach-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.rec-bank-payment__attach-actions .rec-btn--xs {
+  min-height: 26px;
+  padding: 2px 8px;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-button);
+}
