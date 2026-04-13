@@ -188,7 +188,7 @@ export function useReconciliationStore(settings, showToast) {
       if (reconciliationApiEnabled) {
         try {
           await updateReconciliationRecord(sid, frontendRecordToApiPayload(merged))
-          setRecords((prev) => prev.map((r) => (String(r.id) === sid ? { ...merged, id: sid } : r)))
+          await refetchReconciliationFromApi()
           addHistoryItem('更新记录', { records, partyA, partyB, settlementMonth })
           showToast('记录更新成功！', 'success')
           return true
@@ -206,7 +206,7 @@ export function useReconciliationStore(settings, showToast) {
       showToast('记录更新成功！', 'success')
       return true
     },
-    [records, partyA, partyB, settlementMonth, showToast, reconciliationApiEnabled]
+    [records, partyA, partyB, settlementMonth, showToast, reconciliationApiEnabled, refetchReconciliationFromApi]
   )
 
   const deleteRecord = useCallback((id) => {
@@ -221,6 +221,7 @@ export function useReconciliationStore(settings, showToast) {
       if (reconciliationApiEnabled) {
         try {
           await deleteReconciliationRecord(sid)
+          await refetchReconciliationFromApi()
         } catch (e) {
           console.error(e)
           showToast('从服务器删除失败，请稍后重试', 'error')
@@ -228,15 +229,25 @@ export function useReconciliationStore(settings, showToast) {
           setDeleteId(null)
           return
         }
+      } else {
+        const newRecords = records.filter((r) => String(r.id) !== sid)
+        setRecords(newRecords)
       }
-      const newRecords = records.filter((r) => String(r.id) !== sid)
-      setRecords(newRecords)
-      addHistoryItem('删除记录', { records: newRecords, partyA, partyB, settlementMonth })
+      addHistoryItem('删除记录', { records, partyA, partyB, settlementMonth })
       showToast('记录已删除', 'success')
     }
     setShowDeleteConfirm(false)
     setDeleteId(null)
-  }, [deleteId, records, partyA, partyB, settlementMonth, showToast, reconciliationApiEnabled])
+  }, [
+    deleteId,
+    records,
+    partyA,
+    partyB,
+    settlementMonth,
+    showToast,
+    reconciliationApiEnabled,
+    refetchReconciliationFromApi
+  ])
 
   const cancelDelete = useCallback(() => {
     setShowDeleteConfirm(false)
@@ -250,7 +261,7 @@ export function useReconciliationStore(settings, showToast) {
   const handleSelectAll = useCallback(
     (checked) => {
       if (checked) {
-        setSelectedIds(filteredRecords.map((r) => r.id))
+        setSelectedIds(filteredRecords.map((r) => String(r.id)))
       } else {
         setSelectedIds([])
       }
@@ -281,18 +292,20 @@ export function useReconciliationStore(settings, showToast) {
         for (const rawId of ids) {
           await deleteReconciliationRecord(String(rawId))
         }
+        await refetchReconciliationFromApi()
       } catch (e) {
         console.error(e)
         showToast('批量删除未能全部完成，请稍后重试', 'error')
         setShowBatchDeleteConfirm(false)
         return
       }
+    } else {
+      setRecords((prev) => prev.filter((r) => !ids.some((i) => String(i) === String(r.id))))
     }
-    setRecords((prev) => prev.filter((r) => !ids.some((i) => String(i) === String(r.id))))
     setSelectedIds([])
     setShowBatchDeleteConfirm(false)
     showToast(`已删除 ${n} 条记录`, 'success')
-  }, [selectedIds, showToast, reconciliationApiEnabled])
+  }, [selectedIds, showToast, reconciliationApiEnabled, refetchReconciliationFromApi])
 
   const handleBatchUpdate = useCallback(
     async (ids, updates) => {
@@ -376,9 +389,7 @@ export function useReconciliationStore(settings, showToast) {
             sid,
             frontendRecordToApiPayload({ ...updated, settlementAmount: roundedStr })
           )
-          setRecords((prev) =>
-            prev.map((r) => (String(r.id) === sid ? { ...updated, id: sid } : r))
-          )
+          await refetchReconciliationFromApi()
         } catch (e) {
           console.error(e)
           showToast('状态同步失败', 'error')
@@ -392,7 +403,7 @@ export function useReconciliationStore(settings, showToast) {
       const statusInfo = STATUS_OPTIONS.find((s) => s.value === newStatus)
       showToast(`状态已修改为"${statusInfo?.label || newStatus}"`, 'success')
     },
-    [records, showToast, reconciliationApiEnabled]
+    [records, showToast, reconciliationApiEnabled, refetchReconciliationFromApi]
   )
 
   const handleCopyRecord = useCallback(
@@ -413,9 +424,8 @@ export function useReconciliationStore(settings, showToast) {
 
       if (reconciliationApiEnabled) {
         try {
-          const created = await createReconciliationRecord(frontendRecordToApiPayload(merged))
-          const fe = apiRowToFrontend(created)
-          setRecords((prev) => [...prev, fe])
+          await createReconciliationRecord(frontendRecordToApiPayload(merged))
+          await refetchReconciliationFromApi()
           showToast('记录已复制', 'success')
           return
         } catch (e) {
@@ -428,7 +438,7 @@ export function useReconciliationStore(settings, showToast) {
       setRecords((prev) => [...prev, { ...merged, id: String(Date.now()) }])
       showToast('记录已复制', 'success')
     },
-    [records, settlementNumberFormat, showToast, reconciliationApiEnabled]
+    [records, settlementNumberFormat, showToast, reconciliationApiEnabled, refetchReconciliationFromApi]
   )
 
   const handleReorder = useCallback(

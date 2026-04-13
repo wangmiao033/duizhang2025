@@ -19,6 +19,7 @@ import { BatchStatusUpdate } from '@/components/StatusManager.jsx'
 import { calculateSettlementAmount } from '@/domain/settlement/calculateSettlementAmount.js'
 import { CYCLE_TYPES, getCurrentCycle } from '@/utils/settlementCycle.js'
 import { VIEWS } from '@/app/routes.js'
+import { getReconciliationRecordId } from '@/lib/api/reconciliation.ts'
 
 function ReconciliationPage({ variant = 'full' }) {
   const { recon, settings, showToast, setActiveView, openReconciliationEdit } = useAppState()
@@ -178,7 +179,14 @@ function ReconciliationPage({ variant = 'full' }) {
               onStatusChange={handleStatusChange}
               columnPreset="compact"
               useDrawerForEdit={false}
-              onRequestPageEdit={(r) => openReconciliationEdit(r.id)}
+              onRequestPageEdit={(r) => {
+                const id = getReconciliationRecordId(r)
+                if (!id) {
+                  showToast('该记录缺少主键 id，无法打开编辑页', 'error')
+                  return
+                }
+                openReconciliationEdit(id)
+              }}
               onQuickView={(r) => setLightDrawerRecord(r)}
             />
           </div>
@@ -190,7 +198,7 @@ function ReconciliationPage({ variant = 'full' }) {
           onClose={() => setLightDrawerRecord(null)}
           onStatusChange={handleStatusChange}
           onUpdateRecord={updateRecord}
-          onNavigateToFullEdit={(id) => openReconciliationEdit(id)}
+          onNavigateToFullEdit={(id) => openReconciliationEdit(id != null ? String(id) : '')}
         />
       </PageContainer>
     )

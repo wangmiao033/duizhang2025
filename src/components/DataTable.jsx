@@ -3,7 +3,12 @@ import DragSort from './DragSort.jsx'
 import CopyRecord from './CopyRecord.jsx'
 import { StatusSelector } from './StatusManager.jsx'
 import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
+import { getReconciliationRecordId } from '@/lib/api/reconciliation.ts'
 import './DataTable.css'
+
+function rowSelected(selectedIds, record) {
+  return selectedIds.some((sid) => String(sid) === String(record.id))
+}
 
 function DataTable({ 
   records, 
@@ -43,7 +48,7 @@ function DataTable({
       onRequestEdit(record)
       return
     }
-    setEditingId(record.id)
+    setEditingId(getReconciliationRecordId(record) || record.id)
     setEditForm({ ...record })
   }
 
@@ -304,12 +309,12 @@ function DataTable({
                           <th>退款</th>
                           <th>结算金额</th>
                           <th>状态</th>
-                          <th>操作</th>
+                          <th className="data-table__col-actions">操作</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {group.records.map(record => (
-                          <tr key={record.id}>
+                        {group.records.map((record, recIdx) => (
+                          <tr key={getReconciliationRecordId(record) || `g-${recIdx}`}>
                             <td className="settlement-number-cell" title={record.settlementNumber || '未设置编号'}>
                               {record.settlementNumber || '-'}
                             </td>
@@ -329,18 +334,31 @@ function DataTable({
                             <td>
                               <StatusSelector
                                 currentStatus={record.status || 'pending'}
-                                onStatusChange={(newStatus) => onStatusChange && onStatusChange(record.id, newStatus)}
+                                onStatusChange={(newStatus) =>
+                                  onStatusChange &&
+                                  onStatusChange(getReconciliationRecordId(record) || record.id, newStatus)
+                                }
                               />
                             </td>
-                            <td>
-                              {onCopyRecord && <CopyRecord record={record} onCopy={onCopyRecord} />}
-                              {onQuickView && (
-                                <button type="button" className="edit-btn" onClick={() => onQuickView(record)}>
-                                  查看
+                            <td className="data-table__col-actions">
+                              <div className="data-table__row-actions">
+                                {onCopyRecord && <CopyRecord record={record} onCopy={onCopyRecord} />}
+                                {onQuickView && (
+                                  <button type="button" className="edit-btn" onClick={() => onQuickView(record)}>
+                                    查看
+                                  </button>
+                                )}
+                                <button type="button" className="edit-btn" onClick={() => startEdit(record)}>
+                                  编辑
                                 </button>
-                              )}
-                              <button className="edit-btn" onClick={() => startEdit(record)}>编辑</button>
-                              <button className="delete-btn" onClick={() => onDeleteRecord(record.id)}>删除</button>
+                                <button
+                                  type="button"
+                                  className="delete-btn"
+                                  onClick={() => onDeleteRecord(getReconciliationRecordId(record) || record.id)}
+                                >
+                                  删除
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -436,7 +454,7 @@ function DataTable({
                 </>
               )}
               <th>状态</th>
-              <th>操作</th>
+              <th className="data-table__col-actions">操作</th>
             </tr>
           </thead>
           <tbody>
@@ -453,21 +471,24 @@ function DataTable({
             ) : (
               records.map((record, index) => (
                 <tr 
-                  key={record.id} 
-                  className={`${selectedIds.includes(record.id) ? 'selected-row' : ''} ${draggedIndex === index ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''}`}
+                  key={getReconciliationRecordId(record) || `row-${index}`} 
+                  className={`${rowSelected(selectedIds, record) ? 'selected-row' : ''} ${draggedIndex === index ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''}`}
                   draggable={!!onReorder}
                   onDragStart={(e) => handleDragStart(e, index)}
                   onDragOver={(e) => handleDragOver(e, index)}
                   onDrop={(e) => handleDrop(e, index)}
                   onDragEnd={handleDragEnd}
                 >
-                  {editingId === record.id && !useDrawerForEdit ? (
+                  {String(editingId) === String(record.id) && !useDrawerForEdit ? (
                     <>
                       <td>
                         <input
                           type="checkbox"
-                          checked={selectedIds.includes(record.id)}
-                          onChange={(e) => onSelectRecord && onSelectRecord(record.id, e.target.checked)}
+                          checked={rowSelected(selectedIds, record)}
+                          onChange={(e) =>
+                            onSelectRecord &&
+                            onSelectRecord(getReconciliationRecordId(record) || record.id, e.target.checked)
+                          }
                           onClick={(e) => e.stopPropagation()}
                         />
                       </td>
@@ -599,8 +620,11 @@ function DataTable({
                         )}
                         <input
                           type="checkbox"
-                          checked={selectedIds.includes(record.id)}
-                          onChange={(e) => onSelectRecord && onSelectRecord(record.id, e.target.checked)}
+                          checked={rowSelected(selectedIds, record)}
+                          onChange={(e) =>
+                            onSelectRecord &&
+                            onSelectRecord(getReconciliationRecordId(record) || record.id, e.target.checked)
+                          }
                         />
                       </td>
                       <td className="settlement-number-cell" title={record.settlementNumber || '未设置编号'}>
@@ -635,18 +659,31 @@ function DataTable({
                       <td>
                         <StatusSelector
                           currentStatus={record.status || 'pending'}
-                          onStatusChange={(newStatus) => onStatusChange && onStatusChange(record.id, newStatus)}
+                          onStatusChange={(newStatus) =>
+                            onStatusChange &&
+                            onStatusChange(getReconciliationRecordId(record) || record.id, newStatus)
+                          }
                         />
                       </td>
-                      <td>
-                        {onCopyRecord && <CopyRecord record={record} onCopy={onCopyRecord} />}
-                        {onQuickView && (
-                          <button type="button" className="edit-btn" onClick={() => onQuickView(record)}>
-                            查看
+                      <td className="data-table__col-actions">
+                        <div className="data-table__row-actions">
+                          {onCopyRecord && <CopyRecord record={record} onCopy={onCopyRecord} />}
+                          {onQuickView && (
+                            <button type="button" className="edit-btn" onClick={() => onQuickView(record)}>
+                              查看
+                            </button>
+                          )}
+                          <button type="button" className="edit-btn" onClick={() => startEdit(record)}>
+                            编辑
                           </button>
-                        )}
-                        <button className="edit-btn" onClick={() => startEdit(record)}>编辑</button>
-                        <button className="delete-btn" onClick={() => onDeleteRecord(record.id)}>删除</button>
+                          <button
+                            type="button"
+                            className="delete-btn"
+                            onClick={() => onDeleteRecord(getReconciliationRecordId(record) || record.id)}
+                          >
+                            删除
+                          </button>
+                        </div>
                       </td>
                     </>
                   )}

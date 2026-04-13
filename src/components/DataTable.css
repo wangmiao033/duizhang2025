@@ -648,3 +648,27 @@ tbody td:last-child {
   gap: var(--admin-table-action-gap, 6px);
   flex-wrap: wrap;
 }
+
+/* 操作列：避免被 table 压缩/裁切，保证按钮可点（研发对账 compact 等） */
+.data-table__col-actions {
+  min-width: 200px;
+  width: 1%;
+  max-width: none;
+  vertical-align: middle;
+  text-align: left !important;
+  white-space: normal;
+  box-sizing: border-box;
+}
+
+.data-table__row-actions {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 168px;
+}
+
+table.data-table--compact {
+  min-width: 1120px;
+}

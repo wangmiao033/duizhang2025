@@ -314,6 +314,11 @@
   overflow-y: auto;
 }
 
+/* 避免 table { overflow: hidden } 与窄列把最后一列操作区裁切；横向滚动可露全操作按钮 */
+.reconciliation-rd__table-card .table-wrapper table {
+  overflow: visible;
+}
+
 .reconciliation-rd__table-card .data-table--compact {
   font-size: 13px;
 }

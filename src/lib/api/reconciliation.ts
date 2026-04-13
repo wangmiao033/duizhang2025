@@ -94,10 +94,21 @@ export function deleteReconciliationRecord(id: string): Promise<void> {
   return apiDelete(`${PATH}/${encodeURIComponent(id)}`)
 }
 
+/** 列表/表格行主键：统一为字符串，与后端 UUID 及路由 state 一致 */
+export function getReconciliationRecordId(
+  record: Record<string, unknown> | null | undefined
+): string {
+  if (record == null) return ''
+  const v = record.id
+  if (v === undefined || v === null || v === '') return ''
+  return String(v)
+}
+
 /** 后端行 -> 前端列表/表单使用的记录结构（字段名与 DataForm / store 一致） */
 export function apiRowToFrontend(row: ApiReconciliationRow): Record<string, unknown> {
+  const idStr = row.id != null && String(row.id).trim() !== '' ? String(row.id) : ''
   return {
-    id: row.id,
+    id: idStr,
     settlementMonth: row.settlement_month ?? '',
     settlementNumber: row.statement_no ?? '',
     partner: row.partner_name ?? '',
