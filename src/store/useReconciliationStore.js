@@ -805,6 +805,7 @@ export function useReconciliationStore(settings, showToast) {
     selectedCycleKey,
     setSelectedCycleKey,
     CYCLE_TYPES,
-    getCurrentCycle
+    getCurrentCycle,
+    refetchReconciliationFromApi
   }
 }

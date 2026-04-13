@@ -67,6 +67,7 @@ class ReconciliationRead(BaseModel):
     remark: str | None
     created_at: datetime
     updated_at: datetime
+    bank_payment_list_status: str | None = None
 
 
 class ReconciliationListResponse(BaseModel):

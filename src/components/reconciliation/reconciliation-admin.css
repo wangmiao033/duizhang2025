@@ -1017,3 +1017,150 @@
   background: var(--admin-card-bg, #0f172a);
   border-color: var(--admin-border-soft, #334155);
 }
+
+/* —— 付款流水单抽屉 —— */
+.rec-drawer--bank-payment {
+  width: min(520px, 100vw);
+  max-width: 520px;
+}
+
+.rec-bank-payment__body {
+  padding: var(--admin-space-md, 14px) var(--admin-space-lg, 20px);
+  max-height: calc(100dvh - 200px);
+  overflow-y: auto;
+}
+
+.rec-bank-payment__loading {
+  margin: 0;
+  color: var(--admin-text-muted, #94a3b8);
+  font-size: var(--font-size-body);
+}
+
+.rec-bank-payment__section {
+  margin-bottom: var(--admin-space-lg, 20px);
+}
+
+.rec-bank-payment__section-title {
+  margin: 0 0 var(--admin-space-sm, 10px);
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-section-title);
+  line-height: var(--line-height-section);
+  color: var(--admin-text-main, #0f172a);
+  border-bottom: 1px solid var(--admin-border-soft, #e5e7eb);
+  padding-bottom: 6px;
+}
+
+.rec-bank-payment__dl {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px 12px;
+  margin: 0;
+  font-size: var(--font-size-body);
+}
+
+.rec-bank-payment__dl dt {
+  margin: 0;
+  color: var(--admin-text-muted, #94a3b8);
+  font-weight: var(--font-weight-body);
+}
+
+.rec-bank-payment__dl dd {
+  margin: 0;
+  color: var(--admin-text-main, #0f172a);
+}
+
+.rec-bank-payment__money {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-menu);
+}
+
+.rec-bank-payment__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--admin-space-sm, 10px);
+}
+
+.rec-bank-payment__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  font-size: var(--font-size-caption);
+  color: var(--admin-text-sub, #64748b);
+}
+
+.rec-bank-payment__field--full {
+  grid-column: 1 / -1;
+}
+
+.rec-bank-payment__field--check {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+
+.rec-bank-payment__footer {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--admin-space-md, 14px);
+}
+
+.rec-bank-payment__summary {
+  display: grid;
+  gap: 6px;
+  padding: var(--admin-space-sm, 10px) var(--admin-space-md, 14px);
+  background: var(--admin-elevated-bg, #f8fafc);
+  border-radius: var(--admin-radius-sm, 8px);
+  border: 1px solid var(--admin-border, #e2e8f0);
+  font-size: var(--font-size-caption);
+}
+
+.rec-bank-payment__summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.rec-bank-payment__summary-row strong {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-menu);
+}
+
+.rec-bank-payment__summary-warn {
+  color: var(--admin-danger, #ef4444);
+}
+
+.rec-bank-payment__summary-badge {
+  margin-top: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-menu);
+  text-align: center;
+}
+
+.rec-bank-payment__summary-badge.is-ok {
+  background: var(--admin-success-muted, #ecfdf5);
+  color: var(--admin-success-text, #15803d);
+}
+
+.rec-bank-payment__summary-badge.is-bad {
+  background: var(--admin-danger-muted, #fef2f2);
+  color: var(--admin-danger, #b91c1c);
+}
+
+.rec-bank-payment__footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+[data-theme='dark'] .rec-bank-payment__summary {
+  background: var(--admin-elevated-bg);
+  border-color: var(--admin-border);
+}

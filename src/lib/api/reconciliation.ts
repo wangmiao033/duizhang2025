@@ -23,6 +23,60 @@ export type ApiReconciliationRow = {
   remark: string | null
   created_at: string
   updated_at: string
+  /** 列表用：未登记 / 待打款 / 已提交 / 已付款 / 金额异常 / 打款失败 */
+  bank_payment_list_status?: string | null
+}
+
+export type BankPaymentTransferStatus = 'pending_submit' | 'submitted' | 'paid' | 'failed'
+
+export type ApiBankPaymentRow = {
+  id: string
+  reconciliation_id: string
+  transaction_serial: string | null
+  authorization_status: string | null
+  remittance_amount: number
+  remittance_purpose: string | null
+  payment_remark: string | null
+  is_scheduled: boolean
+  payment_date: string | null
+  transfer_status: string
+  remitter_company: string | null
+  remitter_account: string | null
+  remitter_bank_name: string | null
+  payee_company: string | null
+  payee_account: string | null
+  payee_bank_name: string | null
+  submitter_user_id: string | null
+  first_approver_user_id: string | null
+  first_approval_at: string | null
+  bank_feedback: string | null
+  instruction_channel: string | null
+  is_personal_payee: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type BankPaymentUpsertPayload = {
+  transaction_serial?: string | null
+  authorization_status?: string | null
+  remittance_amount: number
+  remittance_purpose?: string | null
+  payment_remark?: string | null
+  is_scheduled: boolean
+  payment_date?: string | null
+  transfer_status: string
+  remitter_company?: string | null
+  remitter_account?: string | null
+  remitter_bank_name?: string | null
+  payee_company?: string | null
+  payee_account?: string | null
+  payee_bank_name?: string | null
+  submitter_user_id?: string | null
+  first_approver_user_id?: string | null
+  first_approval_at?: string | null
+  bank_feedback?: string | null
+  instruction_channel?: string | null
+  is_personal_payee: boolean
 }
 
 export type ReconciliationListResponse = {
@@ -94,6 +148,24 @@ export function deleteReconciliationRecord(id: string): Promise<void> {
   return apiDelete(`${PATH}/${encodeURIComponent(id)}`)
 }
 
+export function getReconciliationBankPayment(
+  reconciliationId: string
+): Promise<ApiBankPaymentRow | null> {
+  return apiGet<ApiBankPaymentRow | null>(
+    `${PATH}/${encodeURIComponent(reconciliationId)}/bank-payment`
+  )
+}
+
+export function upsertReconciliationBankPayment(
+  reconciliationId: string,
+  payload: BankPaymentUpsertPayload
+): Promise<ApiBankPaymentRow> {
+  return apiPut<ApiBankPaymentRow>(
+    `${PATH}/${encodeURIComponent(reconciliationId)}/bank-payment`,
+    payload
+  )
+}
+
 /** 列表/表格行主键：统一为字符串，与后端 UUID 及路由 state 一致 */
 export function getReconciliationRecordId(
   record: Record<string, unknown> | null | undefined
@@ -124,7 +196,8 @@ export function apiRowToFrontend(row: ApiReconciliationRow): Record<string, unkn
     settlementAmount:
       row.settlement_amount != null ? Number(row.settlement_amount).toFixed(2) : '0.00',
     status: row.status || 'pending',
-    memo: row.remark != null ? String(row.remark) : ''
+    memo: row.remark != null ? String(row.remark) : '',
+    bankPaymentListStatus: row.bank_payment_list_status ?? '未登记'
   }
 }
 

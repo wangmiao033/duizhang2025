@@ -689,3 +689,34 @@ table.data-table--compact {
 .data-table .status-selector-overlay.status-selector-overlay--portal {
   z-index: 9998;
 }
+
+.data-table__th-bank-pay,
+.data-table__td-bank-pay {
+  white-space: nowrap;
+}
+
+.bank-pay-list-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: var(--font-size-table-header);
+  font-weight: var(--font-weight-table-header);
+  line-height: var(--line-height-caption);
+  background: var(--admin-elevated-bg, #f1f5f9);
+  color: var(--admin-text-sub, #475569);
+}
+
+.bank-pay-list-status--warn {
+  background: var(--admin-warning-bg, rgba(245, 158, 11, 0.12));
+  color: var(--admin-warning-text, #b45309);
+}
+
+.bank-pay-list-status--bad {
+  background: var(--admin-danger-muted, #fef2f2);
+  color: var(--admin-danger, #b91c1c);
+}
+
+.rec-bank-pay-entry {
+  font-size: var(--font-size-caption);
+  padding: 4px 10px;
+}

@@ -11,7 +11,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
+from app.models.bank_payment import BankPaymentRecord
 from app.models.reconciliation import ReconciliationRecord
+from app.services.bank_payment_status import compute_bank_payment_list_status
 from app.schemas.reconciliation import (
     ReconciliationCreate,
     ReconciliationListResponse,
@@ -84,10 +86,19 @@ def list_reconciliation(
     )
     total = int(db.execute(count_stmt).scalar_one())
     rows = db.execute(base.order_by(ReconciliationRecord.created_at.desc()).limit(limit).offset(offset)).scalars().all()
-    return ReconciliationListResponse(
-        items=[ReconciliationRead.model_validate(r) for r in rows],
-        total=total,
-    )
+    bp_map: dict[str, BankPaymentRecord] = {}
+    if rows:
+        ids = [r.id for r in rows]
+        bps = db.execute(
+            select(BankPaymentRecord).where(BankPaymentRecord.reconciliation_id.in_(ids))
+        ).scalars().all()
+        bp_map = {b.reconciliation_id: b for b in bps}
+    items = []
+    for r in rows:
+        base_read = ReconciliationRead.model_validate(r)
+        st = compute_bank_payment_list_status(float(r.settlement_amount or 0), bp_map.get(r.id))
+        items.append(base_read.model_copy(update={"bank_payment_list_status": st}))
+    return ReconciliationListResponse(items=items, total=total)
 
 
 @router.get("/{record_id}", response_model=ReconciliationRead)
