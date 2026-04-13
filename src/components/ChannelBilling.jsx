@@ -9,6 +9,7 @@ import { useAppState } from '@/app/AppStateContext.jsx'
 import ChannelLightDrawer from '@/components/channel/ChannelLightDrawer.jsx'
 import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
 import { initialForm, buildRecordFromForm } from '@/domain/channel/channelBillingForm.js'
+import { getChannelRecordId } from '@/lib/api/channel.ts'
 import { VIEWS } from '@/app/routes.js'
 import './ChannelBilling.css'
 
@@ -208,8 +209,8 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
 
   const handleDelete = (id) => {
     if (window.confirm('确定要删除这条渠道记录吗？')) {
-      onDeleteRecord(id)
-      setSelectedIds((prev) => prev.filter((x) => x !== id))
+      void onDeleteRecord(id)
+      setSelectedIds((prev) => prev.filter((x) => String(x) !== String(id)))
     }
   }
 
@@ -230,12 +231,19 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
     return `¥${Number(amount).toFixed(2)}`
   }
 
-  const allFilteredIds = useMemo(() => filteredRecords.map((r) => r.id), [filteredRecords])
+  const allFilteredIds = useMemo(
+    () => filteredRecords.map((r) => String(getChannelRecordId(r) || r.id)),
+    [filteredRecords]
+  )
+  const rowSelected = (id) => selectedIds.some((s) => String(s) === String(id))
   const allSelected =
-    allFilteredIds.length > 0 && allFilteredIds.every((id) => selectedIds.includes(id))
+    allFilteredIds.length > 0 && allFilteredIds.every((id) => rowSelected(id))
 
   const toggleSelect = (id) => {
-    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+    const sid = String(id)
+    setSelectedIds((prev) =>
+      rowSelected(sid) ? prev.filter((x) => String(x) !== sid) : [...prev, sid]
+    )
   }
 
   const toggleSelectAll = () => {
@@ -273,7 +281,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
   }
 
   const exportSelectedXlsx = () => {
-    const rows = channelRecords.filter((r) => selectedIds.includes(r.id))
+    const rows = channelRecords.filter((r) => rowSelected(r.id))
     if (rows.length === 0) {
       showToast('请先勾选记录', 'info')
       return
@@ -627,6 +635,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                           </thead>
                           <tbody>
                             {channel.records.map((record) => {
+                              const rid = getChannelRecordId(record) || record.id
                               const flow = parseFloat(record.flow) || 0
                               const voucher = parseFloat(record.voucherCost) || 0
                               const noWorry = parseFloat(record.noWorryCost) || 0
@@ -639,12 +648,12 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                               const settlement = parseFloat(record.settlementAmount) || shareAmount
 
                               return (
-                                <tr key={record.id}>
+                                <tr key={rid}>
                                   <td>
                                     <input
                                       type="checkbox"
-                                      checked={selectedIds.includes(record.id)}
-                                      onChange={() => toggleSelect(record.id)}
+                                      checked={rowSelected(rid)}
+                                      onChange={() => toggleSelect(rid)}
                                       aria-label="选择行"
                                     />
                                   </td>
@@ -668,11 +677,11 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                                     <button
                                       type="button"
                                       className="edit-btn"
-                                      onClick={() => openChannelReconciliationEdit(record.id)}
+                                      onClick={() => openChannelReconciliationEdit(rid)}
                                     >
                                       编辑
                                     </button>
-                                    <button type="button" className="delete-btn" onClick={() => handleDelete(record.id)}>
+                                    <button type="button" className="delete-btn" onClick={() => handleDelete(rid)}>
                                       删除
                                     </button>
                                   </td>
@@ -761,13 +770,15 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                       </td>
                     </tr>
                   ) : (
-                    filteredRecords.map((record) => (
-                      <tr key={record.id}>
+                    filteredRecords.map((record) => {
+                      const rid = getChannelRecordId(record) || record.id
+                      return (
+                        <tr key={rid}>
                         <td>
                           <input
                             type="checkbox"
-                            checked={selectedIds.includes(record.id)}
-                            onChange={() => toggleSelect(record.id)}
+                            checked={rowSelected(rid)}
+                            onChange={() => toggleSelect(rid)}
                             aria-label="选择行"
                           />
                         </td>
@@ -798,16 +809,17 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                           <button
                             type="button"
                             className="edit-btn"
-                            onClick={() => openChannelReconciliationEdit(record.id)}
+                            onClick={() => openChannelReconciliationEdit(rid)}
                           >
                             编辑
                           </button>
-                          <button type="button" className="delete-btn" onClick={() => handleDelete(record.id)}>
+                          <button type="button" className="delete-btn" onClick={() => handleDelete(rid)}>
                             删除
                           </button>
                         </td>
-                      </tr>
-                    ))
+                        </tr>
+                      )
+                    })
                   )}
                 </tbody>
                 {filteredRecords.length > 0 && (

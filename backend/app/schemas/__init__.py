@@ -1,5 +1,11 @@
 """Pydantic schemas."""
 
+from app.schemas.channel import (
+    ChannelRecordCreate,
+    ChannelRecordListResponse,
+    ChannelRecordRead,
+    ChannelRecordUpdate,
+)
 from app.schemas.reconciliation import (
     ReconciliationCreate,
     ReconciliationListResponse,
@@ -12,4 +18,8 @@ __all__ = [
     "ReconciliationRead",
     "ReconciliationUpdate",
     "ReconciliationListResponse",
+    "ChannelRecordCreate",
+    "ChannelRecordRead",
+    "ChannelRecordUpdate",
+    "ChannelRecordListResponse",
 ]

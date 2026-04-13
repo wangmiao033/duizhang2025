@@ -90,7 +90,7 @@ function ChannelBillingForm({
     setFormData(newFormData)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     if (!formData.channelName || !formData.gameName) {
@@ -103,15 +103,21 @@ function ChannelBillingForm({
     const record = buildRecordFromForm(formData)
     const intent = submitIntentRef?.current ?? 'back'
 
-    if (mode === 'edit' && recordId != null) {
-      onUpdateRecord?.(recordId, record)
-      onAfterSubmit?.('back')
-    } else {
-      onAddRecord?.(record)
-      if (intent === 'continue') {
-        setFormData({ ...initialForm })
+    try {
+      if (mode === 'edit' && recordId != null) {
+        const res = onUpdateRecord?.(recordId, record)
+        if (res && typeof res.then === 'function') await res
+        onAfterSubmit?.('back')
+      } else {
+        const res = onAddRecord?.(record)
+        if (res && typeof res.then === 'function') await res
+        if (intent === 'continue') {
+          setFormData({ ...initialForm })
+        }
+        onAfterSubmit?.(intent)
       }
-      onAfterSubmit?.(intent)
+    } catch {
+      return
     }
 
     if (submitIntentRef) submitIntentRef.current = 'back'

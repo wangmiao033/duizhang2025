@@ -25,6 +25,22 @@ import {
   apiRowToFrontend,
   frontendRecordToApiPayload
 } from '@/lib/api/reconciliation.ts'
+import {
+  listChannelRecords,
+  createChannelRecord,
+  updateChannelRecord,
+  deleteChannelRecord,
+  apiChannelRowToFrontend,
+  frontendChannelRecordToPayload
+} from '@/lib/api/channel.ts'
+
+function normalizeLocalChannelRecords(saved) {
+  return (saved || []).map((r) => ({
+    ...r,
+    id: r.id != null ? String(r.id) : String(Date.now()),
+    status: r.status || 'pending'
+  }))
+}
 
 function normalizeLocalReconciliationRecords(savedRecords) {
   return savedRecords.map((r) => ({
@@ -59,6 +75,7 @@ export function useReconciliationStore(settings, showToast) {
   const [cycleType, setCycleType] = useState(CYCLE_TYPES.MONTHLY)
   const [selectedCycleKey, setSelectedCycleKey] = useState(null)
   const [reconciliationApiEnabled, setReconciliationApiEnabled] = useState(false)
+  const [channelApiEnabled, setChannelApiEnabled] = useState(false)
 
   const showToastRef = useRef(showToast)
   showToastRef.current = showToast
@@ -68,9 +85,12 @@ export function useReconciliationStore(settings, showToast) {
     setRecords(items.map(apiRowToFrontend))
   }, [])
 
+  const refetchChannelFromApi = useCallback(async () => {
+    const { items } = await listChannelRecords({ limit: 500, offset: 0 })
+    setChannelRecords(items.map(apiChannelRowToFrontend))
+  }, [])
+
   useEffect(() => {
-    const savedChannel = storageGet(STORAGE_KEYS.CHANNEL_RECORDS)
-    if (savedChannel) setChannelRecords(savedChannel)
     setCycleType(CYCLE_TYPES.MONTHLY)
   }, [])
 
@@ -94,6 +114,33 @@ export function useReconciliationStore(settings, showToast) {
           setRecords(normalizeLocalReconciliationRecords(savedRecords))
         }
         setReconciliationApiEnabled(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const { items } = await listChannelRecords({ limit: 500, offset: 0 })
+        if (cancelled) return
+        setChannelRecords(items.map(apiChannelRowToFrontend))
+        setChannelApiEnabled(true)
+      } catch (err) {
+        console.error(err)
+        if (cancelled) return
+        showToastRef.current?.(
+          '无法连接渠道对账服务器，已使用本地缓存。请检查网络或 VITE_API_BASE_URL。',
+          'error'
+        )
+        const savedChannel = storageGet(STORAGE_KEYS.CHANNEL_RECORDS)
+        if (savedChannel?.length) {
+          setChannelRecords(normalizeLocalChannelRecords(savedChannel))
+        }
+        setChannelApiEnabled(false)
       }
     })()
     return () => {
@@ -598,34 +645,95 @@ export function useReconciliationStore(settings, showToast) {
   )
 
   const onChannelAddRecord = useCallback(
-    (record) => {
-      const newRecord = { ...record, id: Date.now() }
+    async (record) => {
+      const merged = { ...record, status: record.status || 'pending' }
+      if (channelApiEnabled) {
+        try {
+          const created = await createChannelRecord(frontendChannelRecordToPayload(merged))
+          const fe = apiChannelRowToFrontend(created)
+          setChannelRecords((prev) => [...prev, fe])
+          showToast('渠道记录添加成功', 'success')
+          return
+        } catch (e) {
+          console.error(e)
+          showToast('渠道记录保存到服务器失败', 'error')
+          throw e
+        }
+      }
+      const newRecord = { ...merged, id: String(Date.now()) }
       setChannelRecords((prev) => [...prev, newRecord])
       showToast('渠道记录添加成功', 'success')
     },
-    [showToast]
+    [showToast, channelApiEnabled]
   )
 
   const onChannelAddRecordsBatch = useCallback(
-    (records) => {
-      if (!records || records.length === 0) return
+    async (batch) => {
+      if (!batch || batch.length === 0) return
+      if (channelApiEnabled) {
+        try {
+          for (const r of batch) {
+            const merged = { ...r, status: r.status || 'pending' }
+            await createChannelRecord(frontendChannelRecordToPayload(merged))
+          }
+          await refetchChannelFromApi()
+          showToast(`已批量添加 ${batch.length} 条渠道记录`, 'success')
+          return
+        } catch (e) {
+          console.error(e)
+          showToast('批量导入同步服务器失败', 'error')
+          return
+        }
+      }
       const base = Date.now()
-      const withIds = records.map((r, i) => ({ ...r, id: base + i }))
+      const withIds = batch.map((r, i) => ({ ...r, id: String(base + i) }))
       setChannelRecords((prev) => [...prev, ...withIds])
       showToast(`已批量添加 ${withIds.length} 条渠道记录`, 'success')
     },
-    [showToast]
+    [showToast, channelApiEnabled, refetchChannelFromApi]
   )
 
-  const onChannelUpdateRecord = useCallback((id, record) => {
-    setChannelRecords((prev) => prev.map((r) => (r.id === id ? { ...record, id } : r)))
-    showToast('渠道记录更新成功', 'success')
-  }, [showToast])
+  const onChannelUpdateRecord = useCallback(
+    async (id, record) => {
+      const sid = String(id)
+      const merged = { ...record, id: sid, status: record.status || 'pending' }
+      if (channelApiEnabled) {
+        try {
+          await updateChannelRecord(sid, frontendChannelRecordToPayload(merged))
+          await refetchChannelFromApi()
+          showToast('渠道记录更新成功', 'success')
+          return
+        } catch (e) {
+          console.error(e)
+          showToast('渠道记录更新服务器失败', 'error')
+          return
+        }
+      }
+      setChannelRecords((prev) => prev.map((r) => (String(r.id) === sid ? { ...merged, id: sid } : r)))
+      showToast('渠道记录更新成功', 'success')
+    },
+    [showToast, channelApiEnabled, refetchChannelFromApi]
+  )
 
-  const onChannelDeleteRecord = useCallback((id) => {
-    setChannelRecords((prev) => prev.filter((r) => r.id !== id))
-    showToast('渠道记录已删除', 'success')
-  }, [showToast])
+  const onChannelDeleteRecord = useCallback(
+    async (rawId) => {
+      const sid = String(rawId)
+      if (channelApiEnabled) {
+        try {
+          await deleteChannelRecord(sid)
+          await refetchChannelFromApi()
+        } catch (e) {
+          console.error(e)
+          showToast('从服务器删除渠道记录失败', 'error')
+          return
+        }
+      } else {
+        setChannelRecords((prev) => prev.filter((r) => String(r.id) !== sid))
+      }
+      showToast('渠道记录已删除', 'success')
+    },
+    [showToast, channelApiEnabled, refetchChannelFromApi]
+  )
 
   const restoreFullData = useCallback(
     (data) => {
@@ -643,6 +751,7 @@ export function useReconciliationStore(settings, showToast) {
     records,
     setRecords,
     channelRecords,
+    channelApiEnabled,
     reconciliationApiEnabled,
     searchTerm,
     setSearchTerm,

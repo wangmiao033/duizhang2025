@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { StatusSelector } from '@/components/StatusManager.jsx'
+import { getChannelRecordId } from '@/lib/api/channel.ts'
 
 /**
  * 渠道对账轻量侧栏：摘要、状态、备注；完整编辑跳转独立页。
@@ -32,10 +33,12 @@ function ChannelLightDrawer({
 
   if (!open || !record) return null
 
+  const recordId = getChannelRecordId(record)
+
   const saveRemark = () => {
     const next = remark.trim()
     if ((record.remark || '') === next) return
-    onUpdateRecord?.(record.id, { ...record, remark: next })
+    void onUpdateRecord?.(recordId, { ...record, remark: next })
   }
 
   const flow = parseFloat(record.flow) || 0
@@ -76,9 +79,9 @@ function ChannelLightDrawer({
 
           <div className="rec-light-field">
             <span className="rec-light-field__label">状态</span>
-            <StatusSelector
+                       <StatusSelector
               currentStatus={record.status || 'pending'}
-              onStatusChange={(s) => onUpdateRecord?.(record.id, { ...record, status: s })}
+              onStatusChange={(s) => void onUpdateRecord?.(recordId, { ...record, status: s })}
             />
           </div>
 
@@ -105,7 +108,7 @@ function ChannelLightDrawer({
             type="button"
             className="rec-btn rec-btn--primary"
             onClick={() => {
-              onNavigateToFullEdit?.(record.id)
+              onNavigateToFullEdit?.(recordId)
               onClose()
             }}
           >
