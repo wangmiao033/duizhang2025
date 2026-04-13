@@ -122,6 +122,15 @@ export const SIDEBAR_GROUPS = [
   }
 ]
 
+/** 出现在侧栏菜单中的 view（用于最近访问：排除编辑页等中间态） */
+export const SIDEBAR_TRACKABLE_VIEWS = new Set(
+  SIDEBAR_GROUPS.flatMap((g) => g.items.map((i) => i.view))
+)
+
+export function isSidebarTrackableView(view) {
+  return typeof view === 'string' && SIDEBAR_TRACKABLE_VIEWS.has(view)
+}
+
 const VIEW_TITLES = {
   [VIEWS.DASHBOARD]: '工作台',
   [VIEWS.RECON_RD]: '研发对账',
