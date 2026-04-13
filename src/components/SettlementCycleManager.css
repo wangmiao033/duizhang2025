@@ -278,6 +278,38 @@
   font-weight: 600;
 }
 
+.cycle-item--all {
+  margin-bottom: 8px;
+  background: var(--admin-primary);
+  color: #fff;
+  border-color: var(--admin-primary);
+}
+
+.cycle-item--all .cycle-item-name,
+.cycle-item--all .cycle-item-date,
+.cycle-item--all .stat-label {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.cycle-item--all .stat-value {
+  color: #fff;
+}
+
+.cycle-item--all .stat-value.amount {
+  color: #d1fae5;
+}
+
+.cycle-item--all:hover {
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
+}
+
+.cycle-item--all.active {
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
+  font-weight: 600;
+}
+
 .cycle-item-header {
   display: flex;
   justify-content: space-between;

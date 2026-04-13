@@ -1,22 +1,25 @@
 .export-btn {
   padding: 16px 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
+  background: var(--admin-primary);
+  color: #fff;
+  border: 1px solid var(--admin-primary);
+  border-radius: var(--admin-radius);
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .export-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
+  box-shadow: var(--admin-shadow-md);
 }
 
 .export-btn:active {
-  transform: translateY(-1px);
+  filter: brightness(0.98);
 }
-

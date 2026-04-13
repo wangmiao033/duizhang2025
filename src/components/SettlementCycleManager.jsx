@@ -180,9 +180,9 @@ function SettlementCycleManager({
             </div>
             <div className="cycle-list">
               <button
-                className={`cycle-item ${!selectedCycleKey ? 'active' : ''}`}
+                type="button"
+                className={`cycle-item cycle-item--all ${!selectedCycleKey ? 'active' : ''}`}
                 onClick={() => handleCycleSelect(null)}
-                style={{ marginBottom: '8px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}
               >
                 <div className="cycle-item-header">
                   <span className="cycle-item-name">全部记录</span>

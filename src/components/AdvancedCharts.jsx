@@ -61,12 +61,9 @@ function AdvancedCharts({ records }) {
                 <div key={month} className="trend-item">
                   <div className="trend-label">{month}</div>
                   <div className="trend-bar-container">
-                    <div 
-                      className="trend-bar"
-                      style={{ 
-                        width: `${(data.totalSettlement / maxMonthSettlement) * 100}%`,
-                        background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
-                      }}
+                    <div
+                      className="trend-bar trend-bar--fill"
+                      style={{ width: `${(data.totalSettlement / maxMonthSettlement) * 100}%` }}
                     >
                       <span className="trend-value">¥{data.totalSettlement.toFixed(2)}</span>
                     </div>

@@ -37,4 +37,7 @@
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
+
+  /* 等宽数字/代码展示（与 UI 字体栈分离） */
+  --font-mono: ui-monospace, 'Cascadia Code', 'Courier New', monospace;
 }

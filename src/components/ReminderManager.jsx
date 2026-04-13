@@ -16,7 +16,7 @@ function ReminderManager({ onReminderAdd }) {
   const reminderTypes = {
     invoice: { label: '发票', icon: '📄', color: '#3b82f6' },
     payment: { label: '付款', icon: '💳', color: '#10b981' },
-    reconciliation: { label: '对账', icon: '📊', color: '#8b5cf6' },
+    reconciliation: { label: '对账', icon: '📊', color: '#6c5ce7' },
     other: { label: '其他', icon: '📌', color: '#64748b' }
   }
 

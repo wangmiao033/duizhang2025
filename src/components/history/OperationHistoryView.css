@@ -19,33 +19,34 @@
 
 .operation-history-view__field label {
   font-size: 12px;
-  color: #64748b;
+  color: var(--admin-text-muted);
   font-weight: 500;
 }
 
 .operation-history-view__field input,
 .operation-history-view__field select {
   padding: 8px 10px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
   font-size: 13px;
-  background: #fff;
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
 }
 
 .operation-history-view__empty {
   padding: 48px 24px;
   text-align: center;
-  color: #64748b;
-  background: #f8fafc;
-  border-radius: 12px;
-  border: 1px dashed #e2e8f0;
+  color: var(--admin-text-muted);
+  background: var(--admin-elevated-bg);
+  border-radius: var(--admin-radius);
+  border: 1px dashed var(--admin-border);
 }
 
 .operation-history-view__table-wrap {
   overflow-x: auto;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  background: #fff;
+  border: 1px solid var(--admin-border-soft);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card-bg);
 }
 
 .operation-history-view__table {
@@ -58,13 +59,13 @@
 .operation-history-view__table td {
   padding: 10px 12px;
   text-align: left;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--admin-border-soft);
 }
 
 .operation-history-view__table th {
-  background: #f8fafc;
-  color: #475569;
-  font-weight: 600;
+  background: var(--admin-elevated-bg);
+  color: var(--admin-text-sub);
+  font-weight: 500;
 }
 
 .operation-history-view__table tr:last-child td {
@@ -74,10 +75,13 @@
 .oh-btn {
   font-size: 13px;
   padding: 8px 14px;
-  border-radius: 8px;
+  border-radius: var(--admin-radius-sm);
   cursor: pointer;
   font-weight: 500;
   border: 1px solid transparent;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .oh-btn--sm {
@@ -86,22 +90,32 @@
 }
 
 .oh-btn--primary {
-  background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+  background: var(--admin-primary);
   color: #fff;
+  border-color: var(--admin-primary);
+}
+
+.oh-btn--primary:hover {
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
 }
 
 .oh-btn--secondary {
-  background: #fff;
-  border-color: #cbd5e1;
-  color: #334155;
+  background: var(--admin-card-bg);
+  border-color: var(--admin-border-strong);
+  color: var(--admin-text-main);
+}
+
+.oh-btn--secondary:hover {
+  background: var(--admin-elevated-bg);
 }
 
 .oh-btn--danger {
-  background: #fff;
+  background: var(--admin-card-bg);
   border-color: #fecaca;
-  color: #b91c1c;
+  color: var(--admin-danger);
 }
 
 .oh-btn--danger:hover {
-  background: #fef2f2;
+  background: var(--admin-danger-muted);
 }

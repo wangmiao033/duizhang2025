@@ -15,6 +15,13 @@
   --admin-danger: var(--danger);
   --admin-danger-muted: #fef2f2;
   --admin-warning: var(--warning);
+  /* 信息/警告/成功语义底与字色（扁平，无第二套主色体系） */
+  --admin-info-bg: #eff6ff;
+  --admin-info-text: #1d4ed8;
+  --admin-warning-bg: rgba(245, 158, 11, 0.12);
+  --admin-warning-text: #b45309;
+  --admin-success-bg: #ecfdf5;
+  --admin-success-text: #15803d;
   --admin-text-main: var(--text-main);
   --admin-text-sub: var(--text-sub);
   --admin-text-muted: var(--text-light);
@@ -84,6 +91,12 @@
   --admin-border-strong: rgba(148, 163, 184, 0.35);
   --admin-success-muted: rgba(22, 163, 74, 0.18);
   --admin-danger-muted: rgba(239, 68, 68, 0.15);
+  --admin-info-bg: rgba(37, 99, 235, 0.18);
+  --admin-info-text: #93c5fd;
+  --admin-warning-bg: rgba(245, 158, 11, 0.15);
+  --admin-warning-text: #fcd34d;
+  --admin-success-bg: rgba(22, 163, 74, 0.15);
+  --admin-success-text: #86efac;
 }
 
 /* 按钮体系 */

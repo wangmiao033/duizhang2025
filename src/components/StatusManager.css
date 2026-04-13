@@ -4,11 +4,13 @@
   align-items: center;
   gap: 4px;
   padding: 4px 10px;
-  border-radius: 12px;
+  border-radius: var(--admin-radius-sm);
   font-size: 0.85rem;
   font-weight: 600;
   border: 1.5px solid;
-  transition: all 0.2s ease;
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
   white-space: nowrap;
 }
 
@@ -17,8 +19,7 @@
 }
 
 .status-tag.clickable:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .status-tag.disabled {
@@ -54,19 +55,20 @@
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  background: var(--admin-card-bg);
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border-soft);
+  box-shadow: var(--admin-shadow-md);
   z-index: 1000;
   min-width: 140px;
   overflow: hidden;
-  animation: slideDown 0.2s ease;
+  animation: status-menu-in 0.2s ease;
 }
 
-@keyframes slideDown {
+@keyframes status-menu-in {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-4px);
   }
   to {
     opacity: 1;
@@ -77,44 +79,47 @@
 .status-option {
   width: 100%;
   padding: 10px 14px;
-  background: white;
+  background: var(--admin-card-bg);
   border: none;
   border-left: 3px solid;
   text-align: left;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.15s ease;
   font-size: 0.9rem;
   display: flex;
   align-items: center;
   gap: 8px;
+  color: var(--admin-text-main);
 }
 
 .status-option:hover {
-  background: #f5f5f5;
+  background: var(--admin-elevated-bg);
 }
 
 .status-option.active {
-  background: rgba(59, 130, 246, 0.1);
+  background: var(--admin-info-bg);
   font-weight: 600;
 }
 
 /* 批量状态修改 */
 .batch-status-btn {
   padding: 8px 16px;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
+  background: var(--admin-primary);
+  color: #fff;
+  border: 1px solid var(--admin-primary);
+  border-radius: var(--admin-radius-sm);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .batch-status-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
 }
 
 /* 状态对话框 */
@@ -124,14 +129,18 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(15, 23, 42, 0.35);
   z-index: 9998;
   animation: fadeIn 0.2s ease;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .status-dialog {
@@ -139,9 +148,10 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  background: var(--admin-card-bg);
+  border-radius: var(--admin-radius);
+  border: 1px solid var(--admin-border-soft);
+  box-shadow: var(--admin-shadow-md);
   z-index: 9999;
   min-width: 400px;
   max-width: 500px;
@@ -151,7 +161,7 @@
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.95);
+    transform: translate(-50%, -50%) scale(0.98);
   }
   to {
     opacity: 1;
@@ -164,20 +174,20 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--admin-border-soft);
 }
 
 .status-dialog-header h4 {
   margin: 0;
   font-size: 1.1rem;
-  color: #1f2937;
+  color: var(--admin-text-main);
 }
 
 .close-btn {
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #6b7280;
+  color: var(--admin-text-muted);
   cursor: pointer;
   padding: 0;
   width: 28px;
@@ -185,13 +195,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
-  transition: all 0.2s;
+  border-radius: var(--admin-radius-sm);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .close-btn:hover {
-  background: #f3f4f6;
-  color: #1f2937;
+  background: var(--admin-elevated-bg);
+  color: var(--admin-text-main);
 }
 
 .status-dialog-content {
@@ -200,7 +212,7 @@
 
 .status-dialog-content p {
   margin: 0 0 20px 0;
-  color: #4b5563;
+  color: var(--admin-text-sub);
   font-size: 0.95rem;
 }
 
@@ -213,10 +225,12 @@
 .status-option-btn {
   padding: 12px 16px;
   border: 2px solid;
-  border-radius: 8px;
+  border-radius: var(--admin-radius-sm);
   background: transparent;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    box-shadow 0.15s ease,
+    background 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -226,13 +240,12 @@
 }
 
 .status-option-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .status-option-btn.selected {
   font-weight: 700;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .status-dialog-footer {
@@ -240,38 +253,41 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 24px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--admin-border-soft);
 }
 
 .cancel-btn,
 .confirm-btn {
   padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
+  border-radius: var(--admin-radius-sm);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .cancel-btn {
-  background: #f3f4f6;
-  color: #4b5563;
+  background: var(--admin-elevated-bg);
+  color: var(--admin-text-main);
+  border: 1px solid var(--admin-border-strong);
 }
 
 .cancel-btn:hover {
-  background: #e5e7eb;
+  background: var(--admin-border-soft);
 }
 
 .confirm-btn {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  color: white;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  background: var(--admin-primary);
+  color: #fff;
+  border: 1px solid var(--admin-primary);
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .confirm-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
 }
 
 .confirm-btn:disabled {
@@ -280,46 +296,48 @@
 }
 
 /* 暗色主题支持 */
-[data-theme="dark"] .status-selector-menu {
-  background: #2d2d2d;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+[data-theme='dark'] .status-selector-menu {
+  background: var(--admin-card-bg);
+  border-color: var(--admin-border);
+  box-shadow: var(--admin-shadow-md);
 }
 
-[data-theme="dark"] .status-option {
-  background: #2d2d2d;
-  color: #e0e0e0;
+[data-theme='dark'] .status-option {
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
 }
 
-[data-theme="dark"] .status-option:hover {
-  background: #3d3d3d;
+[data-theme='dark'] .status-option:hover {
+  background: var(--admin-elevated-bg);
 }
 
-[data-theme="dark"] .status-dialog {
-  background: #2d2d2d;
-  color: #e0e0e0;
+[data-theme='dark'] .status-dialog {
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
 }
 
-[data-theme="dark"] .status-dialog-header {
-  border-bottom-color: #444;
+[data-theme='dark'] .status-dialog-header {
+  border-bottom-color: var(--admin-border);
 }
 
-[data-theme="dark"] .status-dialog-header h4 {
-  color: #e0e0e0;
+[data-theme='dark'] .status-dialog-header h4 {
+  color: var(--admin-text-main);
 }
 
-[data-theme="dark"] .status-dialog-content p {
-  color: #b0b0b0;
+[data-theme='dark'] .status-dialog-content p {
+  color: var(--admin-text-muted);
 }
 
-[data-theme="dark"] .status-dialog-footer {
-  border-top-color: #444;
+[data-theme='dark'] .status-dialog-footer {
+  border-top-color: var(--admin-border);
 }
 
-[data-theme="dark"] .cancel-btn {
-  background: #3d3d3d;
-  color: #e0e0e0;
+[data-theme='dark'] .cancel-btn {
+  background: var(--admin-elevated-bg);
+  color: var(--admin-text-main);
+  border-color: var(--admin-border);
 }
 
-[data-theme="dark"] .cancel-btn:hover {
-  background: #4d4d4d;
+[data-theme='dark'] .cancel-btn:hover {
+  background: var(--admin-border);
 }

@@ -1,19 +1,20 @@
 .data-recovery-btn {
   padding: 8px 16px;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
+  background: var(--admin-warning);
+  color: #fff;
+  border: 1px solid var(--admin-warning);
+  border-radius: var(--admin-radius-sm);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .data-recovery-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+  filter: brightness(1.05);
 }
 
 .recovery-overlay {
@@ -28,8 +29,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .recovery-dialog {
@@ -37,9 +42,10 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: var(--admin-card-bg);
+  border-radius: var(--admin-radius);
+  border: 1px solid var(--admin-border-soft);
+  box-shadow: var(--admin-shadow-md);
   z-index: 10001;
   width: 90%;
   max-width: 600px;
@@ -53,7 +59,7 @@
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.95);
+    transform: translate(-50%, -50%) scale(0.98);
   }
   to {
     opacity: 1;
@@ -66,20 +72,20 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--admin-border-soft);
 }
 
 .recovery-header h3 {
   margin: 0;
   font-size: 1.2rem;
-  color: #1f2937;
+  color: var(--admin-text-main);
 }
 
 .close-btn {
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #6b7280;
+  color: var(--admin-text-muted);
   cursor: pointer;
   padding: 0;
   width: 28px;
@@ -87,13 +93,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
-  transition: all 0.2s;
+  border-radius: var(--admin-radius-sm);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .close-btn:hover {
-  background: #f3f4f6;
-  color: #1f2937;
+  background: var(--admin-elevated-bg);
+  color: var(--admin-text-main);
 }
 
 .recovery-content {
@@ -111,7 +119,7 @@
 .recovery-section h4 {
   margin: 0 0 12px 0;
   font-size: 1rem;
-  color: #1f2937;
+  color: var(--admin-text-main);
   font-weight: 600;
 }
 
@@ -120,11 +128,11 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--admin-border-soft);
 }
 
 .diagnostic-item .label {
-  color: #6b7280;
+  color: var(--admin-text-muted);
   font-size: 0.9rem;
 }
 
@@ -134,11 +142,11 @@
 }
 
 .diagnostic-item .value.has-data {
-  color: #10b981;
+  color: var(--admin-success);
 }
 
 .diagnostic-item .value.no-data {
-  color: #ef4444;
+  color: var(--admin-danger);
 }
 
 .recovery-list {
@@ -152,9 +160,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px;
-  background: #f9fafb;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  background: var(--admin-elevated-bg);
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border-soft);
 }
 
 .recovery-item-info {
@@ -165,36 +173,37 @@
 .recovery-item-action {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--admin-text-main);
   margin-bottom: 4px;
 }
 
 .recovery-item-stats {
   font-size: 0.85rem;
-  color: #6b7280;
+  color: var(--admin-text-muted);
 }
 
 .recovery-btn {
   padding: 6px 16px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  border: none;
-  border-radius: 6px;
+  background: var(--admin-success);
+  color: #fff;
+  border: 1px solid var(--admin-success);
+  border-radius: var(--admin-radius-sm);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .recovery-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  filter: brightness(1.05);
 }
 
 .no-recovery-options {
   padding: 20px;
   text-align: center;
-  color: #6b7280;
+  color: var(--admin-text-muted);
 }
 
 .no-recovery-options p {
@@ -203,7 +212,7 @@
 
 .no-recovery-options .hint {
   font-weight: 600;
-  color: #1f2937;
+  color: var(--admin-text-main);
   margin-top: 16px;
 }
 
@@ -217,37 +226,37 @@
   margin: 6px 0;
 }
 
-[data-theme="dark"] .recovery-dialog {
-  background: #2d2d2d;
-  color: #e0e0e0;
+[data-theme='dark'] .recovery-dialog {
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
 }
 
-[data-theme="dark"] .recovery-header {
-  border-bottom-color: #444;
+[data-theme='dark'] .recovery-header {
+  border-bottom-color: var(--admin-border);
 }
 
-[data-theme="dark"] .recovery-header h3 {
-  color: #e0e0e0;
+[data-theme='dark'] .recovery-header h3 {
+  color: var(--admin-text-main);
 }
 
-[data-theme="dark"] .diagnostic-item {
-  border-bottom-color: #444;
+[data-theme='dark'] .diagnostic-item {
+  border-bottom-color: var(--admin-border);
 }
 
-[data-theme="dark"] .diagnostic-item .label {
-  color: #b0b0b0;
+[data-theme='dark'] .diagnostic-item .label {
+  color: var(--admin-text-muted);
 }
 
-[data-theme="dark"] .recovery-item {
-  background: #3d3d3d;
-  border-color: #555;
+[data-theme='dark'] .recovery-item {
+  background: var(--admin-elevated-bg);
+  border-color: var(--admin-border);
 }
 
-[data-theme="dark"] .recovery-item-time,
-[data-theme="dark"] .recovery-item-action {
-  color: #e0e0e0;
+[data-theme='dark'] .recovery-item-time,
+[data-theme='dark'] .recovery-item-action {
+  color: var(--admin-text-main);
 }
 
-[data-theme="dark"] .recovery-item-stats {
-  color: #b0b0b0;
+[data-theme='dark'] .recovery-item-stats {
+  color: var(--admin-text-muted);
 }

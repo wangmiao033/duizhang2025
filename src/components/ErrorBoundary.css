@@ -3,17 +3,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--admin-page-bg);
   padding: 20px;
 }
 
 .error-content {
-  background: white;
-  border-radius: 15px;
+  background: var(--admin-card-bg);
+  border-radius: var(--admin-radius);
   padding: 40px;
   max-width: 500px;
   text-align: center;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--admin-shadow-md);
+  border: 1px solid var(--admin-border-soft);
 }
 
 .error-icon {
@@ -23,36 +24,38 @@
 
 .error-content h2 {
   margin: 0 0 15px 0;
-  color: #333;
+  color: var(--admin-text-main);
   font-size: 1.8rem;
 }
 
 .error-content p {
   margin: 0 0 25px 0;
-  color: #6c757d;
+  color: var(--admin-text-muted);
   line-height: 1.6;
 }
 
 .error-details {
   margin: 20px 0;
   text-align: left;
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: var(--admin-elevated-bg);
+  border-radius: var(--admin-radius-sm);
   padding: 15px;
+  border: 1px solid var(--admin-border-soft);
 }
 
 .error-details summary {
   cursor: pointer;
   font-weight: 600;
-  color: #495057;
+  color: var(--admin-text-main);
   margin-bottom: 10px;
 }
 
 .error-details pre {
   margin: 0;
   font-size: 0.85rem;
-  color: #dc3545;
+  color: var(--admin-danger);
   overflow-x: auto;
+  font-family: var(--font-mono);
 }
 
 .error-actions {
@@ -64,33 +67,32 @@
 .retry-btn,
 .reload-btn {
   padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
+  border-radius: var(--admin-radius-sm);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .retry-btn {
-  background: #667eea;
-  color: white;
+  background: var(--admin-primary);
+  color: #fff;
+  border: 1px solid var(--admin-primary);
 }
 
 .retry-btn:hover {
-  background: #5568d3;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
 }
 
 .reload-btn {
-  background: #28a745;
-  color: white;
+  background: var(--admin-success);
+  color: #fff;
+  border: 1px solid var(--admin-success);
 }
 
 .reload-btn:hover {
-  background: #218838;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+  filter: brightness(1.05);
 }
-

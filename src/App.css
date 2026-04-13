@@ -529,34 +529,34 @@
 .invoice-row input,
 .invoice-row select {
   padding: 12px 16px;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card-bg);
   font-size: 0.95rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.04);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  box-shadow: var(--admin-shadow-sm);
+  color: var(--admin-text-main);
 }
 
 .invoice-row input:focus,
 .invoice-row select:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15), 0 4px 12px rgba(79, 70, 229, 0.1);
-  transform: translateY(-1px);
-  background: rgba(255, 255, 255, 1);
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px var(--admin-primary-muted);
+  background: var(--admin-card-bg);
 }
 
 .invoice-list {
-  background: linear-gradient(135deg, rgba(248, 250, 252, 0.9) 0%, rgba(241, 245, 249, 0.9) 100%);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(226, 232, 240, 0.6);
-  border-radius: 16px;
+  background: var(--admin-elevated-bg);
+  border: 1px solid var(--admin-border-soft);
+  border-radius: var(--admin-radius);
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .list-header {
@@ -588,23 +588,22 @@
 
 .secondary-btn {
   padding: 10px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  color: #334155;
+  border-radius: var(--admin-radius);
+  border: 1px solid var(--admin-border-strong);
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
   font-weight: 500;
-  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.05);
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .secondary-btn:hover {
-  border-color: #4f46e5;
-  color: #4f46e5;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
-  transform: translateY(-1px);
-  background: rgba(255, 255, 255, 1);
+  border-color: var(--admin-primary);
+  color: var(--admin-primary);
+  background: var(--admin-primary-muted);
 }
 
 .muted {
@@ -640,20 +639,20 @@
 }
 
 .invoice-table-row {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(226, 232, 240, 0.6);
-  border-radius: 12px;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-soft);
+  border-radius: var(--admin-radius);
   padding: var(--admin-table-td-py, 8px) 10px;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.06), 0 0 0 1px rgba(255, 255, 255, 0.5);
+  box-shadow: var(--admin-shadow-sm);
   font-size: var(--admin-table-font-size, 13px);
-  transition: all 0.3s ease;
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .invoice-table-row:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.12), 0 0 0 1px rgba(79, 70, 229, 0.2);
-  border-color: rgba(79, 70, 229, 0.3);
+  box-shadow: var(--admin-shadow-md);
+  border-color: var(--admin-border);
 }
 
 .invoice-table-row span {
@@ -674,58 +673,58 @@
 }
 
 .tag:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .tag-未开 {
-  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-  color: #4f46e5;
-  border-color: rgba(79, 70, 229, 0.2);
+  background: var(--admin-primary-muted);
+  color: var(--admin-primary);
+  border-color: var(--admin-border);
 }
 
 .tag-已开 {
-  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-  color: #166534;
-  border-color: rgba(22, 101, 52, 0.2);
+  background: var(--admin-success-bg);
+  color: var(--admin-success-text);
+  border-color: rgba(22, 163, 74, 0.25);
 }
 
 .tag-作废 {
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-  color: #b91c1c;
-  border-color: rgba(185, 28, 28, 0.2);
+  background: var(--admin-danger-muted);
+  color: var(--admin-danger);
+  border-color: #fecaca;
 }
 
 .tag-verified {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  color: #1e40af;
-  border-color: rgba(30, 64, 175, 0.2);
+  background: var(--admin-info-bg);
+  color: var(--admin-info-text);
+  border-color: rgba(37, 99, 235, 0.2);
 }
 
 .tag-unverified {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  color: #92400e;
-  border-color: rgba(146, 64, 14, 0.2);
+  background: var(--admin-warning-bg);
+  color: var(--admin-warning-text);
+  border-color: rgba(245, 158, 11, 0.3);
 }
 
 .verify-btn {
   padding: 6px 14px;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-  border: none;
-  border-radius: 6px;
+  background: var(--admin-primary);
+  color: #fff;
+  border: 1px solid var(--admin-primary);
+  border-radius: var(--admin-radius-sm);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
   margin-right: 8px;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .verify-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
 }
 
 .verification-dialog-content {
@@ -735,10 +734,11 @@
 }
 
 .invoice-info {
-  background: rgba(59, 130, 246, 0.1);
+  background: var(--admin-info-bg);
   padding: 12px;
-  border-radius: 8px;
+  border-radius: var(--admin-radius-sm);
   margin-bottom: 16px;
+  border: 1px solid var(--admin-border-soft);
 }
 
 .invoice-info p {
@@ -811,15 +811,15 @@
 .verification-summary {
   margin-top: 16px;
   padding: 12px;
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  border-radius: 8px;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: var(--admin-info-bg);
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border-soft);
 }
 
 .verification-summary p {
   margin: 4px 0;
   font-size: 0.9rem;
-  color: #1e40af;
+  color: var(--admin-info-text);
   font-weight: 600;
 }
 
@@ -969,17 +969,16 @@ button, input, select, textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
+  background: var(--admin-primary);
   border-radius: 10px;
   border: 2px solid rgba(255, 255, 255, 0.2);
   background-clip: padding-box;
-  transition: all 0.3s ease;
+  transition: background 0.15s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #f472b6 100%);
+  background: var(--admin-primary-hover);
   border-color: rgba(255, 255, 255, 0.3);
-  box-shadow: 0 0 8px rgba(79, 70, 229, 0.4);
 }
 
 @media (max-width: 968px) {

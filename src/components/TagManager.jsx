@@ -3,13 +3,13 @@ import './TagManager.css'
 
 function TagManager({ records, onTagChange }) {
   const [tags, setTags] = useState([])
-  const [newTag, setNewTag] = useState({ name: '', color: '#4f46e5' })
+  const [newTag, setNewTag] = useState({ name: '', color: '#6c5ce7' })
   const [showAddForm, setShowAddForm] = useState(false)
   const [tagStats, setTagStats] = useState({})
 
   const predefinedColors = [
-    '#4f46e5', '#7c3aed', '#ec4899', '#ef4444', '#f59e0b',
-    '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#f97316'
+    '#6c5ce7', '#16a34a', '#ec4899', '#ef4444', '#f59e0b',
+    '#10b981', '#06b6d4', '#0891b2', '#64748b', '#f97316'
   ]
 
   useEffect(() => {
@@ -53,7 +53,7 @@ function TagManager({ records, onTagChange }) {
     }
 
     setTags([...tags, tag])
-    setNewTag({ name: '', color: '#4f46e5' })
+    setNewTag({ name: '', color: '#6c5ce7' })
     setShowAddForm(false)
   }
 

@@ -67,12 +67,9 @@ function StatisticsChart({ records }) {
                   <span className="chart-value">¥{stats.settlementAmount.toFixed(2)}</span>
                 </div>
                 <div className="chart-bar">
-                  <div 
-                    className="chart-bar-fill" 
-                    style={{ 
-                      width: `${(stats.gameFlow / maxGameFlow) * 100}%`,
-                      background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
-                    }}
+                  <div
+                    className="chart-bar-fill chart-bar-fill--primary"
+                    style={{ width: `${(stats.gameFlow / maxGameFlow) * 100}%` }}
                   />
                 </div>
                 <div className="chart-item-footer">
@@ -94,12 +91,9 @@ function StatisticsChart({ records }) {
                   <span className="chart-value">¥{stats.settlementAmount.toFixed(2)}</span>
                 </div>
                 <div className="chart-bar">
-                  <div 
-                    className="chart-bar-fill" 
-                    style={{ 
-                      width: `${(stats.settlementAmount / maxSettlement) * 100}%`,
-                      background: 'linear-gradient(90deg, #f093fb 0%, #f5576c 100%)'
-                    }}
+                  <div
+                    className="chart-bar-fill chart-bar-fill--accent"
+                    style={{ width: `${(stats.settlementAmount / maxSettlement) * 100}%` }}
                   />
                 </div>
                 <div className="chart-item-footer">

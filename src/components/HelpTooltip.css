@@ -92,13 +92,13 @@
 }
 
 .help-item kbd {
-  background: #667eea;
+  background: var(--admin-primary);
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 0.85rem;
   font-weight: 600;
-  font-family: monospace;
+  font-family: var(--font-mono);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -114,7 +114,7 @@
 
 .help-tips h5 {
   margin: 0 0 10px 0;
-  color: #667eea;
+  color: var(--admin-primary);
   font-size: 1rem;
 }
 

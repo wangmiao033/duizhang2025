@@ -121,13 +121,13 @@
 
 .guide-nav-btn:hover {
   background: #e9ecef;
-  color: #667eea;
+  color: var(--admin-primary);
 }
 
 .guide-nav-btn.active {
   background: white;
-  color: #667eea;
-  border-left-color: #667eea;
+  color: var(--admin-primary);
+  border-left-color: var(--admin-primary);
   font-weight: 600;
 }
 
@@ -141,7 +141,7 @@
   margin: 0 0 20px 0;
   color: #333;
   font-size: 1.5rem;
-  border-bottom: 2px solid #667eea;
+  border-bottom: 2px solid var(--admin-primary);
   padding-bottom: 10px;
 }
 
@@ -151,7 +151,7 @@
 }
 
 .guide-text h4 {
-  color: #667eea;
+  color: var(--admin-primary);
   margin-top: 25px;
   margin-bottom: 10px;
   font-size: 1.1rem;
@@ -172,13 +172,13 @@
 }
 
 .guide-text kbd {
-  background: #667eea;
+  background: var(--admin-primary);
   color: white;
   padding: 3px 8px;
   border-radius: 4px;
   font-size: 0.85rem;
   font-weight: 600;
-  font-family: monospace;
+  font-family: var(--font-mono);
   margin: 0 2px;
 }
 
@@ -210,7 +210,7 @@
   
   .guide-nav-btn.active {
     border-left: none;
-    border-bottom-color: #667eea;
+    border-bottom-color: var(--admin-primary);
   }
 }
 

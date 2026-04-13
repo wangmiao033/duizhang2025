@@ -96,7 +96,7 @@
 
 .filter-group input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--admin-primary);
 }
 
 .clear-filters-btn {
@@ -133,13 +133,13 @@
 
 .sort-btn:hover {
   background: #e9ecef;
-  border-color: #667eea;
+  border-color: var(--admin-primary);
 }
 
 .sort-btn.active {
-  background: #667eea;
+  background: var(--admin-primary);
   color: white;
-  border-color: #667eea;
+  border-color: var(--admin-primary);
 }
 
 @media (max-width: 768px) {

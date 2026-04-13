@@ -29,7 +29,7 @@
 }
 
 .draggable-row.drag-over {
-  border-top: 3px solid #667eea;
+  border-top: 3px solid var(--admin-primary);
 }
 
 .drag-handle {
@@ -44,6 +44,6 @@
 }
 
 .drag-handle:hover {
-  color: #667eea;
+  color: var(--admin-primary);
 }
 

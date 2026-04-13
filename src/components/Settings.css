@@ -108,7 +108,7 @@
 
 .settings-section h5 {
   margin: 0 0 15px 0;
-  color: #667eea;
+  color: var(--admin-primary);
   font-size: 1rem;
   border-bottom: 1px solid #e9ecef;
   padding-bottom: 8px;
@@ -143,13 +143,13 @@
 }
 
 .format-select:hover {
-  border-color: #667eea;
+  border-color: var(--admin-primary);
 }
 
 .format-select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px var(--admin-primary-muted);
 }
 
 .format-description {
@@ -170,7 +170,7 @@
 
 .setting-item input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--admin-primary);
 }
 
 .settings-switches {

@@ -7,7 +7,7 @@ export const STATUS_OPTIONS = [
   { value: 'pending', label: '待确认', color: '#f59e0b', icon: '⏳' },
   { value: 'confirmed', label: '已确认', color: '#3b82f6', icon: '✓' },
   { value: 'settled', label: '已结算', color: '#10b981', icon: '💰' },
-  { value: 'invoiced', label: '已开票', color: '#8b5cf6', icon: '📄' },
+  { value: 'invoiced', label: '已开票', color: '#6c5ce7', icon: '📄' },
   { value: 'verified', label: '已核销', color: '#06b6d4', icon: '✅' }
 ]
 
