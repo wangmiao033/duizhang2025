@@ -3,6 +3,7 @@ import { useAppState } from '@/app/AppStateContext.jsx'
 import PageContainer from '@/components/layout/PageContainer.jsx'
 import BankPasteAutoParseBlock from '@/components/bank/BankPasteAutoParseBlock.jsx'
 import { looksLikePaymentSlipFields, parseBankText } from '@/utils/parseBankText.js'
+import { icbcToCollectionFormPatch, parseIcbcReceiptText } from '@/utils/parseIcbcReceipt.js'
 import '@/components/reconciliation/reconciliation-admin.css'
 
 const CLAIM_OPTIONS = ['未认领', '部分认领', '已认领']
@@ -36,6 +37,24 @@ function BankCollectionRegisterPage() {
 
   const handleAutoFill = () => {
     try {
+      const icbc = parseIcbcReceiptText(pasteText)
+      if (icbc.recognized) {
+        const patch = icbcToCollectionFormPatch(icbc)
+        setForm((prev) => {
+          const next = { ...prev }
+          const { remark: patchRemark, ...rest } = patch
+          for (const [k, v] of Object.entries(rest)) {
+            if (v == null || String(v).trim() === '') continue
+            if (k in next) next[k] = String(v).trim()
+          }
+          if (patchRemark && String(patchRemark).trim()) {
+            next.remark = [prev.remark, patchRemark].filter(Boolean).join('\n').trim()
+          }
+          return next
+        })
+        showToast('已按付款回单解析，仅填充金额/对方/流水/日期/备注等共用字段', 'success')
+        return
+      }
       const { fields, matchedLines } = parseBankText(pasteText)
       if (matchedLines === 0) {
         showToast('未能识别有效字段行，请使用「字段名: 值」格式分行粘贴', 'info')

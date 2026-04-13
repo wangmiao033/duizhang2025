@@ -2,6 +2,8 @@
  * 电子回单 / 银行文本：键值模式 + 回单（关键词/正则）模式，本地解析无外部请求。
  */
 
+import { icbcToReceiptExtracted, parseIcbcReceiptText } from './parseIcbcReceipt.js'
+
 /** @typedef {'key-value' | 'receipt'} ReceiptInputMode */
 /** @typedef {'payment' | 'collection' | 'unknown'} ReceiptDataKind */
 
@@ -320,21 +322,42 @@ export function parseBankReceipt(text) {
   }
   if (!raw) return empty
 
+  const icbc = parseIcbcReceiptText(raw)
+
   const inputMode = detectInputMode(raw)
   const kv = parseKeyValueMode(raw)
   const rc = parseReceiptKeywordMode(raw)
-  const extracted =
+  let extracted =
     inputMode === 'key-value' ? mergeExtracted(kv, rc) : mergeExtracted(rc, kv)
+  if (icbc.recognized) {
+    extracted = mergeExtracted(icbcToReceiptExtracted(icbc), extracted)
+  }
 
-  const dataKind = classifyDataKind(extracted, raw)
+  let dataKind = classifyDataKind(extracted, raw)
+  if (
+    icbc.recognized &&
+    extracted.payerName &&
+    extracted.payeeName &&
+    (extracted.genericAmount || icbc.fields.amount)
+  ) {
+    dataKind = 'payment'
+  }
+
   const formPatch = buildStatementFormPatch(dataKind, extracted)
 
-  const recognized = Object.keys(extracted).length > 0 || Object.keys(formPatch).length > 0
+  const recognized =
+    Object.keys(extracted).length > 0 ||
+    Object.keys(formPatch).length > 0 ||
+    icbc.recognized
 
   const previewRows = [
     {
       label: '输入模式',
-      value: inputMode === 'key-value' ? '键值行' : '回单/关键词'
+      value: icbc.recognized
+        ? '工行表格式/混合'
+        : inputMode === 'key-value'
+          ? '键值行'
+          : '回单/关键词'
     },
     {
       label: '数据类型',
@@ -363,6 +386,25 @@ export function parseBankReceipt(text) {
   add('交易流水号', 'serialNo')
   add('指令编号', 'instructionNo')
   add('日期/时间', 'tradeDateRaw')
+
+  if (icbc.recognized) {
+    const ic = icbc.fields
+    const icAdd = (label, val) => {
+      if (val != null && String(val).trim() !== '') {
+        previewRows.push({ label, value: String(val).trim() })
+      }
+    }
+    icAdd('【工行】电子回单号', ic.receiptNo)
+    icAdd('【工行】打印日期', ic.printDate)
+    icAdd('【工行】记账日期', ic.bookingDate)
+    icAdd('【工行】时间戳', ic.timestampDisplay || ic.timestampRaw)
+    icAdd('【工行】附言-提交人', icbc.fuyan?.submitter || ic.fuyanSubmitter)
+    icAdd('【工行】附言-最终授权人', icbc.fuyan?.finalApprover || ic.fuyanFinalApprover)
+    previewRows.push({
+      label: '【工行】核心字段数',
+      value: String(icbc.coreFieldCount)
+    })
+  }
 
   const formLabels = {
     tradeDate: '交易日期',

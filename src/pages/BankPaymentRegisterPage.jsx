@@ -3,6 +3,7 @@ import { useAppState } from '@/app/AppStateContext.jsx'
 import PageContainer from '@/components/layout/PageContainer.jsx'
 import BankPasteAutoParseBlock from '@/components/bank/BankPasteAutoParseBlock.jsx'
 import { parseBankText } from '@/utils/parseBankText.js'
+import { icbcToPaymentFormPatch, parseIcbcReceiptText } from '@/utils/parseIcbcReceipt.js'
 import '@/components/reconciliation/reconciliation-admin.css'
 
 const INITIAL = {
@@ -54,6 +55,21 @@ function BankPaymentRegisterPage() {
 
   const handleAutoFill = () => {
     try {
+      const icbc = parseIcbcReceiptText(pasteText)
+      if (icbc.recognized) {
+        const patch = icbcToPaymentFormPatch(icbc)
+        setForm((prev) => {
+          const next = { ...prev }
+          for (const [k, v] of Object.entries(patch)) {
+            if (v === null || v === undefined) continue
+            if (!(k in next)) continue
+            next[k] = v
+          }
+          return next
+        })
+        showToast(`工行电子回单已解析，已填充 ${icbc.coreFieldCount} 项核心字段`, 'success')
+        return
+      }
       const { fields, matchedLines } = parseBankText(pasteText)
       if (matchedLines === 0) {
         showToast('未能识别有效字段行，请使用「字段名: 值」格式分行粘贴', 'info')
