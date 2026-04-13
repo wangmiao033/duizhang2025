@@ -2,6 +2,9 @@ import React, { useState } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
 import PageContainer from '@/components/layout/PageContainer.jsx'
 import BankPasteAutoParseBlock from '@/components/bank/BankPasteAutoParseBlock.jsx'
+import { ApiError } from '@/lib/api/client.ts'
+import { createBankTransaction } from '@/lib/api/bankTransaction.ts'
+import { buildStatementImportPayload } from '@/lib/bank/bankTransactionPayloads.js'
 import { parseBankText } from '@/utils/parseBankText.js'
 import { parseBankReceipt } from '@/utils/parseBankReceipt.js'
 import '@/components/reconciliation/reconciliation-admin.css'
@@ -25,6 +28,7 @@ function BankStatementImportPage() {
   const [pasteText, setPasteText] = useState('')
   const [receiptText, setReceiptText] = useState('')
   const [receiptParse, setReceiptParse] = useState(null)
+  const [saving, setSaving] = useState(false)
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
@@ -108,9 +112,19 @@ function BankStatementImportPage() {
     }
   }
 
-  const handleSaveDraft = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    showToast('已保存为本地草稿（本轮仅前端占位，未写入服务端）', 'success')
+    setSaving(true)
+    try {
+      const body = buildStatementImportPayload(form, pasteText, receiptText)
+      await createBankTransaction(body)
+      showToast('保存成功。已写入服务端。', 'success')
+      handleReset()
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : '保存失败，请检查网络或后端配置', 'info')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -118,7 +132,7 @@ function BankStatementImportPage() {
       <div className="admin-workspace">
         <div className="admin-workspace__card">
           <p className="admin-workspace__card-desc" style={{ marginTop: 0 }}>
-            录入或粘贴单条流水字段，后续可扩展 Excel 导入与自动匹配；当前不落库。
+            录入或粘贴单条流水字段；保存后写入服务端「银行流水表」。后续可扩展 Excel 批量导入与自动匹配。
           </p>
 
           <div className="bank-paste-auto-parse" style={{ marginBottom: 24 }}>
@@ -196,7 +210,7 @@ function BankStatementImportPage() {
             onPasteTextChange={setPasteText}
             onAutoFill={handleAutoFill}
           />
-          <form onSubmit={handleSaveDraft}>
+          <form onSubmit={handleSubmit}>
             <div className="rec-bank-payment__grid">
               <label className="rec-bank-payment__field">
                 交易日期
@@ -297,8 +311,8 @@ function BankStatementImportPage() {
               <button type="button" className="rec-btn rec-btn--ghost" onClick={handleReset}>
                 清空
               </button>
-              <button type="submit" className="rec-btn rec-btn--primary">
-                保存草稿（本地）
+              <button type="submit" className="rec-btn rec-btn--primary" disabled={saving}>
+                {saving ? '提交中…' : '提交保存'}
               </button>
             </div>
           </form>

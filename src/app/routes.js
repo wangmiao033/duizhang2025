@@ -44,6 +44,7 @@ export const VIEWS = {
   /** 非侧边栏入口：快捷操作等 */
   SETTINGS_REMINDERS: 'settings-reminders',
   /** 银行对账（独立模块） */
+  BANK_TRANSACTIONS_LEDGER: 'bank-transactions-ledger',
   BANK_STATEMENT_IMPORT: 'bank-statement-import',
   BANK_PAYMENT_REGISTER: 'bank-payment-register',
   BANK_COLLECTION_REGISTER: 'bank-collection-register'
@@ -81,9 +82,10 @@ export const SIDEBAR_GROUPS = [
     id: 'bank-recon',
     label: '银行对账',
     items: [
+      { view: VIEWS.BANK_TRANSACTIONS_LEDGER, label: '银行流水表' },
       { view: VIEWS.BANK_STATEMENT_IMPORT, label: '银行流水导入' },
-      { view: VIEWS.BANK_PAYMENT_REGISTER, label: '银行付款登记' },
-      { view: VIEWS.BANK_COLLECTION_REGISTER, label: '银行回款登记' }
+      { view: VIEWS.BANK_COLLECTION_REGISTER, label: '银行回款登记' },
+      { view: VIEWS.BANK_PAYMENT_REGISTER, label: '银行付款登记' }
     ]
   },
   {
@@ -178,6 +180,7 @@ const VIEW_TITLES = {
   [VIEWS.SETTINGS_BACKUP]: '数据备份',
   [VIEWS.SETTINGS_APP]: '系统设置',
   [VIEWS.SETTINGS_REMINDERS]: '提醒事项',
+  [VIEWS.BANK_TRANSACTIONS_LEDGER]: '银行流水表',
   [VIEWS.BANK_STATEMENT_IMPORT]: '银行流水导入',
   [VIEWS.BANK_PAYMENT_REGISTER]: '银行付款登记',
   [VIEWS.BANK_COLLECTION_REGISTER]: '银行回款登记'
@@ -222,8 +225,10 @@ const VIEW_DESCRIPTIONS = {
   [VIEWS.SETTINGS_BACKUP]: '数据备份选项',
   [VIEWS.SETTINGS_APP]: '主题、格式与默认参数',
   [VIEWS.SETTINGS_REMINDERS]: '提醒与待办配置',
-  [VIEWS.BANK_STATEMENT_IMPORT]: '维护银行流水字段，后续可对接导入与匹配',
-  [VIEWS.BANK_COLLECTION_REGISTER]: '登记渠道/项目回款，附件可先本地选择（本轮不落库）'
+  [VIEWS.BANK_TRANSACTIONS_LEDGER]: '流水导入、付款登记、回款登记的统一台账与筛选',
+  [VIEWS.BANK_STATEMENT_IMPORT]: '录入或粘贴单条流水，保存后写入服务端统一台账',
+  [VIEWS.BANK_PAYMENT_REGISTER]: '付款信息登记，支持工行回单解析，保存后写入服务端',
+  [VIEWS.BANK_COLLECTION_REGISTER]: '登记渠道/项目回款，保存后写入服务端统一台账'
 }
 
 /** 侧栏与导航图标（纯文本符号，无额外依赖） */
@@ -261,6 +266,7 @@ export const VIEW_ICONS = {
   [VIEWS.SETTINGS_BACKUP]: '档',
   [VIEWS.SETTINGS_APP]: '设',
   [VIEWS.SETTINGS_REMINDERS]: '铃',
+  [VIEWS.BANK_TRANSACTIONS_LEDGER]: '账',
   [VIEWS.BANK_STATEMENT_IMPORT]: '流',
   [VIEWS.BANK_PAYMENT_REGISTER]: '付',
   [VIEWS.BANK_COLLECTION_REGISTER]: '回'

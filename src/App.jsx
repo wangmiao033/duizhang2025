@@ -36,6 +36,7 @@ import PaymentEditPage from './pages/PaymentEditPage.jsx'
 import BankStatementImportPage from './pages/BankStatementImportPage.jsx'
 import BankPaymentRegisterPage from './pages/BankPaymentRegisterPage.jsx'
 import BankCollectionRegisterPage from './pages/BankCollectionRegisterPage.jsx'
+import BankTransactionsLedgerPage from './pages/BankTransactionsLedgerPage.jsx'
 
 function App() {
   const [activeView, setActiveViewRaw] = useState(VIEWS.DASHBOARD)
@@ -176,6 +177,8 @@ function App() {
         return <OperationHistoryPage />
       case VIEWS.DATA_BACKUP_RESTORE:
         return <BackupRestorePage />
+      case VIEWS.BANK_TRANSACTIONS_LEDGER:
+        return <BankTransactionsLedgerPage />
       case VIEWS.BANK_STATEMENT_IMPORT:
         return <BankStatementImportPage />
       case VIEWS.BANK_PAYMENT_REGISTER:

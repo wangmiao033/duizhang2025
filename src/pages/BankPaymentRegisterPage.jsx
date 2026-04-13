@@ -2,6 +2,9 @@ import React, { useState } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
 import PageContainer from '@/components/layout/PageContainer.jsx'
 import BankPasteAutoParseBlock from '@/components/bank/BankPasteAutoParseBlock.jsx'
+import { ApiError } from '@/lib/api/client.ts'
+import { createBankTransaction } from '@/lib/api/bankTransaction.ts'
+import { buildPaymentRegisterPayload } from '@/lib/bank/bankTransactionPayloads.js'
 import { parseBankText } from '@/utils/parseBankText.js'
 import { icbcToPaymentFormPatch, parseIcbcReceiptText } from '@/utils/parseIcbcReceipt.js'
 import '@/components/reconciliation/reconciliation-admin.css'
@@ -34,6 +37,7 @@ function BankPaymentRegisterPage() {
   const { showToast } = useAppState()
   const [form, setForm] = useState(INITIAL)
   const [pasteText, setPasteText] = useState('')
+  const [saving, setSaving] = useState(false)
 
   const set =
     (key) =>
@@ -48,9 +52,19 @@ function BankPaymentRegisterPage() {
     showToast('已清空表单', 'info')
   }
 
-  const handleSaveDraft = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    showToast('已保存为本地草稿（本轮仅前端占位，未写入服务端）', 'success')
+    setSaving(true)
+    try {
+      const body = buildPaymentRegisterPayload(form, pasteText)
+      await createBankTransaction(body)
+      showToast('保存成功。已写入服务端。', 'success')
+      handleReset()
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : '保存失败，请检查网络或后端配置', 'info')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleAutoFill = () => {
@@ -96,14 +110,14 @@ function BankPaymentRegisterPage() {
       <div className="admin-workspace">
         <div className="admin-workspace__card">
           <p className="admin-workspace__card-desc" style={{ marginTop: 0 }}>
-            付款单字段录入（与银行企业网银导出对照）；可粘贴文本自动识别，当前不落库。
+            付款单字段录入（与银行企业网银导出对照）；可粘贴工行回单等文本自动识别，保存后写入服务端「银行流水表」台账。
           </p>
           <BankPasteAutoParseBlock
             pasteText={pasteText}
             onPasteTextChange={setPasteText}
             onAutoFill={handleAutoFill}
           />
-          <form onSubmit={handleSaveDraft}>
+          <form onSubmit={handleSubmit}>
             <section className="rec-bank-payment__section" style={{ marginBottom: 16 }}>
               <h3 className="rec-bank-payment__section-title">付款基础信息</h3>
               <div className="rec-bank-payment__grid">
@@ -240,8 +254,8 @@ function BankPaymentRegisterPage() {
               <button type="button" className="rec-btn rec-btn--ghost" onClick={handleReset}>
                 清空
               </button>
-              <button type="submit" className="rec-btn rec-btn--primary">
-                保存草稿（本地）
+              <button type="submit" className="rec-btn rec-btn--primary" disabled={saving}>
+                {saving ? '提交中…' : '提交保存'}
               </button>
             </div>
           </form>
