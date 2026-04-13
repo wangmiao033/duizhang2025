@@ -67,7 +67,9 @@ function ReconciliationPage({ variant = 'full' }) {
     handleRestoreFromHistory,
     handleExcelImport,
     restoreFullData,
-    statistics
+    statistics,
+    reconciliationApiEnabled,
+    refetchReconciliationFromApi
   } = recon
 
   useEffect(() => {
