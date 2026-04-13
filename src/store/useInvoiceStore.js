@@ -1,8 +1,16 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { STORAGE_KEYS, storageGet, storageSet } from '@/store/useAppStorage.js'
 import { parseInvoiceFromFilename } from '@/domain/invoice/invoiceParsers.js'
 import { filterInvoiceRecords } from '@/domain/invoice/invoiceFilters.js'
 import { buildInvoiceCsvContent } from '@/domain/export/exportAdapters.js'
+import {
+  listInvoiceRecords,
+  createInvoiceRecord,
+  updateInvoiceRecord as apiUpdateInvoiceRecord,
+  deleteInvoiceRecord as apiDeleteInvoiceRecord,
+  apiInvoiceRowToFrontend,
+  frontendInvoiceRecordToPayload
+} from '@/lib/api/invoice.ts'
 
 const defaultInvoiceForm = {
   title: '',
@@ -13,12 +21,23 @@ const defaultInvoiceForm = {
   remark: ''
 }
 
+function normalizeLocalInvoiceRecords(saved) {
+  return (saved || []).map((r) => ({
+    ...r,
+    id: r.id != null ? String(r.id) : String(Date.now()),
+    amount: r.amount != null ? String(r.amount) : '0.00',
+    verifiedRecordIds: Array.isArray(r.verifiedRecordIds) ? r.verifiedRecordIds.map(String) : [],
+    verified: Boolean(r.verified),
+    verifiedAmount:
+      r.verifiedAmount != null && r.verifiedAmount !== ''
+        ? parseFloat(String(r.verifiedAmount)) || 0
+        : 0
+  }))
+}
+
 export function useInvoiceStore({ showToast }) {
   const [invoiceForm, setInvoiceForm] = useState(defaultInvoiceForm)
-
-  const resetInvoiceForm = React.useCallback(() => {
-    setInvoiceForm({ ...defaultInvoiceForm })
-  }, [])
+  const [invoiceApiEnabled, setInvoiceApiEnabled] = useState(false)
   const [invoiceRecords, setInvoiceRecords] = useState([])
   const [invoiceFilter, setInvoiceFilter] = useState({ keyword: '', status: '全部' })
   const [showVerificationDialog, setShowVerificationDialog] = useState(false)
@@ -26,13 +45,43 @@ export function useInvoiceStore({ showToast }) {
   const [verificationRecordIds, setVerificationRecordIds] = useState([])
 
   const invoiceFileInputRef = React.useRef(null)
+  const showToastRef = useRef(showToast)
+  showToastRef.current = showToast
+
+  const resetInvoiceForm = React.useCallback(() => {
+    setInvoiceForm({ ...defaultInvoiceForm })
+  }, [])
+
+  const refetchInvoiceFromApi = useCallback(async () => {
+    const { items } = await listInvoiceRecords({ limit: 500, offset: 0 })
+    setInvoiceRecords(items.map(apiInvoiceRowToFrontend))
+  }, [])
 
   useEffect(() => {
-    const savedInvoices = storageGet(STORAGE_KEYS.INVOICE_RECORDS)
-    if (savedInvoices) {
-      setInvoiceRecords(savedInvoices)
+    let cancelled = false
+    ;(async () => {
+      try {
+        await refetchInvoiceFromApi()
+        if (cancelled) return
+        setInvoiceApiEnabled(true)
+      } catch (err) {
+        console.error(err)
+        if (cancelled) return
+        showToastRef.current?.(
+          '无法连接发票服务器，已使用本地缓存。请检查网络或 VITE_API_BASE_URL。',
+          'error'
+        )
+        const savedInvoices = storageGet(STORAGE_KEYS.INVOICE_RECORDS)
+        if (savedInvoices?.length) {
+          setInvoiceRecords(normalizeLocalInvoiceRecords(savedInvoices))
+        }
+        setInvoiceApiEnabled(false)
+      }
+    })()
+    return () => {
+      cancelled = true
     }
-  }, [])
+  }, [refetchInvoiceFromApi])
 
   useEffect(() => {
     storageSet(STORAGE_KEYS.INVOICE_RECORDS, invoiceRecords)
@@ -40,10 +89,10 @@ export function useInvoiceStore({ showToast }) {
 
   const filteredInvoices = filterInvoiceRecords(invoiceRecords, invoiceFilter)
 
-  /**
-   * 独立新增/编辑页提交：校验规则与历史 handleAddInvoice 一致；编辑时保留 verified / verifiedRecordIds
-   */
-  const submitInvoiceFromForm = (formData, { editId, resetFormAfterAdd = true } = {}) => {
+  const submitInvoiceFromForm = async (
+    formData,
+    { editId, resetFormAfterAdd = true } = {}
+  ) => {
     if (!formData.title) {
       showToast('请填写发票抬头', 'error')
       return false
@@ -53,15 +102,40 @@ export function useInvoiceStore({ showToast }) {
       return false
     }
     const amountStr = parseFloat(formData.amount || 0).toFixed(2)
+
     if (editId != null) {
-      setInvoiceRecords(
-        invoiceRecords.map((item) =>
-          item.id === editId
+      const sid = String(editId)
+      const existing = invoiceRecords.find((item) => String(item.id) === sid)
+      if (!existing) {
+        showToast('未找到要编辑的发票', 'error')
+        return false
+      }
+      if (invoiceApiEnabled) {
+        try {
+          const merged = {
+            ...existing,
+            ...formData,
+            amount: amountStr,
+            id: sid
+          }
+          await apiUpdateInvoiceRecord(sid, frontendInvoiceRecordToPayload(merged))
+          await refetchInvoiceFromApi()
+          showToast('发票记录已更新', 'success')
+          return true
+        } catch (e) {
+          console.error(e)
+          showToast('发票更新服务器失败', 'error')
+          return false
+        }
+      }
+      setInvoiceRecords((prev) =>
+        prev.map((item) =>
+          String(item.id) === sid
             ? {
                 ...item,
                 ...formData,
                 amount: amountStr,
-                id: editId
+                id: sid
               }
             : item
         )
@@ -69,12 +143,40 @@ export function useInvoiceStore({ showToast }) {
       showToast('发票记录已更新', 'success')
       return true
     }
+
+    if (invoiceApiEnabled) {
+      try {
+        await createInvoiceRecord(
+          frontendInvoiceRecordToPayload({
+            ...formData,
+            amount: amountStr,
+            verified: false,
+            verifiedRecordIds: [],
+            verifiedAmount: 0
+          })
+        )
+        await refetchInvoiceFromApi()
+        if (resetFormAfterAdd) {
+          setInvoiceForm({ ...defaultInvoiceForm })
+        }
+        showToast('发票记录已添加', 'success')
+        return true
+      } catch (e) {
+        console.error(e)
+        showToast('发票保存服务器失败', 'error')
+        return false
+      }
+    }
+
     const newItem = {
       ...formData,
-      id: Date.now(),
-      amount: amountStr
+      id: String(Date.now()),
+      amount: amountStr,
+      verified: false,
+      verifiedRecordIds: [],
+      verifiedAmount: 0
     }
-    setInvoiceRecords([newItem, ...invoiceRecords])
+    setInvoiceRecords((prev) => [newItem, ...prev])
     if (resetFormAfterAdd) {
       setInvoiceForm({ ...defaultInvoiceForm })
     }
@@ -84,42 +186,114 @@ export function useInvoiceStore({ showToast }) {
 
   const handleAddInvoice = (e) => {
     e.preventDefault()
-    submitInvoiceFromForm(invoiceForm, { resetFormAfterAdd: true })
+    void submitInvoiceFromForm(invoiceForm, { resetFormAfterAdd: true })
   }
 
-  const updateInvoiceRecord = React.useCallback((id, record) => {
-    setInvoiceRecords((prev) => prev.map((item) => (item.id === id ? { ...record, id } : item)))
-  }, [])
+  const updateInvoiceRecord = React.useCallback(
+    async (id, record) => {
+      const sid = String(id)
+      const merged = { ...record, id: sid }
+      if (invoiceApiEnabled) {
+        try {
+          await apiUpdateInvoiceRecord(sid, frontendInvoiceRecordToPayload(merged))
+          await refetchInvoiceFromApi()
+          showToast('发票记录已更新', 'success')
+        } catch (e) {
+          console.error(e)
+          showToast('发票记录更新服务器失败', 'error')
+        }
+        return
+      }
+      setInvoiceRecords((prev) =>
+        prev.map((item) => (String(item.id) === sid ? { ...merged, id: sid } : item))
+      )
+      showToast('发票记录已更新', 'success')
+    },
+    [invoiceApiEnabled, refetchInvoiceFromApi, showToast]
+  )
 
-  const handleDeleteInvoice = (id) => {
-    setInvoiceRecords(invoiceRecords.filter((item) => item.id !== id))
+  const handleDeleteInvoice = async (rawId) => {
+    const sid = String(rawId)
+    if (invoiceApiEnabled) {
+      try {
+        await apiDeleteInvoiceRecord(sid)
+        await refetchInvoiceFromApi()
+        showToast('发票记录已删除', 'success')
+      } catch (e) {
+        console.error(e)
+        showToast('从服务器删除发票失败', 'error')
+      }
+      return
+    }
+    setInvoiceRecords((prev) => prev.filter((item) => String(item.id) !== sid))
     showToast('发票记录已删除', 'success')
   }
 
   const handleOpenVerification = (invoice) => {
     setSelectedInvoiceForVerification(invoice)
-    setVerificationRecordIds(invoice.verifiedRecordIds || [])
+    setVerificationRecordIds(
+      Array.isArray(invoice.verifiedRecordIds)
+        ? invoice.verifiedRecordIds.map(String)
+        : []
+    )
     setShowVerificationDialog(true)
   }
 
-  const handleConfirmVerification = () => {
-    if (!selectedInvoiceForVerification) return
-    setInvoiceRecords(
-      invoiceRecords.map((item) =>
-        item.id === selectedInvoiceForVerification.id
-          ? {
-              ...item,
-              verifiedRecordIds: verificationRecordIds,
-              verified: verificationRecordIds.length > 0
-            }
-          : item
+  const handleConfirmVerification = React.useCallback(
+    (verifiedSettlementTotal = 0) => {
+      if (!selectedInvoiceForVerification) return
+      const invId = String(selectedInvoiceForVerification.id)
+      const ids = verificationRecordIds.map(String)
+      const amt = parseFloat(verifiedSettlementTotal) || 0
+      const next = {
+        ...selectedInvoiceForVerification,
+        verifiedRecordIds: ids,
+        verified: ids.length > 0,
+        verifiedAmount: amt
+      }
+
+      if (invoiceApiEnabled) {
+        void (async () => {
+          try {
+            await apiUpdateInvoiceRecord(invId, frontendInvoiceRecordToPayload(next))
+            await refetchInvoiceFromApi()
+            setShowVerificationDialog(false)
+            setSelectedInvoiceForVerification(null)
+            setVerificationRecordIds([])
+            showToast('核销成功', 'success')
+          } catch (e) {
+            console.error(e)
+            showToast('核销同步服务器失败', 'error')
+          }
+        })()
+        return
+      }
+
+      setInvoiceRecords((prev) =>
+        prev.map((item) =>
+          String(item.id) === invId
+            ? {
+                ...item,
+                verifiedRecordIds: ids,
+                verified: ids.length > 0,
+                verifiedAmount: amt
+              }
+            : item
+        )
       )
-    )
-    setShowVerificationDialog(false)
-    setSelectedInvoiceForVerification(null)
-    setVerificationRecordIds([])
-    showToast('核销成功', 'success')
-  }
+      setShowVerificationDialog(false)
+      setSelectedInvoiceForVerification(null)
+      setVerificationRecordIds([])
+      showToast('核销成功', 'success')
+    },
+    [
+      invoiceApiEnabled,
+      refetchInvoiceFromApi,
+      selectedInvoiceForVerification,
+      verificationRecordIds,
+      showToast
+    ]
+  )
 
   const handleCancelVerification = () => {
     setShowVerificationDialog(false)
@@ -181,24 +355,46 @@ export function useInvoiceStore({ showToast }) {
 
     const reader = new FileReader()
     reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target.result)
-        if (Array.isArray(data)) {
+      void (async () => {
+        try {
+          const data = JSON.parse(ev.target.result)
+          if (!Array.isArray(data)) {
+            showToast('文件格式不正确', 'error')
+            return
+          }
           const normalized = data.map((item) => ({
             ...item,
-            id: item.id || Date.now() + Math.random(),
+            id: item.id != null ? String(item.id) : String(Date.now() + Math.random()),
             amount: parseFloat(item.amount || 0).toFixed(2),
-            status: item.status || '未开'
+            status: item.status || '未开',
+            verified: Boolean(item.verified),
+            verifiedRecordIds: Array.isArray(item.verifiedRecordIds)
+              ? item.verifiedRecordIds.map(String)
+              : [],
+            verifiedAmount: parseFloat(item.verifiedAmount ?? item.verified_amount ?? 0) || 0
           }))
+
+          if (invoiceApiEnabled) {
+            try {
+              for (const row of normalized) {
+                await createInvoiceRecord(frontendInvoiceRecordToPayload(row))
+              }
+              await refetchInvoiceFromApi()
+              showToast('发票记录已导入', 'success')
+            } catch (err) {
+              console.error(err)
+              showToast('导入同步服务器失败', 'error')
+            }
+            return
+          }
+
           setInvoiceRecords(normalized)
           showToast('发票记录已导入', 'success')
-        } else {
-          showToast('文件格式不正确', 'error')
+        } catch (err) {
+          console.error(err)
+          showToast('导入失败，文件格式错误', 'error')
         }
-      } catch (err) {
-        console.error(err)
-        showToast('导入失败，文件格式错误', 'error')
-      }
+      })()
     }
     reader.readAsText(file)
     e.target.value = ''
@@ -213,6 +409,7 @@ export function useInvoiceStore({ showToast }) {
     invoiceFilter,
     setInvoiceFilter,
     filteredInvoices,
+    invoiceApiEnabled,
     showVerificationDialog,
     setShowVerificationDialog,
     selectedInvoiceForVerification,
@@ -229,6 +426,7 @@ export function useInvoiceStore({ showToast }) {
     handleExportInvoiceJSON,
     handleExportInvoiceCSV,
     handleImportInvoiceJSON,
-    parseInvoiceFromFilename
+    parseInvoiceFromFilename,
+    refetchInvoiceFromApi
   }
 }

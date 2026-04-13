@@ -1,7 +1,8 @@
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
 import InvoiceFormPageLayout from '@/components/invoice/InvoiceFormPageLayout.jsx'
 import InvoiceForm from '@/components/invoice/InvoiceForm.jsx'
+import { apiInvoiceRowToFrontend, getInvoiceRecord } from '@/lib/api/invoice.ts'
 import { VIEWS } from '@/app/routes.js'
 import '@/components/reconciliation/reconciliation-admin.css'
 import '@/components/invoice/invoice-admin.css'
@@ -14,11 +15,49 @@ function InvoiceEditPage() {
 
   const submitIntentRef = useRef('back')
   const [previewAmount, setPreviewAmount] = useState(0)
+  const [remoteRecord, setRemoteRecord] = useState(null)
+  const [remoteLoadState, setRemoteLoadState] = useState('idle')
 
-  const editRecord = useMemo(
-    () => (invoiceEditId != null ? invoiceRecords.find((r) => r.id === invoiceEditId) : null),
-    [invoiceRecords, invoiceEditId]
-  )
+  const recordFromList = useMemo(() => {
+    if (invoiceEditId == null || invoiceEditId === '') return null
+    return invoiceRecords.find((r) => String(r.id) === String(invoiceEditId)) ?? null
+  }, [invoiceRecords, invoiceEditId])
+
+  useEffect(() => {
+    if (invoiceEditId == null || invoiceEditId === '') {
+      setRemoteRecord(null)
+      setRemoteLoadState('idle')
+      return
+    }
+    if (recordFromList) {
+      setRemoteRecord(null)
+      setRemoteLoadState('idle')
+      return
+    }
+    const sid = String(invoiceEditId)
+    let cancelled = false
+    setRemoteLoadState('loading')
+    setRemoteRecord(null)
+    ;(async () => {
+      try {
+        const row = await getInvoiceRecord(sid)
+        if (cancelled) return
+        setRemoteRecord(apiInvoiceRowToFrontend(row))
+        setRemoteLoadState('idle')
+      } catch (e) {
+        console.error(e)
+        if (!cancelled) {
+          setRemoteRecord(null)
+          setRemoteLoadState('error')
+        }
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [invoiceEditId, recordFromList])
+
+  const editRecord = recordFromList ?? remoteRecord
 
   const goList = () => setActiveView(VIEWS.INVOICE_MANAGE)
 
@@ -44,6 +83,24 @@ function InvoiceEditPage() {
     )
   }
 
+  if (remoteLoadState === 'loading' && !editRecord) {
+    return (
+      <InvoiceFormPageLayout
+        toolsSlot={null}
+        previewAmount={0}
+        footerActions={
+          <button type="button" className="rec-btn rec-btn--primary" onClick={goList}>
+            返回列表
+          </button>
+        }
+      >
+        <div className="admin-workspace__card">
+          <p className="admin-workspace__card-desc">正在加载发票…</p>
+        </div>
+      </InvoiceFormPageLayout>
+    )
+  }
+
   if (!editRecord) {
     return (
       <InvoiceFormPageLayout
@@ -57,7 +114,11 @@ function InvoiceEditPage() {
       >
         <div className="admin-workspace__card">
           <h3 className="admin-workspace__card-title">未找到发票</h3>
-          <p className="admin-workspace__card-desc">数据可能已删除（id: {invoiceEditId}）。</p>
+          <p className="admin-workspace__card-desc">
+            {remoteLoadState === 'error'
+              ? '无法从服务器加载该记录，请检查网络或列表是否仍包含此发票。'
+              : `数据可能已删除（id: ${invoiceEditId}）。`}
+          </p>
         </div>
       </InvoiceFormPageLayout>
     )

@@ -275,16 +275,23 @@ function App() {
                     {recon.records.length === 0 ? (
                       <p className="no-records">暂无对账记录</p>
                     ) : (
-                      recon.records.map((record) => (
-                        <label key={record.id} className="record-checkbox-item">
+                      recon.records.map((record) => {
+                        const rid = String(record.id)
+                        const selected = verificationRecordIds.some((x) => String(x) === rid)
+                        return (
+                        <label key={rid} className="record-checkbox-item">
                           <input
                             type="checkbox"
-                            checked={verificationRecordIds.includes(record.id)}
+                            checked={selected}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                setVerificationRecordIds([...verificationRecordIds, record.id])
+                                setVerificationRecordIds(
+                                  selected ? verificationRecordIds : [...verificationRecordIds, rid]
+                                )
                               } else {
-                                setVerificationRecordIds(verificationRecordIds.filter((id) => id !== record.id))
+                                setVerificationRecordIds(
+                                  verificationRecordIds.filter((id) => String(id) !== rid)
+                                )
                               }
                             }}
                           />
@@ -297,7 +304,7 @@ function App() {
                             </strong>
                           </span>
                         </label>
-                      ))
+                      )})
                     )}
                   </div>
                   {verificationRecordIds.length > 0 && (
@@ -315,7 +322,11 @@ function App() {
               ''
             )
           }
-          onConfirm={handleConfirmVerification}
+          onConfirm={() =>
+            handleConfirmVerification(
+              sumVerifiedSettlementAmount(recon.records, verificationRecordIds)
+            )
+          }
           onCancel={handleCancelVerification}
           confirmText="确认核销"
           cancelText="取消"

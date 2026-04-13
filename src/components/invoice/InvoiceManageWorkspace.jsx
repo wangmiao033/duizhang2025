@@ -9,6 +9,7 @@ import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
 import InvoiceLightDrawer from '@/components/invoice/InvoiceLightDrawer.jsx'
 import '@/components/reconciliation/reconciliation-admin.css'
 import { sumVerifiedSettlementAmount } from '@/domain/invoice/invoiceVerification.js'
+import { getInvoiceRecordId } from '@/lib/api/invoice.ts'
 import { VIEWS } from '@/app/routes.js'
 
 /**
@@ -165,10 +166,11 @@ function InvoiceManageWorkspace({ variant = 'manage' }) {
               <span>操作</span>
             </div>
             {filteredInvoices.map((item) => {
+              const rid = getInvoiceRecordId(item) || item.id
               const verifiedRecordIds = item.verifiedRecordIds || []
               const verifiedAmount = sumVerifiedSettlementAmount(records, verifiedRecordIds)
               return (
-                <div className="invoice-table-row" key={item.id}>
+                <div className="invoice-table-row" key={rid}>
                   <span title={item.title}>{item.title || '-'}</span>
                   <span title={item.taxNo}>{item.taxNo || '-'}</span>
                   <span>¥{item.amount || '0.00'}</span>
@@ -192,7 +194,7 @@ function InvoiceManageWorkspace({ variant = 'manage' }) {
                       查看
                     </button>
                     {variant === 'manage' ? (
-                      <button type="button" className="edit-btn" onClick={() => openInvoiceEdit(item.id)}>
+                      <button type="button" className="edit-btn" onClick={() => openInvoiceEdit(rid)}>
                         编辑
                       </button>
                     ) : null}
@@ -200,7 +202,7 @@ function InvoiceManageWorkspace({ variant = 'manage' }) {
                       核销
                     </button>
                     {variant === 'manage' ? (
-                      <button type="button" className="delete-btn" onClick={() => handleDeleteInvoice(item.id)}>
+                      <button type="button" className="delete-btn" onClick={() => void handleDeleteInvoice(rid)}>
                         删除
                       </button>
                     ) : null}

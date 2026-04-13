@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { getInvoiceRecordId } from '@/lib/api/invoice.ts'
 
 const INVOICE_STATUSES = ['未开', '已开', '作废']
 
@@ -27,16 +28,18 @@ function InvoiceLightDrawer({ open, record, onClose, onUpdateRecord, onNavigateT
 
   if (!open || !record) return null
 
+  const recordId = getInvoiceRecordId(record)
+
   const saveRemark = () => {
     const next = remark.trim()
     if ((record.remark || '') === next) return
-    onUpdateRecord?.(record.id, { ...record, remark: next })
+    void onUpdateRecord?.(recordId, { ...record, remark: next })
   }
 
   const applyStatus = (nextStatus) => {
     setStatus(nextStatus)
     if ((record.status || '') === nextStatus) return
-    onUpdateRecord?.(record.id, { ...record, status: nextStatus })
+    void onUpdateRecord?.(recordId, { ...record, status: nextStatus })
   }
 
   return (
@@ -123,7 +126,7 @@ function InvoiceLightDrawer({ open, record, onClose, onUpdateRecord, onNavigateT
             type="button"
             className="rec-btn rec-btn--primary"
             onClick={() => {
-              onNavigateToFullEdit?.(record.id)
+              onNavigateToFullEdit?.(recordId)
               onClose()
             }}
           >

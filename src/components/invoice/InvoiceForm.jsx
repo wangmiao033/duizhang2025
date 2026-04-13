@@ -68,13 +68,13 @@ function InvoiceForm({
 
   const setField = (k, v) => setFormData((prev) => ({ ...prev, [k]: v }))
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const intent = submitIntentRef?.current ?? 'back'
     const editId = mode === 'edit' && sourceRecord ? sourceRecord.id : undefined
     const resetFormAfterAdd = mode === 'add' && intent !== 'continue'
 
-    const ok = submitInvoiceFromForm(formData, { editId, resetFormAfterAdd })
+    const ok = await submitInvoiceFromForm(formData, { editId, resetFormAfterAdd })
     if (!ok) return
 
     if (mode === 'add' && intent === 'continue') {

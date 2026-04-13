@@ -6,6 +6,12 @@ from app.schemas.channel import (
     ChannelRecordRead,
     ChannelRecordUpdate,
 )
+from app.schemas.invoice import (
+    InvoiceRecordCreate,
+    InvoiceRecordListResponse,
+    InvoiceRecordRead,
+    InvoiceRecordUpdate,
+)
 from app.schemas.reconciliation import (
     ReconciliationCreate,
     ReconciliationListResponse,
@@ -22,4 +28,8 @@ __all__ = [
     "ChannelRecordRead",
     "ChannelRecordUpdate",
     "ChannelRecordListResponse",
+    "InvoiceRecordCreate",
+    "InvoiceRecordRead",
+    "InvoiceRecordUpdate",
+    "InvoiceRecordListResponse",
 ]
