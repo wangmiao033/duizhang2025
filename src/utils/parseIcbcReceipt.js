@@ -86,42 +86,83 @@ function extractFuyanBlock(text) {
 }
 
 /**
- * 双栏：付款人户名 … 收款人户名 …
+ * 双栏：付款人户名 … 收款人户名 …（冒号可选、标签与值之间可无空格）
  * @param {string} line
  */
 function dualPayerPayeeNames(line) {
-  const r =
-    /付款人\s*户名\s+(.+?)\s+收款人\s*户名\s+(.+)$/i
-  const m = line.match(r)
-  if (m) return { payer: m[1].trim(), payee: m[2].trim() }
+  const patterns = [
+    /付款人\s*户名\s*[:：]?\s*(.+?)\s+收款人\s*户名\s*[:：]?\s*(.+)$/i,
+    /付款人\s*户名\s*[:：]?\s*(.+?)\s+收款单位\s*[:：]?\s*(.+)$/i,
+    /付款单位\s*[:：]?\s*(.+?)\s+收款单位\s*[:：]?\s*(.+)$/i
+  ]
+  for (const r of patterns) {
+    const m = line.match(r)
+    if (m) return { payer: m[1].trim(), payee: m[2].trim() }
+  }
   return null
 }
 
 function dualAccounts(line) {
-  const r =
-    /付款\s*账号\s+([\d\s\*\-]{6,})\s+收款\s*账号\s+([\d\s\*\-]{6,})/i
-  const m = line.match(r)
-  if (m)
-    return {
-      payer: m[1].replace(/\s/g, ''),
-      payee: m[2].replace(/\s/g, '')
-    }
-  const r2 = /付款人账号\s+([\d\s\*\-]{6,})\s+收款人账号\s+([\d\s\*\-]{6,})/i
-  const m2 = line.match(r2)
-  if (m2)
-    return {
-      payer: m2[1].replace(/\s/g, ''),
-      payee: m2[2].replace(/\s/g, '')
-    }
+  const normalizeAcc = (s) => String(s).replace(/\s/g, '')
+  const patterns = [
+    /付款\s*账号\s*[:：]?\s*([\d\s\*\-]{5,})\s+收款\s*账号\s*[:：]?\s*([\d\s\*\-]{5,})/i,
+    /付款人账号\s*[:：]?\s*([\d\s\*\-]{5,})\s+收款人账号\s*[:：]?\s*([\d\s\*\-]{5,})/i,
+    /账号\s*[:：]?\s*([\d\s\*\-]{5,})\s+账号\s*[:：]?\s*([\d\s\*\-]{5,})/i
+  ]
+  for (const r of patterns) {
+    const m = line.match(r)
+    if (m)
+      return {
+        payer: normalizeAcc(m[1]),
+        payee: normalizeAcc(m[2])
+      }
+  }
   return null
+}
+
+/**
+ * 单行：收款人户名 / 收款单位 / 账号
+ * @param {string} line
+ * @param {Record<string, string>} fields
+ */
+function applySingleLineIcbcFields(line, fields) {
+  const set = (k, v) => {
+    const t = String(v ?? '').trim()
+    if (!t) return
+    if (!fields[k]) fields[k] = t
+  }
+
+  let m = line.match(/^(?:收款人\s*户名|收款单位)\s*[:：]?\s*(.+)$/i)
+  if (m) set('payeeName', m[1])
+
+  m = line.match(/^付款人\s*户名\s*[:：]?\s*(.+)$/i)
+  if (m) set('payerName', m[1])
+
+  m = line.match(/^收款人账号\s*[:：]?\s*([\d\s\*\-]+)\s*$/i)
+  if (m) set('payeeAccount', m[1].replace(/\s/g, ''))
+
+  m = line.match(/^收款账号\s*[:：]?\s*([\d\s\*\-]+)\s*$/i)
+  if (m) set('payeeAccount', m[1].replace(/\s/g, ''))
+
+  m = line.match(/^付款人账号\s*[:：]?\s*([\d\s\*\-]+)\s*$/i)
+  if (m) set('payerAccount', m[1].replace(/\s/g, ''))
+
+  m = line.match(/^付款账号\s*[:：]?\s*([\d\s\*\-]+)\s*$/i)
+  if (m) set('payerAccount', m[1].replace(/\s/g, ''))
+
+  m = line.match(/^收款人开户(?:银行|行)?\s*[:：]?\s*(.+)$/i)
+  if (m) set('payeeBank', m[1].trim())
+
+  m = line.match(/^付款人开户(?:银行|行)?\s*[:：]?\s*(.+)$/i)
+  if (m) set('payerBank', m[1].trim())
 }
 
 function dualBanks(line) {
   const r =
-    /付款人开户(?:银行|行)?\s+(.+?)\s+收款人开户(?:银行|行)?\s+(.+)$/i
+    /付款人开户(?:银行|行)?\s*[:：]?\s*(.+?)\s+收款人开户(?:银行|行)?\s*[:：]?\s*(.+)$/i
   const m = line.match(r)
   if (m) return { payer: m[1].trim(), payee: m[2].trim() }
-  const r2 = /开户银行\s+(.+?)\s+开户银行\s+(.+)$/i
+  const r2 = /开户银行\s*[:：]?\s*(.+?)\s+开户银行\s*[:：]?\s*(.+)$/i
   const m2 = line.match(r2)
   if (m2) return { payer: m2[1].trim(), payee: m2[2].trim() }
   return null
@@ -178,6 +219,21 @@ function scanSingletons(text, fields) {
   if (!fields.payeeName) {
     pick(/收款人\s*户名\s*[：:]?\s*([^\n]+)/i, 'payeeName')
   }
+  if (!fields.payeeName) {
+    pick(/收款单位\s*[：:]?\s*([^\n]+)/i, 'payeeName')
+  }
+  if (!fields.payeeAccount) {
+    pick(/收款人账号\s*[：:]?\s*([\d\s\*\-]+)/i, 'payeeAccount')
+  }
+  if (!fields.payeeAccount) {
+    pick(/收款账号\s*[：:]?\s*([\d\s\*\-]+)/i, 'payeeAccount')
+  }
+  if (!fields.payerAccount) {
+    pick(/付款人账号\s*[：:]?\s*([\d\s\*\-]+)/i, 'payerAccount')
+  }
+  if (!fields.payerAccount) {
+    pick(/付款账号\s*[：:]?\s*([\d\s\*\-]+)/i, 'payerAccount')
+  }
 }
 
 /**
@@ -218,6 +274,7 @@ export function parseIcbcReceiptText(text) {
       fields.payerBank = bk.payer
       fields.payeeBank = bk.payee
     }
+    applySingleLineIcbcFields(line, fields)
   }
 
   scanSingletons(norm, fields)

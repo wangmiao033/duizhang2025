@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   formatIcbcTimestamp,
+  icbcToPaymentFormPatch,
   icbcToReceiptExtracted,
   normalizeIcbcText,
   parseIcbcReceiptText,
@@ -53,5 +54,28 @@ describe('parseIcbcReceiptText', () => {
     expect(ex.payeeName).toBeTruthy()
     expect(ex.genericAmount).toBe('22557.99')
     expect(ex.expenseAmount).toBe('22557.99')
+  })
+
+  it('fills payee_company and payee_account for Longhun sample (dual + no space)', () => {
+    const text = `中国工商银行电子回单
+付款人户名 A公司 收款人户名 深圳龙魂网络科技有限公司
+付款账号6222000011112222 收款账号755951140310501
+付款人开户银行 工行某支行 收款人开户银行 招商银行股份有限公司深圳南海支行`
+    const r = parseIcbcReceiptText(text)
+    expect(r.fields.payeeName).toBe('深圳龙魂网络科技有限公司')
+    expect(r.fields.payeeAccount).toBe('755951140310501')
+    expect(r.fields.payeeBank).toContain('招商银行')
+    const p = icbcToPaymentFormPatch(r)
+    expect(p.payee_company).toBe('深圳龙魂网络科技有限公司')
+    expect(p.payee_account).toBe('755951140310501')
+    expect(p.payee_bank_name).toContain('招商银行')
+  })
+
+  it('single line收款单位 / 收款账号', () => {
+    const text = `收款单位 深圳龙魂网络科技有限公司
+收款账号755951140310501`
+    const r = parseIcbcReceiptText(text)
+    expect(r.fields.payeeName).toContain('深圳龙魂')
+    expect(r.fields.payeeAccount).toBe('755951140310501')
   })
 })
