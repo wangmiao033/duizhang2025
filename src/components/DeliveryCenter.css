@@ -254,7 +254,7 @@
 .delivery-table tbody td {
   padding: var(--admin-table-td-py, 8px) var(--admin-table-td-px, 10px);
   color: var(--admin-text-main);
-  font-size: var(--admin-table-font-size, 13px);
+  font-size: var(--admin-table-font-size);
   border-bottom: 1px solid var(--admin-border-soft);
 }
 

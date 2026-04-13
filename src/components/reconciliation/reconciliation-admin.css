@@ -15,7 +15,7 @@
   min-width: 0;
   width: 100%;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: var(--font-size-body);
 }
 
 .rec-page-header {
@@ -38,17 +38,19 @@
 
 .rec-page-header__title {
   margin: 0;
-  font-size: 24px;
-  font-weight: 650;
+  font-size: var(--font-size-page-title);
+  font-weight: var(--font-weight-page-title);
   color: #0f172a;
   letter-spacing: -0.02em;
+  line-height: var(--line-height-title);
 }
 
 .rec-page-header__desc {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-body);
   color: #64748b;
-  line-height: 1.4;
+  line-height: var(--line-height-caption);
 }
 
 [data-theme='dark'] .rec-page-header__title {
@@ -119,7 +121,7 @@
 }
 
 .reconciliation-rd__search .search-input {
-  font-size: 13px;
+  font-size: var(--font-size-button);
 }
 
 .reconciliation-rd__filter-actions {
@@ -197,19 +199,20 @@
 }
 
 .rec-toolbar__batch-label {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-body);
   color: #64748b;
 }
 
 .rec-toolbar__excel .excel-import button,
 .rec-toolbar .bill-export .bill-export-btn {
-  font-size: 13px;
+  font-size: var(--font-size-button);
   padding: 8px 14px;
   border-radius: 8px;
   border: 1px solid #cbd5e1;
   background: #fff;
   color: #334155;
-  font-weight: 500;
+  font-weight: var(--font-weight-button);
 }
 
 .rec-toolbar .bill-export .bill-export-btn:not(.disabled):hover,
@@ -255,7 +258,8 @@
 .rec-more-menu__block .backup-btn {
   width: 100%;
   justify-content: center;
-  font-size: 13px;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-button);
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   background: #f8fafc;
@@ -320,7 +324,8 @@
 }
 
 .reconciliation-rd__table-card .data-table--compact {
-  font-size: 13px;
+  font-size: var(--font-size-button);
+  line-height: var(--line-height-table-cell);
 }
 
 .rec-drawer-backdrop {
@@ -384,8 +389,9 @@
 }
 
 .rec-drawer__body .data-form--drawer .section-title {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-section-title);
+  line-height: var(--line-height-section);
   color: #475569;
   margin-bottom: 8px;
 }
@@ -404,14 +410,17 @@
 }
 
 .rec-drawer__preview-label {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-body);
   color: #64748b;
+  line-height: var(--line-height-caption);
   display: block;
 }
 
 .rec-drawer__preview-value {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: var(--font-size-section-title);
+  font-weight: var(--font-weight-section-title);
+  line-height: var(--line-height-section);
   color: var(--admin-primary);
 }
 
@@ -429,7 +438,8 @@
 .reconciliation-rd .export-filtered-btn,
 .reconciliation-rd .export-selected-btn {
   /*旧类名若仍被使用，与 rec-btn 统一 */
-  font-size: 13px;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-button);
   padding: 8px 14px;
   border-radius: 8px;
 }
@@ -492,12 +502,15 @@
 
 .rec-stats-cards--compact .rec-stat-card__label {
   margin-bottom: 2px;
-  font-size: 11px;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-body);
   white-space: nowrap;
 }
 
 .rec-stats-cards--compact .rec-stat-card__value {
-  font-size: 14px;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-body);
+  line-height: var(--line-height-body);
 }
 
 .rec-stats-cards--compact .rec-stat-card__sub {
@@ -514,7 +527,9 @@
   flex: 1 1 auto;
   min-height: 0;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-body);
+  line-height: var(--line-height-body);
 }
 
 .admin-workspace__card {
@@ -527,16 +542,17 @@
 
 .admin-workspace__card-title {
   margin: 0 0 12px;
-  font-size: 16px;
-  font-weight: 650;
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-card-title);
   color: #0f172a;
 }
 
 .admin-workspace__card-desc {
   margin: -6px 0 14px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-body);
   color: #64748b;
-  line-height: 1.5;
+  line-height: var(--line-height-body);
 }
 
 .page-container--admin-workspace {
@@ -626,8 +642,8 @@
 .delivery-table .delete-btn {
   min-height: var(--admin-table-action-btn-h, 32px);
   padding: 0 var(--admin-table-action-pad-x, 12px);
-  font-size: var(--admin-table-font-size, 13px);
-  font-weight: 600;
+  font-size: var(--admin-font-button);
+  font-weight: var(--font-weight-button);
   border-radius: var(--admin-radius-sm, 8px);
   margin: 0;
   box-shadow: none;
@@ -689,15 +705,19 @@
 }
 
 .settlement-workbench__meta-label {
-  font-size: 12px;
+  font-size: var(--font-size-table-header);
   color: var(--admin-text-muted, #94a3b8);
-  font-weight: 500;
+  font-weight: var(--font-weight-table-header);
+  line-height: var(--line-height-caption);
 }
 
 .settlement-workbench__meta-value {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-menu);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   color: var(--admin-text-main, #0f172a);
+  line-height: var(--line-height-table-cell);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -715,8 +735,9 @@
 .settlement-workbench__hint {
   margin: 0;
   flex: 1 1 200px;
-  font-size: 12px;
-  line-height: 1.4;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-body);
+  line-height: var(--line-height-caption);
   min-width: 0;
 }
 
@@ -731,7 +752,9 @@
 }
 
 .settlement-saved-bills-card__sub {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-body);
+  line-height: var(--line-height-caption);
   flex: 1 1 200px;
   min-width: 0;
 }
@@ -753,17 +776,18 @@
 }
 
 .exception-hub20__empty-title {
-  font-size: 15px;
-  font-weight: 650;
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-card-title);
   color: var(--admin-text-primary, #0f172a);
   margin: 0 0 6px;
 }
 
 .exception-hub20__empty-desc {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-body);
   color: var(--admin-text-secondary, #64748b);
-  line-height: 1.5;
+  line-height: var(--line-height-body);
 }
 
 .exception-hub20__toolbar {
@@ -774,8 +798,8 @@
 }
 
 .exception-hub20__toolbar-label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--font-size-table-header);
+  font-weight: var(--font-weight-table-header);
   color: var(--admin-text-tertiary, #94a3b8);
 }
 
@@ -790,8 +814,8 @@
   background: var(--admin-card-bg, #fff);
   border-radius: 8px;
   padding: 5px 10px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--font-size-table-header);
+  font-weight: var(--font-weight-button);
   color: var(--admin-text-secondary, #475569);
   cursor: pointer;
   transition:
@@ -810,15 +834,16 @@
 }
 
 .exception-hub20__none {
-  font-size: 13px;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-body);
   color: var(--admin-text-secondary, #64748b);
   padding: 8px 0;
 }
 
 .exception-hub20__group-title {
   margin: 0 0 8px;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-menu);
   letter-spacing: 0.04em;
   text-transform: none;
   color: var(--admin-text-tertiary, #94a3b8);
@@ -828,8 +853,8 @@
 }
 
 .exception-hub20__group-count {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-menu);
   color: var(--admin-text-secondary, #64748b);
   background: var(--admin-bg-soft, #f1f5f9);
   border-radius: 999px;
@@ -866,11 +891,11 @@
 
 .exception-hub20__badge {
   flex-shrink: 0;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-menu);
   padding: 2px 8px;
   border-radius: 6px;
-  line-height: 1.4;
+  line-height: var(--line-height-caption);
 }
 
 .exception-hub20__badge--error {
@@ -893,22 +918,26 @@
 }
 
 .exception-hub20__row-title {
-  font-size: 14px;
-  font-weight: 650;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-menu);
   color: var(--admin-text-primary, #0f172a);
   margin-bottom: 4px;
 }
 
 .exception-hub20__row-desc {
-  font-size: 13px;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-body);
   color: var(--admin-text-secondary, #64748b);
-  line-height: 1.45;
+  line-height: var(--line-height-caption);
 }
 
 .exception-hub20__row-meta {
   margin-top: 6px;
-  font-size: 11px;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-body);
+  font-family: var(--font-mono);
   color: var(--admin-text-tertiary, #94a3b8);
+  line-height: var(--line-height-caption);
 }
 
 .exception-hub20__row-actions {
@@ -921,7 +950,7 @@
 
 .exception-hub20__row-actions .rec-btn--sm {
   padding: 4px 10px;
-  font-size: 12px;
+  font-size: var(--font-size-table-header);
   min-height: 28px;
 }
 

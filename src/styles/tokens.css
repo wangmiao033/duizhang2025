@@ -1,9 +1,39 @@
 /**
- * 全局设计 Token — 颜色、圆角、阴影、间距、字体栈
- * 业务样式优先使用 admin-tokens 中的 --admin-* 别名（已映射到本文件变量）
+ * 全局设计 Token — 颜色、圆角、阴影、间距、字体（全站统一入口）
  */
 :root {
+  /* 字体栈：与 index.html / body 一致 */
   --font-sans: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+
+  /* 字号层级 */
+  --font-size-page-title: 24px;
+  --font-size-section-title: 18px;
+  --font-size-card-title: 16px;
+  --font-size-body: 14px;
+  --font-size-caption: 12px;
+  --font-size-small: 11px;
+  --font-size-button: 13px;
+  --font-size-table-header: 12px;
+  --font-size-stat-value: 20px;
+  /* 空态/装饰性图标字形（如 emoji），避免各处手写 22px */
+  --font-size-empty-icon: 22px;
+
+  /* 字重 */
+  --font-weight-page-title: 600;
+  --font-weight-section-title: 600;
+  --font-weight-card-title: 600;
+  --font-weight-menu: 500;
+  --font-weight-body: 400;
+  --font-weight-table-header: 500;
+  --font-weight-button: 500;
+
+  /* 行高 */
+  --line-height-title: 1.25;
+  --line-height-section: 1.3;
+  --line-height-body: 1.5;
+  --line-height-caption: 1.4;
+  --line-height-table-cell: 1.4;
 
   --bg-main: #f5f7fb;
   --bg-card: #ffffff;
@@ -37,7 +67,4 @@
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
-
-  /* 等宽数字/代码展示（与 UI 字体栈分离） */
-  --font-mono: ui-monospace, 'Cascadia Code', 'Courier New', monospace;
 }

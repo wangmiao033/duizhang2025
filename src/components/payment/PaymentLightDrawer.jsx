@@ -160,7 +160,7 @@ function PaymentLightDrawer({
         <style>{`
           .rec-light-link-list { margin: 0; padding-left: 18px; list-style: disc; }
           .rec-light-link-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
-          .rec-btn--xs { min-height: 26px; padding: 2px 8px; font-size: 12px; }
+          .rec-btn--xs { min-height: 26px; padding: 2px 8px; font-size: var(--font-size-caption); font-weight: var(--font-weight-button); }
         `}</style>
 
         <div className="rec-drawer__footer rec-drawer__footer--light">

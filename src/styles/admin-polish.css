@@ -12,9 +12,9 @@
   gap: 6px;
   min-height: var(--admin-btn-h);
   padding: 0 14px;
-  font-size: var(--admin-font-base);
-  font-weight: 500;
-  line-height: 1.25;
+  font-size: var(--admin-font-button);
+  font-weight: var(--font-weight-button);
+  line-height: var(--line-height-title);
   border-radius: var(--admin-radius-sm);
   box-sizing: border-box;
   cursor: pointer;
@@ -132,9 +132,9 @@
 .app .rec-drawer__title {
   margin: 0;
   font-size: var(--admin-font-title);
-  font-weight: 650;
+  font-weight: var(--font-weight-section-title);
   color: var(--admin-text-main);
-  line-height: 1.3;
+  line-height: var(--line-height-section);
 }
 
 .app .rec-drawer__close {
@@ -143,7 +143,7 @@
   width: var(--admin-btn-h);
   height: var(--admin-btn-h);
   border-radius: var(--admin-radius-sm);
-  font-size: 18px;
+  font-size: var(--font-size-section-title);
   line-height: 1;
   cursor: pointer;
   color: var(--admin-text-sub);
@@ -166,7 +166,7 @@
 
 .app .rec-drawer__preview-value {
   font-size: var(--admin-font-title);
-  font-weight: 700;
+  font-weight: var(--font-weight-section-title);
   color: var(--admin-primary);
 }
 
@@ -208,7 +208,9 @@
 
 .app .rec-light-dl__emph {
   color: var(--admin-primary);
-  font-weight: 650;
+  font-weight: var(--font-weight-section-title);
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
 }
 
 .app .rec-light-field {
@@ -222,7 +224,7 @@
 .app .rec-light-field__label {
   display: block;
   font-size: var(--admin-font-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-table-header);
   color: var(--admin-text-sub);
   margin-bottom: 6px;
 }
@@ -281,9 +283,11 @@
 }
 
 .app .rec-create-footer__preview-value {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: var(--admin-font-title);
+  font-weight: var(--font-weight-section-title);
   color: var(--admin-primary);
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
 }
 
 /* —— BillManager 保存弹窗按钮与全站一致 —— */

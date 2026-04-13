@@ -20,9 +20,9 @@
 .page-container-title {
   margin: 0;
   font-size: var(--admin-font-page);
-  font-weight: 600;
+  font-weight: var(--font-weight-page-title);
   color: var(--admin-text-main);
-  line-height: 1.3;
+  line-height: var(--line-height-section);
   letter-spacing: -0.02em;
 }
 
@@ -33,8 +33,9 @@
 .page-container-desc {
   margin: var(--space-2) 0 0;
   font-size: var(--admin-font-base);
+  font-weight: var(--font-weight-body);
   color: var(--admin-text-sub);
-  line-height: 1.45;
+  line-height: var(--line-height-caption);
 }
 
 .page-container-actions {

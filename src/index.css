@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 @import './styles/admin-tokens.css';
 @import './styles/admin-layout.css';
 @import './styles/theme.css';
@@ -9,7 +9,11 @@
   box-sizing: border-box;
 }
 
-html,
+html {
+  font-family: var(--font-sans);
+  height: 100%;
+}
+
 body {
   height: 100%;
 }
@@ -23,6 +27,9 @@ body {
 
 body {
   font-family: var(--font-sans);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-body);
+  line-height: var(--line-height-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: var(--admin-page-bg);
@@ -40,8 +47,10 @@ body {
   background: var(--admin-page-bg);
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
 }
 

@@ -68,7 +68,8 @@
 .game-presets .close-btn {
   background: none;
   border: none;
-  font-size: 22px;
+  font-size: var(--font-size-stat-value);
+  line-height: 1;
   color: var(--admin-text-muted);
   cursor: pointer;
   padding: 0;

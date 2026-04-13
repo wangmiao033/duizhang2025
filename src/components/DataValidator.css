@@ -223,7 +223,7 @@
   padding: 4px 10px;
   border-radius: 12px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -247,7 +247,7 @@
 }
 
 .issue-record {
-  font-weight: 700;
+  font-weight: 600;
   color: inherit;
   cursor: pointer;
   text-decoration: underline;

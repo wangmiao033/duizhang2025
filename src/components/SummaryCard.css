@@ -56,7 +56,8 @@
   color: var(--admin-text-sub);
   font-size: var(--admin-stat-label-size);
   margin: 0 0 var(--space-1);
-  font-weight: 500;
+  font-weight: var(--font-weight-table-header);
+  line-height: var(--line-height-caption);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -66,12 +67,14 @@
   color: var(--admin-text-main);
   font-size: var(--admin-stat-value-size);
   font-weight: var(--admin-stat-value-weight);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   margin: 0;
   letter-spacing: -0.02em;
   word-break: break-all;
-  line-height: 1.25;
+  line-height: var(--line-height-title);
 }
 
 .card-value.long-value {
-  font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+  font-size: clamp(14px, 2.5vw, var(--font-size-card-title));
 }

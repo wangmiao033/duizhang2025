@@ -1,5 +1,5 @@
 .operation-history-view {
-  font-size: 14px;
+  font-size: var(--font-size-body);
 }
 
 .operation-history-view__toolbar {
@@ -18,9 +18,9 @@
 }
 
 .operation-history-view__field label {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--admin-text-muted);
-  font-weight: 500;
+  font-weight: var(--font-weight-table-header);
 }
 
 .operation-history-view__field input,
@@ -28,7 +28,7 @@
   padding: 8px 10px;
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-sm);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   background: var(--admin-card-bg);
   color: var(--admin-text-main);
 }
@@ -52,7 +52,8 @@
 .operation-history-view__table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--font-size-button);
+  line-height: var(--line-height-table-cell);
 }
 
 .operation-history-view__table th,
@@ -65,7 +66,8 @@
 .operation-history-view__table th {
   background: var(--admin-elevated-bg);
   color: var(--admin-text-sub);
-  font-weight: 500;
+  font-size: var(--font-size-table-header);
+  font-weight: var(--font-weight-table-header);
 }
 
 .operation-history-view__table tr:last-child td {
@@ -73,11 +75,11 @@
 }
 
 .oh-btn {
-  font-size: 13px;
+  font-size: var(--font-size-button);
   padding: 8px 14px;
   border-radius: var(--admin-radius-sm);
   cursor: pointer;
-  font-weight: 500;
+  font-weight: var(--font-weight-button);
   border: 1px solid transparent;
   transition:
     background 0.15s ease,
@@ -86,7 +88,7 @@
 
 .oh-btn--sm {
   padding: 6px 10px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
 }
 
 .oh-btn--primary {

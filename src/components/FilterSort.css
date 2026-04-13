@@ -176,14 +176,14 @@
 }
 
 .filter-sort--inline label {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: #64748b;
-  font-weight: 500;
+  font-weight: var(--font-weight-table-header);
 }
 
 .filter-sort--inline input,
 .filter-sort--inline select {
-  font-size: 13px;
+  font-size: var(--font-size-button);
   padding: 6px 10px;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -195,7 +195,7 @@
 }
 
 .filter-sort--inline .filter-inline-reset {
-  font-size: 13px;
+  font-size: var(--font-size-button);
   padding: 8px 12px;
   border-radius: 8px;
   border: 1px solid #cbd5e1;

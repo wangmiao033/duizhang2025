@@ -7,8 +7,8 @@
 /* 结算工作台等场景：紧凑工具栏按钮，不改变导出逻辑 */
 .bill-export--toolbar .bill-export-btn {
   padding: 7px 14px;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-button);
   border-radius: var(--admin-radius-sm, 8px);
   box-shadow: var(--admin-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.06));
 }

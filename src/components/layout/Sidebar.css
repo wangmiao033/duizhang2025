@@ -60,10 +60,11 @@
 
 .sidebar-brand__subtitle {
   margin-top: 2px;
-  font-size: 11px;
-  font-weight: 400;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-body);
   color: var(--admin-text-tertiary);
   letter-spacing: 0.02em;
+  line-height: var(--line-height-caption);
 }
 
 /* 品牌区下方：常用入口 / 最近访问（沿用分组标题与 sidebar-item 视觉） */
@@ -79,11 +80,11 @@
 .sidebar-group-title--static {
   padding: 12px 16px 6px;
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-small);
   color: var(--admin-text-tertiary);
   letter-spacing: 0.04em;
-  font-weight: 500;
-  line-height: 1.25;
+  font-weight: var(--font-weight-menu);
+  line-height: var(--line-height-title);
 }
 
 .sidebar-sub-list--shortcuts {
@@ -161,8 +162,8 @@
   padding: 2px 6px;
   border: none;
   border-radius: 6px;
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-menu);
   color: var(--admin-text-tertiary);
   background: transparent;
   cursor: pointer;
@@ -220,14 +221,14 @@
 
 /* 分组标题：弱化，区别于菜单项 */
 .sidebar-group-title {
-  font-size: 11px;
+  font-size: var(--font-size-small);
   color: var(--admin-text-tertiary);
   padding: 18px 16px 6px;
   margin: 0;
   letter-spacing: 0.04em;
-  font-weight: 500;
+  font-weight: var(--font-weight-menu);
   text-align: left;
-  line-height: 1.25;
+  line-height: var(--line-height-title);
   flex: 1;
   min-width: 0;
 }
@@ -284,7 +285,8 @@
   margin: 2px 8px;
   padding: 0 14px;
   font-size: var(--admin-font-base);
-  font-weight: 400;
+  font-weight: var(--font-weight-menu);
+  line-height: var(--line-height-caption);
   color: var(--admin-text-secondary);
   background: transparent;
   cursor: pointer;
@@ -334,7 +336,7 @@
 .sidebar-item.active {
   background: var(--admin-primary-muted);
   color: var(--admin-primary);
-  font-weight: 600;
+  font-weight: var(--font-weight-section-title);
 }
 
 .sidebar-item.active .sidebar-item-icon {

@@ -12,7 +12,8 @@
   margin: 0 0 var(--admin-space-sm);
   color: var(--admin-text-main);
   font-size: var(--admin-font-title);
-  font-weight: 600;
+  font-weight: var(--font-weight-section-title);
+  line-height: var(--line-height-section);
   border: none;
   padding: 0;
 }
@@ -29,7 +30,8 @@
   margin: 0;
   color: var(--admin-text-main);
   font-size: var(--admin-font-title);
-  font-weight: 600;
+  font-weight: var(--font-weight-section-title);
+  line-height: var(--line-height-section);
 }
 
 .toggle-more-btn {

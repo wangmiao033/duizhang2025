@@ -17,7 +17,8 @@
 
 .settlement-number-cell {
   font-family: var(--font-mono);
-  font-weight: 600;
+  font-weight: var(--font-weight-menu);
+  font-variant-numeric: tabular-nums;
   color: var(--admin-primary);
   font-size: var(--admin-font-sm);
   white-space: nowrap;
@@ -35,7 +36,8 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-body);
   color: #6c757d;
   border-bottom: 3px solid transparent;
   transition: all 0.3s;
@@ -48,7 +50,7 @@
 .table-tabs button.active {
   color: var(--admin-primary);
   border-bottom-color: var(--admin-primary);
-  font-weight: 600;
+  font-weight: var(--font-weight-section-title);
 }
 
 .table-content {
@@ -119,11 +121,12 @@ thead {
 thead th {
   padding: var(--admin-table-th-py, 9px) var(--admin-table-th-px, 10px);
   text-align: left;
-  font-weight: 500;
-  font-size: var(--admin-font-sm);
+  font-weight: var(--font-weight-table-header);
+  font-size: var(--admin-table-th-font-size);
   letter-spacing: 0.02em;
   text-transform: none;
   white-space: nowrap;
+  line-height: var(--line-height-table-cell);
 }
 
 thead th.sortable-header {
@@ -139,10 +142,10 @@ thead th.sortable-header:hover {
 thead th.sortable-header .sort-icon {
   display: inline-block;
   margin-left: 6px;
-  font-size: 0.9rem;
+  font-size: var(--font-size-caption);
   vertical-align: middle;
   transition: opacity 0.2s;
-  font-weight: bold;
+  font-weight: var(--font-weight-menu);
 }
 
 thead th.sortable-header:hover .sort-icon {
@@ -162,7 +165,9 @@ tbody tr:hover {
 tbody td {
   padding: var(--admin-table-td-py, 8px) var(--admin-table-td-px, 10px);
   color: var(--admin-text-main);
-  font-size: var(--admin-table-font-size, 13px);
+  font-size: var(--admin-table-font-size);
+  font-weight: var(--font-weight-body);
+  line-height: var(--line-height-table-cell);
   vertical-align: middle;
   white-space: nowrap;
   border-bottom: 1px solid var(--admin-border-soft);
@@ -176,7 +181,9 @@ tbody td {
 }
 
 .amount-cell {
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-menu);
   color: var(--admin-success);
   text-align: right;
 }
@@ -184,8 +191,8 @@ tbody td {
 .type-badge {
   padding: 4px 12px;
   border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-menu);
 }
 
 .type-badge.income {
@@ -392,14 +399,14 @@ tbody td {
 .partner-detail-table th {
   padding: var(--admin-table-th-py, 9px) var(--admin-table-th-px, 10px);
   text-align: left;
-  font-size: var(--admin-table-font-size, 13px);
+  font-size: var(--admin-table-font-size);
   font-weight: 600;
 }
 
 .partner-detail-table td {
   padding: var(--admin-table-td-py, 8px) var(--admin-table-td-px, 10px);
   border-bottom: 1px solid #f1f5f9;
-  font-size: var(--admin-table-font-size, 13px);
+  font-size: var(--admin-table-font-size);
 }
 
 .partner-detail-table tbody tr:hover {
@@ -416,7 +423,7 @@ tbody td {
 }
 
 .total-label {
-  font-weight: 700;
+  font-weight: 600;
   color: #1e293b;
 }
 
@@ -484,7 +491,7 @@ tbody td {
   border: 1px solid transparent;
   border-radius: var(--admin-radius-sm, 8px);
   cursor: pointer;
-  font-size: var(--admin-table-font-size, 13px);
+  font-size: var(--admin-table-font-size);
   font-weight: 600;
   transition:
     background 0.15s ease,
@@ -534,7 +541,7 @@ tbody td {
 
 .settlement-amount {
   color: #007bff !important;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .total-row {

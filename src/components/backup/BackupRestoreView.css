@@ -1,5 +1,5 @@
 .backup-restore-view {
-  font-size: 14px;
+  font-size: var(--font-size-body);
 }
 
 .backup-restore-view__section {
@@ -12,16 +12,18 @@
 
 .backup-restore-view__heading {
   margin: 0 0 8px;
-  font-size: 16px;
-  font-weight: 650;
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-card-title);
+  line-height: var(--line-height-section);
   color: #0f172a;
 }
 
 .backup-restore-view__hint {
   margin: 0 0 16px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-body);
   color: #64748b;
-  line-height: 1.5;
+  line-height: var(--line-height-body);
 }
 
 .backup-restore-view .data-backup .backup-buttons {
@@ -30,6 +32,7 @@
 }
 
 .backup-restore-view .data-backup .backup-btn {
-  font-size: 13px;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-button);
   border-radius: 8px;
 }

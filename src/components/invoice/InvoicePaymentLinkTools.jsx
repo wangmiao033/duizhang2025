@@ -224,17 +224,17 @@ function InvoicePaymentLinkTools({
         .ip-link-modal { position: fixed; inset: 0; z-index: 10050; display: flex; align-items: center; justify-content: center; pointer-events: none; }
         .ip-link-modal__panel { pointer-events: auto; background: var(--admin-card-bg, #fff); border: 1px solid var(--admin-border-soft, #e5e7eb); border-radius: var(--admin-radius, 12px); padding: 20px; max-width: 520px; width: 92%; box-shadow: var(--admin-shadow-md, 0 8px 24px rgba(0,0,0,.12)); }
         .ip-link-modal--wide .ip-link-modal__panel { max-width: 900px; }
-        .ip-link-modal__panel h3 { margin: 0 0 12px; font-size: 16px; color: var(--admin-text-main, #111); }
-        .ip-link-modal__hint { margin: 0 0 12px; font-size: 13px; color: var(--admin-text-muted, #6b7280); }
+        .ip-link-modal__panel h3 { margin: 0 0 12px; font-size: var(--font-size-card-title); font-weight: var(--font-weight-card-title); line-height: var(--line-height-section); color: var(--admin-text-main, #111); }
+        .ip-link-modal__hint { margin: 0 0 12px; font-size: var(--font-size-button); font-weight: var(--font-weight-body); line-height: var(--line-height-caption); color: var(--admin-text-muted, #6b7280); }
         .ip-link-modal__field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-        .ip-link-modal__field span { font-size: 12px; color: var(--admin-text-sub, #6b7280); }
+        .ip-link-modal__field span { font-size: var(--font-size-caption); font-weight: var(--font-weight-body); color: var(--admin-text-sub, #6b7280); }
         .ip-link-modal__actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
         .ip-link-modal__table-wrap { overflow: auto; max-height: 50vh; border: 1px solid var(--admin-border-soft, #e5e7eb); border-radius: 8px; }
-        .ip-link-modal__table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .ip-link-modal__table { width: 100%; border-collapse: collapse; font-size: var(--font-size-button); line-height: var(--line-height-table-cell); }
         .ip-link-modal__table th, .ip-link-modal__table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--admin-border-soft, #eee); }
-        .ip-link-modal__table th { background: var(--admin-elevated-bg, #f9fafb); font-weight: 500; }
+        .ip-link-modal__table th { background: var(--admin-elevated-bg, #f9fafb); font-size: var(--font-size-table-header); font-weight: var(--font-weight-table-header); }
         .ip-link-modal__scores { font-variant-numeric: tabular-nums; color: var(--admin-text-muted, #6b7280); white-space: nowrap; }
-        .rec-btn--sm { padding: 4px 10px; font-size: 12px; min-height: 28px; }
+        .rec-btn--sm { padding: 4px 10px; font-size: var(--font-size-caption); font-weight: var(--font-weight-button); min-height: 28px; }
       `}</style>
     </>
   )

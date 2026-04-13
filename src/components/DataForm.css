@@ -276,7 +276,7 @@
 
 .preview-amount {
   font-size: 1.4rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.5px;
 }
 
@@ -306,8 +306,9 @@
 }
 
 .data-form--create-page .section-title {
-  font-size: 16px;
-  font-weight: 650;
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-card-title);
+  line-height: var(--line-height-section);
   color: var(--admin-text-main);
   margin-bottom: 12px;
 }

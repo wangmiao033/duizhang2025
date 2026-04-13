@@ -437,7 +437,7 @@
 
 .channel-table td {
   padding: var(--admin-table-td-py, 8px) var(--admin-table-td-px, 10px);
-  font-size: var(--admin-table-font-size, 13px);
+  font-size: var(--admin-table-font-size);
   color: var(--admin-text-main);
   white-space: nowrap;
 }
@@ -848,7 +848,7 @@
 .channel-detail-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--admin-table-font-size, 13px);
+  font-size: var(--admin-table-font-size);
   min-width: 1000px;
   table-layout: auto;
 }
@@ -1017,9 +1017,9 @@
 }
 
 .channel-rd__label {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--admin-text-sub, #64748b);
-  font-weight: 500;
+  font-weight: var(--font-weight-table-header);
 }
 
 .channel-rd__select,
@@ -1057,7 +1057,8 @@
 
 .channel-rd__toggle-btn {
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-button);
   border: 1px solid var(--admin-border-strong, #cbd5e1);
   background: var(--admin-card-bg, #fff);
   border-radius: var(--admin-radius-sm, 8px);
@@ -1072,7 +1073,8 @@
 }
 
 .channel-rd__meta {
-  font-size: 13px;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-body);
   color: var(--admin-text-sub, #64748b);
   margin-left: auto;
 }
@@ -1081,7 +1083,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-body);
   color: var(--admin-text-sub, #64748b);
   cursor: pointer;
 }
