@@ -106,7 +106,7 @@ export function useReconciliationStore(settings, showToast) {
         console.error(err)
         if (cancelled) return
         showToastRef.current?.(
-          '无法连接研发对账服务器，已使用本地缓存（仅本机）。请检查网络或 VITE_API_BASE_URL。',
+          '研发对账服务器暂时异常，已回退本地缓存。若列表长期不同步，请检查 API 与 Neon。',
           'error'
         )
         const savedRecords = storageGet(STORAGE_KEYS.RECONCILIATION_RECORDS)
@@ -133,7 +133,7 @@ export function useReconciliationStore(settings, showToast) {
         console.error(err)
         if (cancelled) return
         showToastRef.current?.(
-          '无法连接渠道对账服务器，已使用本地缓存。请检查网络或 VITE_API_BASE_URL。',
+          '渠道服务器暂时异常，已回退本地缓存。若列表长期不同步，请检查 API 与 Neon 表 channel_records。',
           'error'
         )
         const savedChannel = storageGet(STORAGE_KEYS.CHANNEL_RECORDS)
