@@ -17,8 +17,7 @@ function PaymentForm({
   sourceRecord = null,
   partners = [],
   submitIntentRef,
-  deliveries,
-  onDeliveriesChange,
+  persistDelivery,
   onAfterSubmit,
   onSaved,
   showToast
@@ -35,7 +34,7 @@ function PaymentForm({
     }
   }, [mode, sourceRecord?.id])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const intent = submitIntentRef?.current ?? 'back'
     const built = buildDeliveryRecord(formData, partners, {
@@ -48,11 +47,10 @@ function PaymentForm({
       return
     }
 
-    if (mode === 'edit' && sourceRecord) {
-      onDeliveriesChange(deliveries.map((d) => (d.id === sourceRecord.id ? built.record : d)))
-    } else {
-      onDeliveriesChange([...deliveries, built.record])
-    }
+    const ok = await persistDelivery(built.record, {
+      editingId: mode === 'edit' && sourceRecord ? sourceRecord.id : undefined
+    })
+    if (!ok) return
 
     onSaved?.()
 

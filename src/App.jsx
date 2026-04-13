@@ -48,7 +48,7 @@ function App() {
     showNotification(message, type, 3000)
   }, [])
 
-  const settings = useSettingsStore()
+  const settings = useSettingsStore({ showToast })
   const recon = useReconciliationStore(settings, showToast)
   const invoice = useInvoiceStore({ showToast })
   const { resetInvoiceForm } = invoice

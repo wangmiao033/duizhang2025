@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { DELIVERY_STATUSES } from '@/domain/payment/deliveryForm.js'
+import { getPaymentRecordId } from '@/lib/api/payment.ts'
 
 function PaymentLightDrawer({ open, record, onClose, onUpdateRecord, onNavigateToFullEdit }) {
   const [remark, setRemark] = useState('')
@@ -26,16 +27,18 @@ function PaymentLightDrawer({ open, record, onClose, onUpdateRecord, onNavigateT
 
   if (!open || !record) return null
 
+  const recordId = getPaymentRecordId(record)
+
   const saveRemark = () => {
     const next = remark.trim()
     if ((record.remark || '') === next) return
-    onUpdateRecord?.({ ...record, remark: next })
+    void onUpdateRecord?.({ ...record, id: recordId, remark: next })
   }
 
   const applyStatus = (next) => {
     setStatus(next)
     if ((record.status || '') === next) return
-    onUpdateRecord?.({ ...record, status: next })
+    void onUpdateRecord?.({ ...record, id: recordId, status: next })
   }
 
   return (
@@ -110,7 +113,7 @@ function PaymentLightDrawer({ open, record, onClose, onUpdateRecord, onNavigateT
             type="button"
             className="rec-btn rec-btn--primary"
             onClick={() => {
-              onNavigateToFullEdit?.(record.id)
+              onNavigateToFullEdit?.(recordId)
               onClose()
             }}
           >

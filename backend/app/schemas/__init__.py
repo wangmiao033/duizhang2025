@@ -12,6 +12,12 @@ from app.schemas.invoice import (
     InvoiceRecordRead,
     InvoiceRecordUpdate,
 )
+from app.schemas.payment import (
+    PaymentRecordCreate,
+    PaymentRecordListResponse,
+    PaymentRecordRead,
+    PaymentRecordUpdate,
+)
 from app.schemas.reconciliation import (
     ReconciliationCreate,
     ReconciliationListResponse,
@@ -32,4 +38,8 @@ __all__ = [
     "InvoiceRecordRead",
     "InvoiceRecordUpdate",
     "InvoiceRecordListResponse",
+    "PaymentRecordCreate",
+    "PaymentRecordRead",
+    "PaymentRecordUpdate",
+    "PaymentRecordListResponse",
 ]

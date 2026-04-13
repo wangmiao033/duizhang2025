@@ -9,7 +9,7 @@ const FORM_ID = 'payment-create-form'
 
 function PaymentCreatePage() {
   const { settings, showToast, setActiveView } = useAppState()
-  const { partners, deliveries, setDeliveries } = settings
+  const { partners, deliveries, persistDelivery } = settings
 
   const submitIntentRef = useRef('back')
 
@@ -61,8 +61,7 @@ function PaymentCreatePage() {
         formId={FORM_ID}
         mode="add"
         partners={partners}
-        deliveries={deliveries}
-        onDeliveriesChange={setDeliveries}
+        persistDelivery={persistDelivery}
         submitIntentRef={submitIntentRef}
         onAfterSubmit={handleAfterSubmit}
         onSaved={() => showToast('快递记录已更新', 'success')}

@@ -11,6 +11,7 @@ import '@/components/reconciliation/reconciliation-admin.css'
 import '@/components/DeliveryCenter.css'
 import { VIEWS } from '@/app/routes.js'
 import { DELIVERY_STATUSES } from '@/domain/payment/deliveryForm.js'
+import { getPaymentRecordId } from '@/lib/api/payment.ts'
 
 function getStatusClass(status) {
   const statusMap = {
@@ -25,8 +26,8 @@ function getStatusClass(status) {
 }
 
 function PaymentRegisterWorkspace() {
-  const { settings, showToast, setActiveView, openPaymentEdit } = useAppState()
-  const { partners, deliveries, setDeliveries } = settings
+  const { settings, setActiveView, openPaymentEdit } = useAppState()
+  const { deliveries, patchDeliveryRecord, deleteDeliveryById } = settings
 
   const [filterStatus, setFilterStatus] = useState('全部')
   const [searchTerm, setSearchTerm] = useState('')
@@ -48,14 +49,8 @@ function PaymentRegisterWorkspace() {
 
   const handleDelete = (id) => {
     if (window.confirm('确定要删除这条快递记录吗？')) {
-      setDeliveries(deliveries.filter((d) => d.id !== id))
-      showToast('快递记录已更新', 'success')
+      void deleteDeliveryById(id)
     }
-  }
-
-  const patchDelivery = (next) => {
-    setDeliveries(deliveries.map((d) => (d.id === next.id ? next : d)))
-    showToast('快递记录已更新', 'success')
   }
 
   return (
@@ -161,8 +156,10 @@ function PaymentRegisterWorkspace() {
                 </tr>
               </thead>
               <tbody>
-                {filteredDeliveries.map((delivery) => (
-                  <tr key={delivery.id}>
+                {filteredDeliveries.map((delivery) => {
+                  const rid = getPaymentRecordId(delivery) || delivery.id
+                  return (
+                  <tr key={rid}>
                     <td>{delivery.trackingNumber || '-'}</td>
                     <td>{delivery.courierCompany || '-'}</td>
                     <td>
@@ -187,17 +184,17 @@ function PaymentRegisterWorkspace() {
                         <button
                           type="button"
                           className="edit-btn"
-                          onClick={() => openPaymentEdit(delivery.id)}
+                          onClick={() => openPaymentEdit(rid)}
                         >
                           编辑
                         </button>
-                        <button type="button" className="delete-btn" onClick={() => handleDelete(delivery.id)}>
+                        <button type="button" className="delete-btn" onClick={() => handleDelete(rid)}>
                           删除
                         </button>
                       </div>
                     </td>
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>
@@ -208,7 +205,7 @@ function PaymentRegisterWorkspace() {
         open={Boolean(drawerRecord)}
         record={drawerRecord}
         onClose={() => setDrawerRecord(null)}
-        onUpdateRecord={patchDelivery}
+        onUpdateRecord={(next) => void patchDeliveryRecord(next)}
         onNavigateToFullEdit={(id) => openPaymentEdit(id)}
       />
     </AdminWorkspace>
