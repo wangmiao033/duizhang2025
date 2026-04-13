@@ -191,9 +191,9 @@ export function validateSettlementNumber(number, format = DEFAULT_FORMAT) {
  * 检查编号是否唯一
  */
 export function isSettlementNumberUnique(records, number, excludeId = null) {
-  return !records.some(r => 
-    r.id !== excludeId && 
-    r.settlementNumber === number
+  const ex = excludeId != null ? String(excludeId) : null
+  return !records.some(
+    (r) => String(r.id) !== ex && r.settlementNumber === number
   )
 }
 

@@ -157,7 +157,7 @@ function DataForm({
     return null
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     const error = validateForm()
@@ -169,17 +169,26 @@ function DataForm({
     }
 
     if (mode === 'edit' && editRecord && onUpdateRecord) {
-      const ok = onUpdateRecord(editRecord.id, {
+      const result = onUpdateRecord(editRecord.id, {
         ...editRecord,
         ...formData,
         id: editRecord.id
       })
+      const ok =
+        result && typeof result.then === 'function' ? await result : result
       if (ok === false) return
       if (onSubmitted) onSubmitted(undefined)
       return
     }
 
-    onAddRecord(formData)
+    try {
+      const result = onAddRecord(formData)
+      if (result && typeof result.then === 'function') {
+        await result
+      }
+    } catch {
+      return
+    }
     setFormData({
       settlementMonth: settlementMonth || '',
       settlementNumber: '',

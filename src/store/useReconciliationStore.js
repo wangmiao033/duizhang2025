@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { STORAGE_KEYS, storageGet, storageSet } from '@/store/useAppStorage.js'
 import { addHistoryItem } from '@/utils/history.js'
 import {
@@ -17,6 +17,30 @@ import {
   buildSelectedRecordsExportPayload,
   downloadJsonBlob
 } from '@/domain/export/exportAdapters.js'
+import {
+  listReconciliationRecords,
+  createReconciliationRecord,
+  updateReconciliationRecord,
+  deleteReconciliationRecord,
+  apiRowToFrontend,
+  frontendRecordToApiPayload
+} from '@/lib/api/reconciliation.ts'
+
+function normalizeLocalReconciliationRecords(savedRecords) {
+  return savedRecords.map((r) => ({
+    ...r,
+    id: r.id != null ? String(r.id) : String(Date.now()),
+    status: r.status || 'pending',
+    settlementNumber:
+      r.settlementNumber ||
+      generateSettlementNumber(
+        [],
+        r.settlementMonth ? new Date(r.settlementMonth + '-01') : new Date(),
+        getNumberFormatFromStorage(),
+        r.partner
+      )
+  }))
+}
 
 export function useReconciliationStore(settings, showToast) {
   const { partyA, partyB, settlementMonth, partners, deliveries, settlementNumberFormat } = settings
@@ -34,27 +58,47 @@ export function useReconciliationStore(settings, showToast) {
   const [lastSaveTime, setLastSaveTime] = useState(null)
   const [cycleType, setCycleType] = useState(CYCLE_TYPES.MONTHLY)
   const [selectedCycleKey, setSelectedCycleKey] = useState(null)
+  const [reconciliationApiEnabled, setReconciliationApiEnabled] = useState(false)
+
+  const showToastRef = useRef(showToast)
+  showToastRef.current = showToast
+
+  const refetchReconciliationFromApi = useCallback(async () => {
+    const { items } = await listReconciliationRecords({ limit: 500, offset: 0 })
+    setRecords(items.map(apiRowToFrontend))
+  }, [])
 
   useEffect(() => {
-    const savedRecords = storageGet(STORAGE_KEYS.RECONCILIATION_RECORDS)
-    if (savedRecords) {
-      const withDefaults = savedRecords.map((r) => ({
-        ...r,
-        status: r.status || 'pending',
-        settlementNumber:
-          r.settlementNumber ||
-          generateSettlementNumber(
-            [],
-            r.settlementMonth ? new Date(r.settlementMonth + '-01') : new Date(),
-            getNumberFormatFromStorage(),
-            r.partner
-          )
-      }))
-      setRecords(withDefaults)
-    }
     const savedChannel = storageGet(STORAGE_KEYS.CHANNEL_RECORDS)
     if (savedChannel) setChannelRecords(savedChannel)
     setCycleType(CYCLE_TYPES.MONTHLY)
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const { items } = await listReconciliationRecords({ limit: 500, offset: 0 })
+        if (cancelled) return
+        setRecords(items.map(apiRowToFrontend))
+        setReconciliationApiEnabled(true)
+      } catch (err) {
+        console.error(err)
+        if (cancelled) return
+        showToastRef.current?.(
+          '无法连接研发对账服务器，已使用本地缓存（仅本机）。请检查网络或 VITE_API_BASE_URL。',
+          'error'
+        )
+        const savedRecords = storageGet(STORAGE_KEYS.RECONCILIATION_RECORDS)
+        if (savedRecords) {
+          setRecords(normalizeLocalReconciliationRecords(savedRecords))
+        }
+        setReconciliationApiEnabled(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
@@ -82,7 +126,7 @@ export function useReconciliationStore(settings, showToast) {
   const statistics = useMemo(() => computeRecordsStatistics(records), [records])
 
   const addRecord = useCallback(
-    (record) => {
+    async (record) => {
       const roundedStr = formatSettlementAmountString(record)
       const settlementNumber =
         record.settlementNumber ||
@@ -92,43 +136,77 @@ export function useReconciliationStore(settings, showToast) {
           settlementNumberFormat,
           record.partner
         )
+      const merged = {
+        ...record,
+        settlementAmount: roundedStr,
+        status: record.status || 'pending',
+        settlementNumber
+      }
+
+      if (reconciliationApiEnabled) {
+        try {
+          const created = await createReconciliationRecord(frontendRecordToApiPayload(merged))
+          const fe = apiRowToFrontend(created)
+          setRecords((prev) => [...prev, fe])
+          addHistoryItem('添加记录', { records: [...records, fe], partyA, partyB, settlementMonth })
+          showToast(`记录添加成功！编号：${settlementNumber}`, 'success')
+          return
+        } catch (e) {
+          console.error(e)
+          showToast('保存到服务器失败，请稍后重试', 'error')
+          throw e
+        }
+      }
+
       const newRecords = [
         ...records,
         {
-          ...record,
-          id: Date.now(),
-          settlementAmount: roundedStr,
-          status: record.status || 'pending',
-          settlementNumber
+          ...merged,
+          id: String(Date.now())
         }
       ]
       setRecords(newRecords)
       addHistoryItem('添加记录', { records: newRecords, partyA, partyB, settlementMonth })
       showToast(`记录添加成功！编号：${settlementNumber}`, 'success')
     },
-    [records, partyA, partyB, settlementMonth, settlementNumberFormat, showToast]
+    [records, partyA, partyB, settlementMonth, settlementNumberFormat, showToast, reconciliationApiEnabled]
   )
 
   const updateRecord = useCallback(
-    (id, updatedRecord) => {
+    async (id, updatedRecord) => {
+      const sid = String(id)
       if (updatedRecord.settlementNumber) {
-        const isUnique = isSettlementNumberUnique(records, updatedRecord.settlementNumber, id)
+        const isUnique = isSettlementNumberUnique(records, updatedRecord.settlementNumber, sid)
         if (!isUnique) {
           showToast('结算单编号已存在，请使用其他编号', 'error')
           return false
         }
       }
       const roundedStr = formatSettlementAmountString(updatedRecord)
+      const merged = { ...updatedRecord, id: sid, settlementAmount: roundedStr }
+
+      if (reconciliationApiEnabled) {
+        try {
+          await updateReconciliationRecord(sid, frontendRecordToApiPayload(merged))
+          setRecords((prev) => prev.map((r) => (String(r.id) === sid ? { ...merged, id: sid } : r)))
+          addHistoryItem('更新记录', { records, partyA, partyB, settlementMonth })
+          showToast('记录更新成功！', 'success')
+          return true
+        } catch (e) {
+          console.error(e)
+          showToast('更新服务器失败，请稍后重试', 'error')
+          return false
+        }
+      }
+
       setRecords(
-        records.map((r) =>
-          r.id === id ? { ...updatedRecord, id, settlementAmount: roundedStr } : r
-        )
+        records.map((r) => (String(r.id) === sid ? { ...merged, id: sid } : r))
       )
       addHistoryItem('更新记录', { records, partyA, partyB, settlementMonth })
       showToast('记录更新成功！', 'success')
       return true
     },
-    [records, partyA, partyB, settlementMonth, showToast]
+    [records, partyA, partyB, settlementMonth, showToast, reconciliationApiEnabled]
   )
 
   const deleteRecord = useCallback((id) => {
@@ -136,16 +214,29 @@ export function useReconciliationStore(settings, showToast) {
     setShowDeleteConfirm(true)
   }, [])
 
-  const confirmDelete = useCallback(() => {
-    if (deleteId) {
-      const newRecords = records.filter((r) => r.id !== deleteId)
+  const confirmDelete = useCallback(async () => {
+    const target = deleteId
+    if (target) {
+      const sid = String(target)
+      if (reconciliationApiEnabled) {
+        try {
+          await deleteReconciliationRecord(sid)
+        } catch (e) {
+          console.error(e)
+          showToast('从服务器删除失败，请稍后重试', 'error')
+          setShowDeleteConfirm(false)
+          setDeleteId(null)
+          return
+        }
+      }
+      const newRecords = records.filter((r) => String(r.id) !== sid)
       setRecords(newRecords)
       addHistoryItem('删除记录', { records: newRecords, partyA, partyB, settlementMonth })
       showToast('记录已删除', 'success')
     }
     setShowDeleteConfirm(false)
     setDeleteId(null)
-  }, [deleteId, records, partyA, partyB, settlementMonth, showToast])
+  }, [deleteId, records, partyA, partyB, settlementMonth, showToast, reconciliationApiEnabled])
 
   const cancelDelete = useCallback(() => {
     setShowDeleteConfirm(false)
@@ -170,7 +261,7 @@ export function useReconciliationStore(settings, showToast) {
   const handleSelectRecord = useCallback((id, checked) => {
     setSelectedIds((prev) => {
       if (checked) return [...prev, id]
-      return prev.filter((selectedId) => selectedId !== id)
+      return prev.filter((selectedId) => String(selectedId) !== String(id))
     })
   }, [])
 
@@ -182,62 +273,162 @@ export function useReconciliationStore(settings, showToast) {
     setShowBatchDeleteConfirm(true)
   }, [selectedIds.length, showToast])
 
-  const confirmBatchDelete = useCallback(() => {
-    const n = selectedIds.length
-    setRecords((prev) => prev.filter((r) => !selectedIds.includes(r.id)))
+  const confirmBatchDelete = useCallback(async () => {
+    const ids = [...selectedIds]
+    const n = ids.length
+    if (reconciliationApiEnabled) {
+      try {
+        for (const rawId of ids) {
+          await deleteReconciliationRecord(String(rawId))
+        }
+      } catch (e) {
+        console.error(e)
+        showToast('批量删除未能全部完成，请稍后重试', 'error')
+        setShowBatchDeleteConfirm(false)
+        return
+      }
+    }
+    setRecords((prev) => prev.filter((r) => !ids.some((i) => String(i) === String(r.id))))
     setSelectedIds([])
     setShowBatchDeleteConfirm(false)
     showToast(`已删除 ${n} 条记录`, 'success')
-  }, [selectedIds, showToast])
+  }, [selectedIds, showToast, reconciliationApiEnabled])
 
   const handleBatchUpdate = useCallback(
-    (ids, updates) => {
-      setRecords((prev) =>
-        prev.map((r) => {
-          if (ids.includes(r.id)) {
+    async (ids, updates) => {
+      if (reconciliationApiEnabled) {
+        try {
+          for (const rawId of ids) {
+            const r = records.find((x) => String(x.id) === String(rawId))
+            if (!r) continue
             const updated = { ...r, ...updates }
             const roundedStr = formatSettlementAmountString(updated)
-            return { ...updated, settlementAmount: roundedStr }
+            const merged = { ...updated, settlementAmount: roundedStr }
+            await updateReconciliationRecord(String(rawId), frontendRecordToApiPayload(merged))
           }
-          return r
-        })
-      )
+          await refetchReconciliationFromApi()
+        } catch (e) {
+          console.error(e)
+          showToast('批量更新服务器失败', 'error')
+          return
+        }
+      } else {
+        setRecords((prev) =>
+          prev.map((r) => {
+            if (ids.some((i) => String(i) === String(r.id))) {
+              const updated = { ...r, ...updates }
+              const roundedStr = formatSettlementAmountString(updated)
+              return { ...updated, settlementAmount: roundedStr }
+            }
+            return r
+          })
+        )
+      }
       setSelectedIds([])
       showToast(`已更新 ${ids.length} 条记录`, 'success')
     },
-    [showToast]
+    [records, showToast, reconciliationApiEnabled, refetchReconciliationFromApi]
   )
 
   const handleBatchStatusUpdate = useCallback(
-    (ids, status) => {
-      setRecords((prev) =>
-        prev.map((r) => (ids.includes(r.id) ? { ...r, status } : r))
-      )
+    async (ids, status) => {
+      if (reconciliationApiEnabled) {
+        try {
+          for (const rawId of ids) {
+            const r = records.find((x) => String(x.id) === String(rawId))
+            if (!r) continue
+            const updated = { ...r, status }
+            const roundedStr = formatSettlementAmountString(updated)
+            await updateReconciliationRecord(
+              String(rawId),
+              frontendRecordToApiPayload({ ...updated, settlementAmount: roundedStr })
+            )
+          }
+          await refetchReconciliationFromApi()
+        } catch (e) {
+          console.error(e)
+          showToast('批量修改状态失败', 'error')
+          return
+        }
+      } else {
+        setRecords((prev) =>
+          prev.map((r) => (ids.some((i) => String(i) === String(r.id)) ? { ...r, status } : r))
+        )
+      }
       setSelectedIds([])
       const statusInfo = STATUS_OPTIONS.find((s) => s.value === status)
       showToast(`已将 ${ids.length} 条记录状态修改为"${statusInfo?.label || status}"`, 'success')
     },
-    [showToast]
+    [records, showToast, reconciliationApiEnabled, refetchReconciliationFromApi]
   )
 
   const handleStatusChange = useCallback(
-    (id, newStatus) => {
-      setRecords((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r))
-      )
+    async (id, newStatus) => {
+      const sid = String(id)
+      const prevRow = records.find((r) => String(r.id) === sid)
+      if (!prevRow) return
+
+      if (reconciliationApiEnabled) {
+        try {
+          const updated = { ...prevRow, status: newStatus }
+          const roundedStr = formatSettlementAmountString(updated)
+          await updateReconciliationRecord(
+            sid,
+            frontendRecordToApiPayload({ ...updated, settlementAmount: roundedStr })
+          )
+          setRecords((prev) =>
+            prev.map((r) => (String(r.id) === sid ? { ...updated, id: sid } : r))
+          )
+        } catch (e) {
+          console.error(e)
+          showToast('状态同步失败', 'error')
+          return
+        }
+      } else {
+        setRecords((prev) =>
+          prev.map((r) => (String(r.id) === sid ? { ...r, status: newStatus } : r))
+        )
+      }
       const statusInfo = STATUS_OPTIONS.find((s) => s.value === newStatus)
       showToast(`状态已修改为"${statusInfo?.label || newStatus}"`, 'success')
     },
-    [showToast]
+    [records, showToast, reconciliationApiEnabled]
   )
 
   const handleCopyRecord = useCallback(
-    (newRecord) => {
+    async (newRecord) => {
       const roundedStr = formatSettlementAmountString(newRecord)
-      setRecords((prev) => [...prev, { ...newRecord, settlementAmount: roundedStr }])
+      const settlementNumber = generateSettlementNumber(
+        records,
+        newRecord.settlementMonth ? new Date(newRecord.settlementMonth + '-01') : new Date(),
+        settlementNumberFormat,
+        newRecord.partner
+      )
+      const merged = {
+        ...newRecord,
+        settlementAmount: roundedStr,
+        settlementNumber,
+        status: newRecord.status || 'pending'
+      }
+
+      if (reconciliationApiEnabled) {
+        try {
+          const created = await createReconciliationRecord(frontendRecordToApiPayload(merged))
+          const fe = apiRowToFrontend(created)
+          setRecords((prev) => [...prev, fe])
+          showToast('记录已复制', 'success')
+          return
+        } catch (e) {
+          console.error(e)
+          showToast('复制到服务器失败', 'error')
+          return
+        }
+      }
+
+      setRecords((prev) => [...prev, { ...merged, id: String(Date.now()) }])
       showToast('记录已复制', 'success')
     },
-    [showToast]
+    [records, settlementNumberFormat, showToast, reconciliationApiEnabled]
   )
 
   const handleReorder = useCallback(
@@ -278,21 +469,54 @@ export function useReconciliationStore(settings, showToast) {
   )
 
   const handleExcelImport = useCallback(
-    (importedRecords) => {
+    async (importedRecords) => {
+      if (reconciliationApiEnabled) {
+        try {
+          for (const r of importedRecords) {
+            const withNum = {
+              ...r,
+              settlementNumber:
+                r.settlementNumber ||
+                generateSettlementNumber(
+                  records,
+                  r.settlementMonth ? new Date(r.settlementMonth + '-01') : new Date(),
+                  settlementNumberFormat,
+                  r.partner
+                )
+            }
+            const roundedStr = formatSettlementAmountString(withNum)
+            const merged = { ...withNum, settlementAmount: roundedStr, status: r.status || 'pending' }
+            await createReconciliationRecord(frontendRecordToApiPayload(merged))
+          }
+          await refetchReconciliationFromApi()
+          showToast(`成功导入 ${importedRecords.length} 条记录！`, 'success')
+          return
+        } catch (e) {
+          console.error(e)
+          showToast('导入同步服务器失败', 'error')
+          return
+        }
+      }
+
       const newRecords = importedRecords.map((r) => ({
         ...r,
-        id: Date.now() + Math.random()
+        id: String(Date.now() + Math.random())
       }))
       setRecords((prev) => [...prev, ...newRecords])
       showToast(`成功导入 ${importedRecords.length} 条记录！`, 'success')
     },
-    [showToast]
+    [showToast, reconciliationApiEnabled, records, settlementNumberFormat, refetchReconciliationFromApi]
   )
 
   const handleClearAll = useCallback(() => {
     setRecords([])
-    showToast('所有记录已清空', 'success')
-  }, [showToast])
+    showToast(
+      reconciliationApiEnabled
+        ? '已清空当前列表视图；刷新页面将从服务器重新加载'
+        : '所有记录已清空',
+      'success'
+    )
+  }, [showToast, reconciliationApiEnabled])
 
   const handleExportAll = useCallback(() => {
     const data = buildFullDataBackupPayload({
@@ -341,7 +565,7 @@ export function useReconciliationStore(settings, showToast) {
       showToast('请先选择要导出的记录', 'error')
       return
     }
-    const selectedRecords = records.filter((r) => selectedIds.includes(r.id))
+    const selectedRecords = records.filter((r) => selectedIds.some((i) => String(i) === String(r.id)))
     const data = buildSelectedRecordsExportPayload({
       selectedRecords,
       partyA,
@@ -372,7 +596,6 @@ export function useReconciliationStore(settings, showToast) {
     [showToast]
   )
 
-  /** Excel 等批量导入：单次写入、单次提示，避免逐条 toast */
   const onChannelAddRecordsBatch = useCallback(
     (records) => {
       if (!records || records.length === 0) return
@@ -410,6 +633,7 @@ export function useReconciliationStore(settings, showToast) {
     records,
     setRecords,
     channelRecords,
+    reconciliationApiEnabled,
     searchTerm,
     setSearchTerm,
     showDeleteConfirm,

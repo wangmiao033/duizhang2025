@@ -52,11 +52,16 @@ function DataTable({
     setEditForm({})
   }
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     const settlementAmount = calculateSettlementAmount(editForm)
     // 使用四舍五入确保精度，与Excel保持一致
     const roundedAmount = Math.round(settlementAmount * 100) / 100
-    onUpdateRecord(editingId, { ...editForm, settlementAmount: roundedAmount.toFixed(2) })
+    const result = onUpdateRecord(editingId, {
+      ...editForm,
+      settlementAmount: roundedAmount.toFixed(2)
+    })
+    const ok = result && typeof result.then === 'function' ? await result : result
+    if (ok === false) return
     setEditingId(null)
     setEditForm({})
     if (onUpdateSuccess) {
@@ -68,13 +73,18 @@ function DataTable({
   React.useEffect(() => {
     if (!editingId) return
     
-    const handleKeyDown = (e) => {
+    const handleKeyDown = async (e) => {
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault()
         const settlementAmount = calculateSettlementAmount(editForm)
         // 使用四舍五入确保精度，与Excel保持一致
         const roundedAmount = Math.round(settlementAmount * 100) / 100
-        onUpdateRecord(editingId, { ...editForm, settlementAmount: roundedAmount.toFixed(2) })
+        const result = onUpdateRecord(editingId, {
+          ...editForm,
+          settlementAmount: roundedAmount.toFixed(2)
+        })
+        const ok = result && typeof result.then === 'function' ? await result : result
+        if (ok === false) return
         setEditingId(null)
         setEditForm({})
         if (onUpdateSuccess) {

@@ -19,7 +19,10 @@ function ReconciliationEditPage() {
   const [previewAmount, setPreviewAmount] = useState(0)
 
   const editRecord = useMemo(
-    () => (reconEditRecordId != null ? records.find((r) => r.id === reconEditRecordId) : null),
+    () =>
+      reconEditRecordId != null
+        ? records.find((r) => String(r.id) === String(reconEditRecordId))
+        : null,
     [records, reconEditRecordId]
   )
 
