@@ -71,6 +71,30 @@ describe('parseIcbcReceiptText', () => {
     expect(p.payee_bank_name).toContain('招商银行')
   })
 
+  it('Longhun: colon labels + zero space between dual fields (paste-like)', () => {
+    const text = `中国工商银行电子回单
+付款人户名：测试付款有限公司收款人户名：深圳龙魂网络科技有限公司
+付款账号：6222000011112222333收款账号：755951140310501
+付款人开户银行：中国工商银行深圳分行收款人开户银行：招商银行股份有限公司深圳南海支行`
+    const r = parseIcbcReceiptText(text)
+    expect(r.fields.payeeName).toBe('深圳龙魂网络科技有限公司')
+    expect(r.fields.payeeAccount).toBe('755951140310501')
+    expect(r.fields.payeeBank).toBe('招商银行股份有限公司深圳南海支行')
+    const p = icbcToPaymentFormPatch(r)
+    expect(p.payee_company).toBe('深圳龙魂网络科技有限公司')
+    expect(p.payee_account).toBe('755951140310501')
+    expect(p.payee_bank_name).toBe('招商银行股份有限公司深圳南海支行')
+  })
+
+  it('Longhun: 收款单位开户行名称 on its own line', () => {
+    const text = `收款单位 深圳龙魂网络科技有限公司
+收款账号 755951140310501
+收款单位开户行名称：招商银行股份有限公司深圳南海支行`
+    const r = parseIcbcReceiptText(text)
+    expect(r.fields.payeeBank).toContain('招商银行')
+    expect(icbcToPaymentFormPatch(r).payee_bank_name).toContain('招商银行')
+  })
+
   it('single line收款单位 / 收款账号', () => {
     const text = `收款单位 深圳龙魂网络科技有限公司
 收款账号755951140310501`

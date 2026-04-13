@@ -91,6 +91,7 @@ function extractFuyanBlock(text) {
  */
 function dualPayerPayeeNames(line) {
   const patterns = [
+    /付款人\s*户名\s*[:：]?\s*(.+?)收\s*款人\s*户名\s*[:：]?\s*(.+)$/i,
     /付款人\s*户名\s*[:：]?\s*(.+?)\s+收款人\s*户名\s*[:：]?\s*(.+)$/i,
     /付款人\s*户名\s*[:：]?\s*(.+?)\s+收款单位\s*[:：]?\s*(.+)$/i,
     /付款单位\s*[:：]?\s*(.+?)\s+收款单位\s*[:：]?\s*(.+)$/i
@@ -105,7 +106,9 @@ function dualPayerPayeeNames(line) {
 function dualAccounts(line) {
   const normalizeAcc = (s) => String(s).replace(/\s/g, '')
   const patterns = [
+    /付款\s*账号\s*[:：]?\s*([\d\s\*\-]{5,})收\s*款\s*账号\s*[:：]?\s*([\d\s\*\-]{5,})/i,
     /付款\s*账号\s*[:：]?\s*([\d\s\*\-]{5,})\s+收款\s*账号\s*[:：]?\s*([\d\s\*\-]{5,})/i,
+    /付款人账号\s*[:：]?\s*([\d\s\*\-]{5,})收\s*款人账号\s*[:：]?\s*([\d\s\*\-]{5,})/i,
     /付款人账号\s*[:：]?\s*([\d\s\*\-]{5,})\s+收款人账号\s*[:：]?\s*([\d\s\*\-]{5,})/i,
     /账号\s*[:：]?\s*([\d\s\*\-]{5,})\s+账号\s*[:：]?\s*([\d\s\*\-]{5,})/i
   ]
@@ -155,16 +158,43 @@ function applySingleLineIcbcFields(line, fields) {
 
   m = line.match(/^付款人开户(?:银行|行)?\s*[:：]?\s*(.+)$/i)
   if (m) set('payerBank', m[1].trim())
+
+  m = line.match(/^收款开户(?:银行|行)?\s*[:：]?\s*(.+)$/i)
+  if (m) set('payeeBank', m[1].trim())
+
+  m = line.match(/^收款单位开户行(?:名称)?\s*[:：]?\s*(.+)$/i)
+  if (m) set('payeeBank', m[1].trim())
+
+  if (!fields.payeeName) {
+    m = line.match(/收\s*款\s*人\s*户\s*名\s*[:：]?\s*(.+)$/i)
+    if (m) set('payeeName', m[1].trim())
+  }
+  if (!fields.payeeName) {
+    m = line.match(/收\s*款\s*单\s*位\s*[:：]?\s*(.+)$/i)
+    if (m) set('payeeName', m[1].trim())
+  }
+  if (!fields.payeeAccount) {
+    m = line.match(/收\s*款\s*账\s*号\s*[:：]?\s*([\d\s\*\-]+)/i)
+    if (m) set('payeeAccount', m[1].replace(/\s/g, ''))
+  }
+  if (!fields.payeeBank) {
+    m = line.match(/收\s*款\s*人\s*开\s*户\s*(?:银\s*行|行)\s*[:：]?\s*(.+)$/i)
+    if (m) set('payeeBank', m[1].trim())
+  }
 }
 
 function dualBanks(line) {
-  const r =
-    /付款人开户(?:银行|行)?\s*[:：]?\s*(.+?)\s+收款人开户(?:银行|行)?\s*[:：]?\s*(.+)$/i
-  const m = line.match(r)
-  if (m) return { payer: m[1].trim(), payee: m[2].trim() }
-  const r2 = /开户银行\s*[:：]?\s*(.+?)\s+开户银行\s*[:：]?\s*(.+)$/i
-  const m2 = line.match(r2)
-  if (m2) return { payer: m2[1].trim(), payee: m2[2].trim() }
+  const patterns = [
+    /付款人开户(?:银行|行)?\s*[:：]?\s*(.+?)收\s*款人开户(?:银行|行)?\s*[:：]?\s*(.+)$/i,
+    /付款人开户(?:银行|行)?\s*[:：]?\s*(.+?)\s+收款人开户(?:银行|行)?\s*[:：]?\s*(.+)$/i,
+    /付款开户(?:银行|行)?\s*[:：]?\s*(.+?)收\s*款开户(?:银行|行)?\s*[:：]?\s*(.+)$/i,
+    /付款开户(?:银行|行)?\s*[:：]?\s*(.+?)\s+收款开户(?:银行|行)?\s*[:：]?\s*(.+)$/i,
+    /开户银行\s*[:：]?\s*(.+?)\s+开户银行\s*[:：]?\s*(.+)$/i
+  ]
+  for (const r of patterns) {
+    const m = line.match(r)
+    if (m) return { payer: m[1].trim(), payee: m[2].trim() }
+  }
   return null
 }
 
@@ -233,6 +263,15 @@ function scanSingletons(text, fields) {
   }
   if (!fields.payerAccount) {
     pick(/付款账号\s*[：:]?\s*([\d\s\*\-]+)/i, 'payerAccount')
+  }
+  if (!fields.payeeBank) {
+    pick(/收款人开户(?:银行|行)\s*[：:]?\s*([^\n]+)/i, 'payeeBank')
+  }
+  if (!fields.payeeBank) {
+    pick(/收款开户(?:银行|行)\s*[：:]?\s*([^\n]+)/i, 'payeeBank')
+  }
+  if (!fields.payeeBank) {
+    pick(/收款单位开户行(?:名称)?\s*[：:]?\s*([^\n]+)/i, 'payeeBank')
   }
 }
 
@@ -373,14 +412,19 @@ export function icbcToReceiptExtracted(icbc) {
 export function icbcToPaymentFormPatch(icbc) {
   if (!icbc.recognized) return {}
   const f = icbc.fields
+  const ts = (v) => {
+    if (v == null) return ''
+    const s = String(v).trim()
+    return s
+  }
   /** @type {Record<string, string | boolean>} */
   const patch = {}
-  if (f.payerName) patch.remitter_company = f.payerName
-  if (f.payerAccount) patch.remitter_account = f.payerAccount
-  if (f.payerBank) patch.remitter_bank_name = f.payerBank
-  if (f.payeeName) patch.payee_company = f.payeeName
-  if (f.payeeAccount) patch.payee_account = f.payeeAccount
-  if (f.payeeBank) patch.payee_bank_name = f.payeeBank
+  if (ts(f.payerName)) patch.remitter_company = ts(f.payerName)
+  if (ts(f.payerAccount)) patch.remitter_account = ts(f.payerAccount)
+  if (ts(f.payerBank)) patch.remitter_bank_name = ts(f.payerBank)
+  if (ts(f.payeeName)) patch.payee_company = ts(f.payeeName)
+  if (ts(f.payeeAccount)) patch.payee_account = ts(f.payeeAccount)
+  if (ts(f.payeeBank)) patch.payee_bank_name = ts(f.payeeBank)
   if (f.amount) patch.remittance_amount = f.amount
   if (f.purpose) patch.remittance_purpose = f.purpose
   {
