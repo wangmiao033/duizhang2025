@@ -1,9 +1,20 @@
 import React, { useEffect, useState } from 'react'
+import { deleteInvoicePaymentLink } from '@/lib/api/invoicePaymentLink.ts'
 import { getInvoiceRecordId } from '@/lib/api/invoice.ts'
 
 const INVOICE_STATUSES = ['未开', '已开', '作废']
 
-function InvoiceLightDrawer({ open, record, onClose, onUpdateRecord, onNavigateToFullEdit, onOpenVerification }) {
+function InvoiceLightDrawer({
+  open,
+  record,
+  onClose,
+  onUpdateRecord,
+  onNavigateToFullEdit,
+  onOpenVerification,
+  linkedPaymentRows = [],
+  onLinksChanged,
+  onRequestManualLinkToPayment
+}) {
   const [remark, setRemark] = useState('')
   const [status, setStatus] = useState('未开')
 
@@ -71,7 +82,49 @@ function InvoiceLightDrawer({ open, record, onClose, onUpdateRecord, onNavigateT
             <dd>{record.issueDate || '—'}</dd>
             <dt>核销</dt>
             <dd>{record.verified ? `已核销 (${(record.verifiedRecordIds || []).length} 条)` : '未核销'}</dd>
+            <dt>关联回款</dt>
+            <dd>
+              {linkedPaymentRows.length === 0 ? (
+                '未关联'
+              ) : (
+                <ul className="rec-light-link-list">
+                  {linkedPaymentRows.map((row) => (
+                    <li key={row.linkId}>
+                      <span title={row.paymentId}>{row.label}</span>
+                      <button
+                        type="button"
+                        className="rec-btn rec-btn--ghost rec-btn--xs"
+                        onClick={() =>
+                          void (async () => {
+                            try {
+                              await deleteInvoicePaymentLink(row.linkId)
+                              await onLinksChanged?.()
+                            } catch (e) {
+                              console.error(e)
+                            }
+                          })()
+                        }
+                      >
+                        取消关联
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </dd>
           </dl>
+
+          {onRequestManualLinkToPayment ? (
+            <div className="rec-light-field">
+              <button
+                type="button"
+                className="rec-btn rec-btn--secondary"
+                onClick={() => onRequestManualLinkToPayment(recordId)}
+              >
+                关联回款…
+              </button>
+            </div>
+          ) : null}
 
           <div className="rec-light-field">
             <label className="rec-light-field__label" htmlFor="invoice-light-status">
@@ -106,6 +159,12 @@ function InvoiceLightDrawer({ open, record, onClose, onUpdateRecord, onNavigateT
             />
           </div>
         </div>
+        <style>{`
+          .rec-light-link-list { margin: 0; padding-left: 18px; list-style: disc; }
+          .rec-light-link-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+          .rec-btn--xs { min-height: 26px; padding: 2px 8px; font-size: 12px; }
+        `}</style>
+
         <div className="rec-drawer__footer rec-drawer__footer--light">
           <button type="button" className="rec-btn rec-btn--ghost" onClick={onClose}>
             关闭
@@ -139,3 +198,4 @@ function InvoiceLightDrawer({ open, record, onClose, onUpdateRecord, onNavigateT
 }
 
 export default InvoiceLightDrawer
+

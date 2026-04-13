@@ -626,7 +626,7 @@
 .invoice-table-head,
 .invoice-table-row {
   display: grid;
-  grid-template-columns: 1.4fr 1.2fr 0.9fr 0.7fr 1fr 1fr 1.2fr 1fr;
+  grid-template-columns: 1.4fr 1.2fr 0.9fr 0.7fr 1fr 1fr 0.85fr 1.15fr 1fr;
   gap: 10px;
   align-items: center;
 }
@@ -830,7 +830,7 @@
 
   .invoice-table-head,
   .invoice-table-row {
-    grid-template-columns: 1.2fr 1fr 0.9fr 0.7fr 1fr 1fr 0.7fr;
+    grid-template-columns: 1.2fr 1fr 0.9fr 0.7fr 1fr 1fr 0.75fr 0.9fr 0.7fr;
   }
 }
 

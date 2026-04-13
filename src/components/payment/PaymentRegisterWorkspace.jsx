@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
+import InvoicePaymentLinkTools from '@/components/invoice/InvoicePaymentLinkTools.jsx'
+import { useInvoicePaymentLinks } from '@/hooks/useInvoicePaymentLinks.js'
 import AdminWorkspace from '@/components/admin/AdminWorkspace.jsx'
 import AdminFilterBar from '@/components/admin/AdminFilterBar.jsx'
 import AdminActionBar from '@/components/admin/AdminActionBar.jsx'
@@ -11,6 +13,7 @@ import '@/components/reconciliation/reconciliation-admin.css'
 import '@/components/DeliveryCenter.css'
 import { VIEWS } from '@/app/routes.js'
 import { DELIVERY_STATUSES } from '@/domain/payment/deliveryForm.js'
+import { getInvoiceRecordId } from '@/lib/api/invoice.ts'
 import { getPaymentRecordId } from '@/lib/api/payment.ts'
 
 function getStatusClass(status) {
@@ -26,12 +29,34 @@ function getStatusClass(status) {
 }
 
 function PaymentRegisterWorkspace() {
-  const { settings, setActiveView, openPaymentEdit } = useAppState()
+  const { settings, setActiveView, openPaymentEdit, invoice, showToast } = useAppState()
   const { deliveries, patchDeliveryRecord, deleteDeliveryById } = settings
 
   const [filterStatus, setFilterStatus] = useState('全部')
   const [searchTerm, setSearchTerm] = useState('')
   const [drawerRecord, setDrawerRecord] = useState(null)
+  const { refresh: refreshIpLinks, byPaymentId } = useInvoicePaymentLinks()
+  const [focusPaymentForLink, setFocusPaymentForLink] = useState('')
+
+  const invoiceLabelById = useMemo(() => {
+    const m = new Map()
+    for (const inv of invoice?.invoiceRecords || []) {
+      const iid = getInvoiceRecordId(inv)
+      const label = [inv.title, inv.taxNo].filter(Boolean).join(' · ') || iid
+      m.set(iid, label.slice(0, 40))
+    }
+    return m
+  }, [invoice?.invoiceRecords])
+
+  const drawerLinkedInvoices = useMemo(() => {
+    if (!drawerRecord) return []
+    const pid = getPaymentRecordId(drawerRecord)
+    return (byPaymentId.get(pid) || []).map((L) => ({
+      linkId: L.id,
+      invoiceId: L.invoice_id,
+      label: invoiceLabelById.get(L.invoice_id) || L.invoice_id
+    }))
+  }, [drawerRecord, byPaymentId, invoiceLabelById])
 
   const filteredDeliveries = useMemo(() => {
     return deliveries.filter((d) => {
@@ -95,6 +120,14 @@ function PaymentRegisterWorkspace() {
             >
               新增登记
             </button>
+            <InvoicePaymentLinkTools
+              invoiceRecords={invoice?.invoiceRecords || []}
+              deliveries={deliveries}
+              onLinksChanged={() => void refreshIpLinks()}
+              showToast={showToast}
+              focusPaymentId={focusPaymentForLink}
+              onConsumedFocusPayment={() => setFocusPaymentForLink('')}
+            />
           </div>
         </div>
       </AdminActionBar>
@@ -150,6 +183,7 @@ function PaymentRegisterWorkspace() {
                   <th>收件人</th>
                   <th>收件地址</th>
                   <th>关联客户</th>
+                  <th>发票关联</th>
                   <th>状态</th>
                   <th>寄出日期</th>
                   <th>操作</th>
@@ -158,6 +192,7 @@ function PaymentRegisterWorkspace() {
               <tbody>
                 {filteredDeliveries.map((delivery) => {
                   const rid = getPaymentRecordId(delivery) || delivery.id
+                  const invN = (byPaymentId.get(rid) || []).length
                   return (
                   <tr key={rid}>
                     <td>{delivery.trackingNumber || '-'}</td>
@@ -170,6 +205,7 @@ function PaymentRegisterWorkspace() {
                     </td>
                     <td className="address-cell">{delivery.address || '-'}</td>
                     <td>{delivery.partnerName || '-'}</td>
+                    <td>{invN > 0 ? `已关联 ${invN} 张` : '未关联'}</td>
                     <td>
                       <span className={`status-badge status-${getStatusClass(delivery.status)}`}>
                         {delivery.status}
@@ -207,6 +243,9 @@ function PaymentRegisterWorkspace() {
         onClose={() => setDrawerRecord(null)}
         onUpdateRecord={(next) => void patchDeliveryRecord(next)}
         onNavigateToFullEdit={(id) => openPaymentEdit(id)}
+        linkedInvoiceRows={drawerLinkedInvoices}
+        onLinksChanged={() => void refreshIpLinks()}
+        onRequestManualLinkToInvoice={(payId) => setFocusPaymentForLink(payId)}
       />
     </AdminWorkspace>
   )

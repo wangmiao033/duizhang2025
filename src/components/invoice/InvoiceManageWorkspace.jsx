@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
+import InvoicePaymentLinkTools from '@/components/invoice/InvoicePaymentLinkTools.jsx'
+import { useInvoicePaymentLinks } from '@/hooks/useInvoicePaymentLinks.js'
 import AdminWorkspace from '@/components/admin/AdminWorkspace.jsx'
 import AdminFilterBar from '@/components/admin/AdminFilterBar.jsx'
 import AdminActionBar from '@/components/admin/AdminActionBar.jsx'
@@ -10,6 +12,7 @@ import InvoiceLightDrawer from '@/components/invoice/InvoiceLightDrawer.jsx'
 import '@/components/reconciliation/reconciliation-admin.css'
 import { sumVerifiedSettlementAmount } from '@/domain/invoice/invoiceVerification.js'
 import { getInvoiceRecordId } from '@/lib/api/invoice.ts'
+import { getPaymentRecordId } from '@/lib/api/payment.ts'
 import { VIEWS } from '@/app/routes.js'
 
 /**
@@ -17,7 +20,7 @@ import { VIEWS } from '@/app/routes.js'
  * @param {'manage' | 'verify'} variant
  */
 function InvoiceManageWorkspace({ variant = 'manage' }) {
-  const { invoice, recon, setActiveView, setActiveViewRaw, openInvoiceEdit } = useAppState()
+  const { invoice, recon, setActiveView, setActiveViewRaw, openInvoiceEdit, settings, showToast } = useAppState()
 
   const {
     filteredInvoices,
@@ -34,6 +37,28 @@ function InvoiceManageWorkspace({ variant = 'manage' }) {
 
   const { records } = recon
   const [drawerRecord, setDrawerRecord] = useState(null)
+  const { refresh: refreshIpLinks, byInvoiceId } = useInvoicePaymentLinks()
+  const [focusInvoiceForLink, setFocusInvoiceForLink] = useState('')
+
+  const paymentLabelById = useMemo(() => {
+    const m = new Map()
+    for (const p of settings?.deliveries || []) {
+      const pid = getPaymentRecordId(p)
+      const label = [p.partnerName, p.trackingNumber].filter(Boolean).join(' · ') || pid
+      m.set(pid, label)
+    }
+    return m
+  }, [settings?.deliveries])
+
+  const drawerLinkedPayments = useMemo(() => {
+    if (!drawerRecord) return []
+    const rid = getInvoiceRecordId(drawerRecord)
+    return (byInvoiceId.get(rid) || []).map((L) => ({
+      linkId: L.id,
+      paymentId: L.payment_id,
+      label: paymentLabelById.get(L.payment_id) || L.payment_id
+    }))
+  }, [drawerRecord, byInvoiceId, paymentLabelById])
 
   const stats = useMemo(() => {
     const totalAmt = filteredInvoices.reduce((s, i) => s + parseFloat(i.amount || 0), 0)
@@ -112,6 +137,14 @@ function InvoiceManageWorkspace({ variant = 'manage' }) {
                   style={{ display: 'none' }}
                   onChange={wrapImport}
                 />
+                <InvoicePaymentLinkTools
+                  invoiceRecords={invoice.invoiceRecords}
+                  deliveries={settings?.deliveries || []}
+                  onLinksChanged={() => void refreshIpLinks()}
+                  showToast={showToast}
+                  focusInvoiceId={focusInvoiceForLink}
+                  onConsumedFocusInvoice={() => setFocusInvoiceForLink('')}
+                />
               </>
             ) : (
               <span className="rec-toolbar__batch-label">在列表中点击「核销」勾选对账记录</span>
@@ -162,6 +195,7 @@ function InvoiceManageWorkspace({ variant = 'manage' }) {
               <span>状态</span>
               <span>开票日期</span>
               <span>核销状态</span>
+              <span>回款关联</span>
               <span>备注</span>
               <span>操作</span>
             </div>
@@ -169,6 +203,7 @@ function InvoiceManageWorkspace({ variant = 'manage' }) {
               const rid = getInvoiceRecordId(item) || item.id
               const verifiedRecordIds = item.verifiedRecordIds || []
               const verifiedAmount = sumVerifiedSettlementAmount(records, verifiedRecordIds)
+              const ipCount = (byInvoiceId.get(rid) || []).length
               return (
                 <div className="invoice-table-row" key={rid}>
                   <span title={item.title}>{item.title || '-'}</span>
@@ -188,6 +223,7 @@ function InvoiceManageWorkspace({ variant = 'manage' }) {
                       <span className="tag tag-unverified">未核销</span>
                     )}
                   </span>
+                  <span>{ipCount > 0 ? `已关联 ${ipCount} 笔` : '未关联'}</span>
                   <span title={item.remark}>{item.remark || '-'}</span>
                   <span className="invoice-table-row__actions">
                     <button type="button" className="edit-btn" onClick={() => setDrawerRecord(item)}>
@@ -221,6 +257,9 @@ function InvoiceManageWorkspace({ variant = 'manage' }) {
         onUpdateRecord={(id, rec) => updateInvoiceRecord(id, rec)}
         onNavigateToFullEdit={(id) => openInvoiceEdit(id)}
         onOpenVerification={variant === 'verify' || variant === 'manage' ? handleOpenVerification : undefined}
+        linkedPaymentRows={drawerLinkedPayments}
+        onLinksChanged={() => void refreshIpLinks()}
+        onRequestManualLinkToPayment={(invId) => setFocusInvoiceForLink(invId)}
       />
     </AdminWorkspace>
   )

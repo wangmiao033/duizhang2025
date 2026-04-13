@@ -13,6 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.api.channel import router as channel_router
 from app.api.health import router as health_router
 from app.api.invoice import router as invoice_router
+from app.api.invoice_payment_link import router as invoice_payment_link_router
 from app.api.payment import router as payment_router
 from app.api.reconciliation import router as reconciliation_router
 
@@ -66,6 +67,11 @@ app.include_router(reconciliation_router, prefix="/api/reconciliation", tags=["r
 app.include_router(channel_router, prefix="/api/channel-records", tags=["channel-records"])
 app.include_router(invoice_router, prefix="/api/invoices", tags=["invoices"])
 app.include_router(payment_router, prefix="/api/payments", tags=["payments"])
+app.include_router(
+    invoice_payment_link_router,
+    prefix="/api/invoice-payment-links",
+    tags=["invoice-payment-links"],
+)
 
 
 @app.exception_handler(SQLAlchemyError)
@@ -81,7 +87,7 @@ async def handle_sqlalchemy_error(request: Request, exc: SQLAlchemyError) -> JSO
             "error": "database_error",
             "message": (
                 "数据库查询失败。请核对 Neon：表是否存在、列是否与 ORM 一致；"
-                "执行 backend/sql/002、003、004 建表，必要时执行 neon_repair_missing_columns.sql；"
+                "执行 backend/sql/002、003、004、006 建表，必要时执行 neon_repair_missing_columns.sql；"
                 "并用 neon_verify_columns.sql 检查列清单。"
             ),
         },
