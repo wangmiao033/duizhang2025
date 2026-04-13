@@ -7,7 +7,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, or_, select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError, ProgrammingError
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
@@ -89,10 +89,13 @@ def list_reconciliation(
     bp_map: dict[str, BankPaymentRecord] = {}
     if rows:
         ids = [r.id for r in rows]
-        bps = db.execute(
-            select(BankPaymentRecord).where(BankPaymentRecord.reconciliation_id.in_(ids))
-        ).scalars().all()
-        bp_map = {b.reconciliation_id: b for b in bps}
+        try:
+            bps = db.execute(
+                select(BankPaymentRecord).where(BankPaymentRecord.reconciliation_id.in_(ids))
+            ).scalars().all()
+            bp_map = {b.reconciliation_id: b for b in bps}
+        except (OperationalError, ProgrammingError):
+            bp_map = {}
     items = []
     for r in rows:
         base_read = ReconciliationRead.model_validate(r)

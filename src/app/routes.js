@@ -42,7 +42,10 @@ export const VIEWS = {
   SETTINGS_BACKUP: 'settings-backup',
   SETTINGS_APP: 'settings-app',
   /** 非侧边栏入口：快捷操作等 */
-  SETTINGS_REMINDERS: 'settings-reminders'
+  SETTINGS_REMINDERS: 'settings-reminders',
+  /** 银行对账（独立模块） */
+  BANK_STATEMENT_IMPORT: 'bank-statement-import',
+  BANK_COLLECTION_REGISTER: 'bank-collection-register'
 }
 
 export const SIDEBAR_GROUPS = [
@@ -71,6 +74,14 @@ export const SIDEBAR_GROUPS = [
       { view: VIEWS.SETTLE_MONTHLY, label: '月度结算单' },
       { view: VIEWS.SETTLE_CHANNEL, label: '渠道结算单' },
       { view: VIEWS.SETTLE_STATUS, label: '结算状态' }
+    ]
+  },
+  {
+    id: 'bank-recon',
+    label: '银行对账',
+    items: [
+      { view: VIEWS.BANK_STATEMENT_IMPORT, label: '银行流水导入' },
+      { view: VIEWS.BANK_COLLECTION_REGISTER, label: '银行回款登记' }
     ]
   },
   {
@@ -164,7 +175,9 @@ const VIEW_TITLES = {
   [VIEWS.SETTINGS_HISTORY]: '历史记录',
   [VIEWS.SETTINGS_BACKUP]: '数据备份',
   [VIEWS.SETTINGS_APP]: '系统设置',
-  [VIEWS.SETTINGS_REMINDERS]: '提醒事项'
+  [VIEWS.SETTINGS_REMINDERS]: '提醒事项',
+  [VIEWS.BANK_STATEMENT_IMPORT]: '银行流水导入',
+  [VIEWS.BANK_COLLECTION_REGISTER]: '银行回款登记'
 }
 
 export function getPageTitle(view) {
@@ -205,7 +218,9 @@ const VIEW_DESCRIPTIONS = {
   [VIEWS.SETTINGS_HISTORY]: '系统内历史记录',
   [VIEWS.SETTINGS_BACKUP]: '数据备份选项',
   [VIEWS.SETTINGS_APP]: '主题、格式与默认参数',
-  [VIEWS.SETTINGS_REMINDERS]: '提醒与待办配置'
+  [VIEWS.SETTINGS_REMINDERS]: '提醒与待办配置',
+  [VIEWS.BANK_STATEMENT_IMPORT]: '维护银行流水字段，后续可对接导入与匹配',
+  [VIEWS.BANK_COLLECTION_REGISTER]: '登记渠道/项目回款，附件可先本地选择（本轮不落库）'
 }
 
 /** 侧栏与导航图标（纯文本符号，无额外依赖） */
@@ -242,7 +257,9 @@ export const VIEW_ICONS = {
   [VIEWS.SETTINGS_HISTORY]: '志',
   [VIEWS.SETTINGS_BACKUP]: '档',
   [VIEWS.SETTINGS_APP]: '设',
-  [VIEWS.SETTINGS_REMINDERS]: '铃'
+  [VIEWS.SETTINGS_REMINDERS]: '铃',
+  [VIEWS.BANK_STATEMENT_IMPORT]: '流',
+  [VIEWS.BANK_COLLECTION_REGISTER]: '回'
 }
 
 export function getPageDescription(view) {

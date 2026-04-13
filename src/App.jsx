@@ -33,6 +33,8 @@ import InvoiceCreatePage from './pages/InvoiceCreatePage.jsx'
 import InvoiceEditPage from './pages/InvoiceEditPage.jsx'
 import PaymentCreatePage from './pages/PaymentCreatePage.jsx'
 import PaymentEditPage from './pages/PaymentEditPage.jsx'
+import BankStatementImportPage from './pages/BankStatementImportPage.jsx'
+import BankCollectionRegisterPage from './pages/BankCollectionRegisterPage.jsx'
 
 function App() {
   const [activeView, setActiveViewRaw] = useState(VIEWS.DASHBOARD)
@@ -173,6 +175,10 @@ function App() {
         return <OperationHistoryPage />
       case VIEWS.DATA_BACKUP_RESTORE:
         return <BackupRestorePage />
+      case VIEWS.BANK_STATEMENT_IMPORT:
+        return <BankStatementImportPage />
+      case VIEWS.BANK_COLLECTION_REGISTER:
+        return <BankCollectionRegisterPage />
       case VIEWS.SETTLE_MONTHLY:
       case VIEWS.SETTLE_CHANNEL:
       case VIEWS.SETTLE_STATUS:

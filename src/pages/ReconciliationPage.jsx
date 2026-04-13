@@ -14,7 +14,6 @@ import SettlementCycleManager from '@/components/SettlementCycleManager.jsx'
 import ReconciliationStatsCards from '@/components/reconciliation/ReconciliationStatsCards.jsx'
 import ReconciliationToolbar from '@/components/reconciliation/ReconciliationToolbar.jsx'
 import ReconciliationLightDrawer from '@/components/reconciliation/ReconciliationLightDrawer.jsx'
-import ReconciliationBankPaymentDrawer from '@/components/reconciliation/ReconciliationBankPaymentDrawer.jsx'
 import '@/components/reconciliation/reconciliation-admin.css'
 import { BatchStatusUpdate } from '@/components/StatusManager.jsx'
 import { calculateSettlementAmount } from '@/domain/settlement/calculateSettlementAmount.js'
@@ -66,9 +65,7 @@ function ReconciliationPage({ variant = 'full' }) {
     handleRestoreFromHistory,
     handleExcelImport,
     restoreFullData,
-    statistics,
-    reconciliationApiEnabled,
-    refetchReconciliationFromApi
+    statistics
   } = recon
 
   useEffect(() => {
@@ -79,7 +76,6 @@ function ReconciliationPage({ variant = 'full' }) {
   const { settlementMonth, partyA, partyB, partners, deliveries, setPartners } = settings
 
   const [lightDrawerRecord, setLightDrawerRecord] = useState(null)
-  const [bankPaymentDrawerRecord, setBankPaymentDrawerRecord] = useState(null)
   const [filterPanelExpanded, setFilterPanelExpanded] = useState(readStoredFilterPanelExpanded)
 
   useEffect(() => {
@@ -252,9 +248,6 @@ function ReconciliationPage({ variant = 'full' }) {
                 openReconciliationEdit(id)
               }}
               onQuickView={(r) => setLightDrawerRecord(r)}
-              onBankPayment={
-                reconciliationApiEnabled ? (r) => setBankPaymentDrawerRecord(r) : undefined
-              }
             />
           </div>
         </div>
@@ -268,13 +261,6 @@ function ReconciliationPage({ variant = 'full' }) {
           onNavigateToFullEdit={(id) => openReconciliationEdit(id != null ? String(id) : '')}
         />
 
-        <ReconciliationBankPaymentDrawer
-          open={Boolean(bankPaymentDrawerRecord)}
-          record={bankPaymentDrawerRecord}
-          onClose={() => setBankPaymentDrawerRecord(null)}
-          showToast={showToast}
-          onSaved={() => refetchReconciliationFromApi?.()}
-        />
       </PageContainer>
     )
   }

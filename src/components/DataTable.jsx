@@ -27,8 +27,7 @@ function DataTable({
   useDrawerForEdit = false,
   onRequestEdit,
   onRequestPageEdit = null,
-  onQuickView = null,
-  onBankPayment = null
+  onQuickView = null
 }) {
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({})
@@ -37,8 +36,7 @@ function DataTable({
   const [viewMode, setViewMode] = useState('list') // 'byPartner' or 'list'
   const [expandedPartners, setExpandedPartners] = useState({})
   const compact = columnPreset === 'compact'
-  const showBankPay = typeof onBankPayment === 'function'
-  const emptyListColSpan = compact ? (showBankPay ? 11 : 10) : showBankPay ? 17 : 16
+  const emptyListColSpan = compact ? 10 : 16
 
   const startEdit = (record) => {
     if (onRequestPageEdit) {
@@ -454,7 +452,6 @@ function DataTable({
                   </th>
                 </>
               )}
-              {showBankPay && <th className="data-table__th-bank-pay">付款状态</th>}
               <th>状态</th>
               <th className="data-table__col-actions">操作</th>
             </tr>
@@ -659,22 +656,6 @@ function DataTable({
                           </td>
                                                </>
                       )}
-                      {showBankPay && (
-                        <td className="data-table__td-bank-pay">
-                          {(() => {
-                            const label = record.bankPaymentListStatus || '未登记'
-                            const isWarn = label === '金额异常'
-                            const isBad = label === '打款失败'
-                            return (
-                              <span
-                                className={`bank-pay-list-status${isWarn ? ' bank-pay-list-status--warn' : ''}${isBad ? ' bank-pay-list-status--bad' : ''}`}
-                              >
-                                {label}
-                              </span>
-                            )
-                          })()}
-                        </td>
-                      )}
                       <td>
                         <StatusSelector
                           menuInPortal
@@ -687,15 +668,6 @@ function DataTable({
                       </td>
                       <td className="data-table__col-actions">
                         <div className="data-table__row-actions">
-                          {onBankPayment && (
-                            <button
-                              type="button"
-                              className="edit-btn rec-bank-pay-entry"
-                              onClick={() => onBankPayment(record)}
-                            >
-                              付款流水单
-                            </button>
-                          )}
                           {onQuickView && (
                             <button type="button" className="edit-btn" onClick={() => onQuickView(record)}>
                               查看
@@ -737,7 +709,6 @@ function DataTable({
                 <td className="amount-cell settlement-amount">
                   <strong>¥{records.reduce((sum, r) => sum + (parseFloat(r.settlementAmount) || 0), 0).toFixed(2)}</strong>
                 </td>
-                {showBankPay && <td>—</td>}
                 <td>-</td>
                 <td></td>
               </tr>
@@ -755,7 +726,6 @@ function DataTable({
                 <td className="amount-cell settlement-amount">
                   <strong>¥{records.reduce((sum, r) => sum + (parseFloat(r.settlementAmount) || 0), 0).toFixed(2)}</strong>
                 </td>
-                {showBankPay && <td>—</td>}
                 <td>—</td>
                 <td />
               </tr>

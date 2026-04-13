@@ -2,7 +2,14 @@
  * 研发对账 REST API
  */
 
-import { apiDelete, apiGet, apiPost, apiPostMultipart, apiPut } from '@/lib/api/client.ts'
+import {
+  apiDelete,
+  apiGet,
+  apiPost,
+  apiPostMultipart,
+  apiPut,
+  ApiError
+} from '@/lib/api/client.ts'
 
 export type ApiReconciliationRow = {
   id: string
@@ -158,12 +165,17 @@ export function deleteReconciliationRecord(id: string): Promise<void> {
   return apiDelete(`${PATH}/${encodeURIComponent(id)}`)
 }
 
-export function getReconciliationBankPayment(
+export async function getReconciliationBankPayment(
   reconciliationId: string
 ): Promise<ApiBankPaymentRow | null> {
-  return apiGet<ApiBankPaymentRow | null>(
-    `${PATH}/${encodeURIComponent(reconciliationId)}/bank-payment`
-  )
+  try {
+    return await apiGet<ApiBankPaymentRow | null>(
+      `${PATH}/${encodeURIComponent(reconciliationId)}/bank-payment`
+    )
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) return null
+    throw e
+  }
 }
 
 export function upsertReconciliationBankPayment(
@@ -235,8 +247,7 @@ export function apiRowToFrontend(row: ApiReconciliationRow): Record<string, unkn
     settlementAmount:
       row.settlement_amount != null ? Number(row.settlement_amount).toFixed(2) : '0.00',
     status: row.status || 'pending',
-    memo: row.remark != null ? String(row.remark) : '',
-    bankPaymentListStatus: row.bank_payment_list_status ?? '未登记'
+    memo: row.remark != null ? String(row.remark) : ''
   }
 }
 
