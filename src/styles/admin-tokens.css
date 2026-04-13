@@ -25,6 +25,11 @@
   --admin-text-main: var(--text-main);
   --admin-text-sub: var(--text-sub);
   --admin-text-muted: var(--text-light);
+  /* 侧栏等语义别名（与 main/sub/muted 一致层级） */
+  --admin-text-primary: var(--admin-text-main);
+  --admin-text-secondary: var(--admin-text-sub);
+  --admin-text-tertiary: var(--admin-text-muted);
+  --admin-bg-soft: var(--admin-elevated-bg);
   --admin-border: var(--border);
   --admin-border-soft: var(--border-soft);
   --admin-border-strong: #d1d5db;

@@ -20,7 +20,7 @@ function Sidebar({ activeView, onNavigate }) {
   }
 
   const renderItems = (group) => (
-    <div className="sidebar-group-items">
+    <div className="sidebar-sub-list">
       {group.items.map((item) => {
         const isActive = item.view === activeView
         return (
@@ -46,6 +46,7 @@ function Sidebar({ activeView, onNavigate }) {
         {SIDEBAR_GROUPS.map((group) => {
           const isSingleton = group.items.length === 1
           const open = isSingleton || expandedId === group.id
+          const groupActive = activeGroupId === group.id
 
           if (isSingleton) {
             return (
@@ -56,14 +57,14 @@ function Sidebar({ activeView, onNavigate }) {
           }
 
           return (
-            <div key={group.id} className="sidebar-group">
+            <div key={group.id} className={`sidebar-group ${groupActive ? 'active' : ''}`}>
               <button
                 type="button"
-                className="sidebar-group-header"
+                className="sidebar-group-toggle"
                 aria-expanded={open}
                 onClick={() => toggleGroup(group.id)}
               >
-                <span className="sidebar-group-header-label">{group.label}</span>
+                <div className="sidebar-group-title">{group.label}</div>
                 <span className={`sidebar-group-chevron ${open ? 'is-open' : ''}`} aria-hidden />
               </button>
               {open && renderItems(group)}
