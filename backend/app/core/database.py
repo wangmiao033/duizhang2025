@@ -15,7 +15,7 @@ _session_factory: sessionmaker | None = None
 
 
 def get_engine() -> Engine:
-    """Singleton SQLAlchemy engine using DATABASE_URL."""
+    """Singleton SQLAlchemy engine using DATABASE_URL（经 config 规范为 postgresql+psycopg://）。"""
     global _engine, _session_factory
     if _engine is None:
         _engine = create_engine(get_database_url(), pool_pre_ping=True)

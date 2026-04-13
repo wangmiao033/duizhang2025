@@ -12,6 +12,8 @@ cp .env.example .env
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+Neon 控制台复制的连接串可直接填 `DATABASE_URL`（`postgresql://` 或 `postgres://` 均可）；应用会在内部转为 `postgresql+psycopg://`，以使用已安装的 **psycopg v3**（`psycopg[binary]`），无需改连接串、也无需安装 `psycopg2`。
+
 - `GET /` → `{"ok": true, "service": "caiwuapi"}`
 - `GET /health` → `{"ok": true}`
 - `GET /health/db` → 数据库连通时 `{"ok": true, "database": "connected"}`，失败时含 `detail`
