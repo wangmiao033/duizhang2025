@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
 import PageContainer from '@/components/layout/PageContainer.jsx'
+import BankPasteAutoParseBlock from '@/components/bank/BankPasteAutoParseBlock.jsx'
+import { parseBankText } from '@/utils/parseBankText.js'
 import '@/components/reconciliation/reconciliation-admin.css'
 
 const INITIAL = {
@@ -19,12 +21,49 @@ const INITIAL = {
 function BankStatementImportPage() {
   const { showToast } = useAppState()
   const [form, setForm] = useState(INITIAL)
+  const [pasteText, setPasteText] = useState('')
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
   const handleReset = () => {
     setForm(INITIAL)
+    setPasteText('')
     showToast('已清空表单', 'info')
+  }
+
+  const handleAutoFill = () => {
+    try {
+      const { fields, matchedLines } = parseBankText(pasteText)
+      if (matchedLines === 0) {
+        showToast('未能识别有效字段行，请使用「字段名: 值」格式分行粘贴', 'info')
+        return
+      }
+      setForm((prev) => {
+        const next = { ...prev }
+        const assign = (key, val) => {
+          if (val === null || val === undefined) return
+          const s = typeof val === 'string' ? val.trim() : val
+          if (s === '') return
+          if (key in next) next[key] = typeof val === 'boolean' ? val : String(s)
+        }
+        assign('tradeDate', fields.tradeDate)
+        assign('bankAccount', fields.bankAccount)
+        assign('counterpartyName', fields.counterpartyName)
+        assign('counterpartyAccount', fields.counterpartyAccount)
+        assign('summary', fields.summary)
+        assign('incomeAmount', fields.incomeAmount)
+        assign('expenseAmount', fields.expenseAmount)
+        assign('balance', fields.balance)
+        const serial =
+          fields.statement_serial_no || fields.bank_reference_no || fields.transaction_serial
+        assign('serialNo', serial)
+        if (fields.payment_remark) assign('remark', fields.payment_remark)
+        return next
+      })
+      showToast(`已根据识别结果填充（共 ${matchedLines} 行有效映射）`, 'success')
+    } catch {
+      showToast('解析时出现问题，请检查文本格式后重试', 'info')
+    }
   }
 
   const handleSaveDraft = (e) => {
@@ -39,6 +78,11 @@ function BankStatementImportPage() {
           <p className="admin-workspace__card-desc" style={{ marginTop: 0 }}>
             录入或粘贴单条流水字段，后续可扩展 Excel 导入与自动匹配；当前不落库。
           </p>
+          <BankPasteAutoParseBlock
+            pasteText={pasteText}
+            onPasteTextChange={setPasteText}
+            onAutoFill={handleAutoFill}
+          />
           <form onSubmit={handleSaveDraft}>
             <div className="rec-bank-payment__grid">
               <label className="rec-bank-payment__field">

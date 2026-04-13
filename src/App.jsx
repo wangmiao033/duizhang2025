@@ -34,6 +34,7 @@ import InvoiceEditPage from './pages/InvoiceEditPage.jsx'
 import PaymentCreatePage from './pages/PaymentCreatePage.jsx'
 import PaymentEditPage from './pages/PaymentEditPage.jsx'
 import BankStatementImportPage from './pages/BankStatementImportPage.jsx'
+import BankPaymentRegisterPage from './pages/BankPaymentRegisterPage.jsx'
 import BankCollectionRegisterPage from './pages/BankCollectionRegisterPage.jsx'
 
 function App() {
@@ -177,6 +178,8 @@ function App() {
         return <BackupRestorePage />
       case VIEWS.BANK_STATEMENT_IMPORT:
         return <BankStatementImportPage />
+      case VIEWS.BANK_PAYMENT_REGISTER:
+        return <BankPaymentRegisterPage />
       case VIEWS.BANK_COLLECTION_REGISTER:
         return <BankCollectionRegisterPage />
       case VIEWS.SETTLE_MONTHLY:

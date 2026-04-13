@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
 import PageContainer from '@/components/layout/PageContainer.jsx'
+import BankPasteAutoParseBlock from '@/components/bank/BankPasteAutoParseBlock.jsx'
+import { looksLikePaymentSlipFields, parseBankText } from '@/utils/parseBankText.js'
 import '@/components/reconciliation/reconciliation-admin.css'
 
 const CLAIM_OPTIONS = ['未认领', '部分认领', '已认领']
@@ -27,7 +29,48 @@ function BankCollectionRegisterPage() {
   const handleReset = () => {
     setForm(INITIAL)
     setAttachmentName('')
+    setPasteText('')
     showToast('已清空表单', 'info')
+  }
+
+  const handleAutoFill = () => {
+    try {
+      const { fields, matchedLines } = parseBankText(pasteText)
+      if (matchedLines === 0) {
+        showToast('未能识别有效字段行，请使用「字段名: 值」格式分行粘贴', 'info')
+        return
+      }
+      if (looksLikePaymentSlipFields(fields)) {
+        showToast('当前内容更像银行付款单，已在回款页跳过自动填充，请改用「银行付款登记」', 'info')
+        return
+      }
+      setForm((prev) => {
+        const next = { ...prev }
+        const assign = (key, val) => {
+          if (val === null || val === undefined) return
+          const s = typeof val === 'string' ? val.trim() : val
+          if (s === '') return
+          if (key in next) next[key] = String(s)
+        }
+        assign('collectionDate', fields.collectionDate || fields.tradeDate)
+        assign('collectionAccount', fields.collectionAccount || fields.bankAccount)
+        assign('amount', fields.collection_amount)
+        assign('currency', fields.currency)
+        assign('payerName', fields.payerName || fields.counterpartyName)
+        const serial =
+          fields.bank_reference_no || fields.statement_serial_no || fields.transaction_serial
+        assign('bankSerialNo', serial)
+        if (fields.payment_remark) assign('remark', fields.payment_remark)
+        assign('channelProjectGame', fields.channelProjectGame)
+        if (fields.claimStatus && CLAIM_OPTIONS.includes(fields.claimStatus)) {
+          next.claimStatus = fields.claimStatus
+        }
+        return next
+      })
+      showToast(`已填充回款相关字段（识别 ${matchedLines} 行）`, 'success')
+    } catch {
+      showToast('解析时出现问题，请检查文本格式后重试', 'info')
+    }
   }
 
   const handleAttachment = (e) => {
@@ -47,6 +90,11 @@ function BankCollectionRegisterPage() {
           <p className="admin-workspace__card-desc" style={{ marginTop: 0 }}>
             登记银行回款信息；附件仅本地选择展示文件名，上传与认领匹配后续再接 API。
           </p>
+          <BankPasteAutoParseBlock
+            pasteText={pasteText}
+            onPasteTextChange={setPasteText}
+            onAutoFill={handleAutoFill}
+          />
           <form onSubmit={handleSaveDraft}>
             <div className="rec-bank-payment__grid">
               <label className="rec-bank-payment__field">

@@ -45,6 +45,7 @@ export const VIEWS = {
   SETTINGS_REMINDERS: 'settings-reminders',
   /** 银行对账（独立模块） */
   BANK_STATEMENT_IMPORT: 'bank-statement-import',
+  BANK_PAYMENT_REGISTER: 'bank-payment-register',
   BANK_COLLECTION_REGISTER: 'bank-collection-register'
 }
 
@@ -81,6 +82,7 @@ export const SIDEBAR_GROUPS = [
     label: '银行对账',
     items: [
       { view: VIEWS.BANK_STATEMENT_IMPORT, label: '银行流水导入' },
+      { view: VIEWS.BANK_PAYMENT_REGISTER, label: '银行付款登记' },
       { view: VIEWS.BANK_COLLECTION_REGISTER, label: '银行回款登记' }
     ]
   },
@@ -177,6 +179,7 @@ const VIEW_TITLES = {
   [VIEWS.SETTINGS_APP]: '系统设置',
   [VIEWS.SETTINGS_REMINDERS]: '提醒事项',
   [VIEWS.BANK_STATEMENT_IMPORT]: '银行流水导入',
+  [VIEWS.BANK_PAYMENT_REGISTER]: '银行付款登记',
   [VIEWS.BANK_COLLECTION_REGISTER]: '银行回款登记'
 }
 
@@ -259,6 +262,7 @@ export const VIEW_ICONS = {
   [VIEWS.SETTINGS_APP]: '设',
   [VIEWS.SETTINGS_REMINDERS]: '铃',
   [VIEWS.BANK_STATEMENT_IMPORT]: '流',
+  [VIEWS.BANK_PAYMENT_REGISTER]: '付',
   [VIEWS.BANK_COLLECTION_REGISTER]: '回'
 }
 
