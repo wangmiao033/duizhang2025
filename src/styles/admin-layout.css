@@ -12,7 +12,7 @@
 .admin-page-header__title {
   margin: 0;
   font-size: var(--admin-font-page);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--admin-text-main);
   line-height: 1.25;
 }
@@ -208,4 +208,14 @@
   background: var(--admin-card-bg);
   border-left: 1px solid var(--admin-border);
   box-shadow: var(--admin-shadow-md);
+}
+
+/* 通用卡片面（与 token 一致，供页面块复用） */
+.app-card {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-soft);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow-sm);
+  padding: var(--admin-space-md);
+  box-sizing: border-box;
 }

@@ -33,9 +33,7 @@ function Sidebar({ activeView, onNavigate }) {
                 onClick={() => toggleGroup(group.id)}
               >
                 <span className="sidebar-group-header-label">{group.label}</span>
-                <span className="sidebar-group-chevron" aria-hidden>
-                  {open ? '\u25be' : '\u25b8'}
-                </span>
+                <span className={`sidebar-group-chevron ${open ? 'is-open' : ''}`} aria-hidden />
               </button>
               {open && (
                 <div className="sidebar-group-items">

@@ -284,8 +284,8 @@
 }
 
 .rec-stat-card--emphasis {
-  border-color: #c7d2fe;
-  background: linear-gradient(180deg, #fff 0%, #f5f7ff 100%);
+  border-color: var(--admin-border);
+  background: var(--admin-primary-muted);
 }
 
 .rec-stat-card--warn .rec-stat-card__value {

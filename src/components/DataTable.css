@@ -16,10 +16,10 @@
 }
 
 .settlement-number-cell {
-  font-family: 'Courier New', monospace;
+  font-family: ui-monospace, 'Cascadia Code', 'Courier New', monospace;
   font-weight: 600;
-  color: #6366f1;
-  font-size: 0.9rem;
+  color: var(--admin-primary);
+  font-size: var(--admin-font-sm);
   white-space: nowrap;
 }
 
@@ -42,12 +42,12 @@
 }
 
 .table-tabs button:hover {
-  color: #667eea;
+  color: var(--admin-primary);
 }
 
 .table-tabs button.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
+  color: var(--admin-primary);
+  border-bottom-color: var(--admin-primary);
   font-weight: 600;
 }
 
@@ -68,12 +68,11 @@
   position: relative;
   width: 100%;
   min-width: 0;
-  background: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.8) 100%);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(226, 232, 240, 0.6);
-  border-radius: 16px;
-  padding: 12px;
-  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  background: var(--admin-elevated-bg);
+  border: 1px solid var(--admin-border-soft);
+  border-radius: var(--admin-radius);
+  padding: var(--space-3);
+  box-shadow: var(--admin-shadow-sm);
   width: 100%;
   min-height: 400px;
 }
@@ -100,32 +99,29 @@
 table {
   width: 100%;
   border-collapse: collapse;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
+  background: var(--admin-card-bg);
+  border-radius: var(--admin-radius-sm);
   overflow: visible;
   min-width: 1200px;
-  box-shadow: 0 2px 12px rgba(79, 70, 229, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.5);
+  box-shadow: none;
 }
 
 thead {
   position: sticky;
   top: 0;
   z-index: 10;
-}
-
-thead {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
-  color: white;
-  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+  background: var(--admin-elevated-bg);
+  color: var(--admin-text-sub);
+  box-shadow: none;
+  border-bottom: 1px solid var(--admin-border);
 }
 
 thead th {
   padding: var(--admin-table-th-py, 9px) var(--admin-table-th-px, 10px);
   text-align: left;
-  font-weight: 600;
-  font-size: var(--admin-table-font-size, 13px);
-  letter-spacing: 0.3px;
+  font-weight: 500;
+  font-size: var(--admin-font-sm);
+  letter-spacing: 0.02em;
   text-transform: none;
   white-space: nowrap;
 }
@@ -137,7 +133,7 @@ thead th.sortable-header {
 }
 
 thead th.sortable-header:hover {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+  background: var(--admin-border-soft);
 }
 
 thead th.sortable-header .sort-icon {
@@ -154,22 +150,22 @@ thead th.sortable-header:hover .sort-icon {
 }
 
 tbody tr {
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--admin-border);
   transition: background-color 0.2s;
 }
 
 tbody tr:hover {
-  background: linear-gradient(90deg, rgba(79, 70, 229, 0.05) 0%, rgba(124, 58, 237, 0.05) 50%, rgba(236, 72, 153, 0.05) 100%);
-  transition: background 0.2s ease;
+  background: var(--admin-elevated-bg);
+  transition: background 0.15s ease;
 }
 
 tbody td {
   padding: var(--admin-table-td-py, 8px) var(--admin-table-td-px, 10px);
-  color: #334155;
+  color: var(--admin-text-main);
   font-size: var(--admin-table-font-size, 13px);
   vertical-align: middle;
   white-space: nowrap;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--admin-border-soft);
 }
 
 .empty-message {
@@ -181,7 +177,7 @@ tbody td {
 
 .amount-cell {
   font-weight: 600;
-  color: #28a745;
+  color: var(--admin-success);
   text-align: right;
 }
 
@@ -259,23 +255,23 @@ tbody td {
 }
 
 .toggle-btn:hover {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
+  background: var(--admin-primary-muted);
+  color: var(--admin-primary);
 }
 
 .toggle-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--admin-primary);
+  color: #fff;
   font-weight: 600;
 }
 
 .partner-summary {
   margin-bottom: 16px;
   padding: 12px 16px;
-  background: rgba(102, 126, 234, 0.05);
-  border-radius: 8px;
-  color: #667eea;
-  font-size: 0.9rem;
+  background: var(--admin-primary-muted);
+  border-radius: var(--admin-radius-sm);
+  color: var(--admin-primary);
+  font-size: var(--admin-font-base);
   font-weight: 500;
 }
 
@@ -304,12 +300,12 @@ tbody td {
   align-items: center;
   padding: 16px 20px;
   cursor: pointer;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  background: var(--admin-elevated-bg);
   transition: background 0.2s;
 }
 
 .partner-card-header:hover {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: var(--admin-border-soft);
 }
 
 .partner-info {
@@ -321,7 +317,7 @@ tbody td {
 
 .expand-icon {
   font-size: 0.9rem;
-  color: #667eea;
+  color: var(--admin-primary);
   font-weight: bold;
   width: 20px;
   text-align: center;
@@ -336,10 +332,10 @@ tbody td {
 
 .game-badge {
   padding: 4px 12px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  border-radius: 12px;
-  font-size: 0.85rem;
+  background: var(--admin-success);
+  color: #fff;
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-sm);
   font-weight: 600;
 }
 
@@ -386,8 +382,8 @@ tbody td {
 }
 
 .partner-detail-table thead {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--admin-elevated-bg);
+  color: var(--admin-text-sub);
 }
 
 .partner-detail-table th {
@@ -404,7 +400,7 @@ tbody td {
 }
 
 .partner-detail-table tbody tr:hover {
-  background: rgba(102, 126, 234, 0.05);
+  background: var(--admin-elevated-bg);
 }
 
 .partner-detail-table tfoot {
@@ -413,7 +409,7 @@ tbody td {
 }
 
 .partner-detail-table tfoot td {
-  border-top: 2px solid #667eea;
+  border-top: 2px solid var(--admin-border);
 }
 
 .total-label {
@@ -439,27 +435,27 @@ tbody td {
 }
 
 .selected-count {
-  color: #667eea;
+  color: var(--admin-primary);
   font-weight: 500;
 }
 
 .batch-delete-btn {
-  padding: 10px 24px;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
+  padding: 0 16px;
+  min-height: var(--admin-btn-h);
+  background: var(--admin-danger);
+  color: #fff;
+  border: 1px solid var(--admin-danger);
+  border-radius: var(--admin-radius-sm);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: var(--admin-font-base);
   font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  transition:
+    background 0.15s ease,
+    filter 0.15s ease;
 }
 
 .batch-delete-btn:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+  filter: brightness(1.05);
 }
 
 .selected-row {
@@ -482,59 +478,55 @@ tbody td {
   min-height: var(--admin-table-action-btn-h, 32px);
   padding: 0 var(--admin-table-action-pad-x, 12px);
   margin: 0 2px;
-  border: none;
+  border: 1px solid transparent;
   border-radius: var(--admin-radius-sm, 8px);
   cursor: pointer;
   font-size: var(--admin-table-font-size, 13px);
   font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  position: relative;
-  overflow: hidden;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    filter 0.15s ease;
 }
 
 .edit-btn {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
 }
 
 .edit-btn:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  filter: brightness(1.06);
 }
 
 .save-btn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
+  background: var(--admin-success);
+  color: #fff;
+  border-color: var(--admin-success);
 }
 
 .save-btn:hover {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  filter: brightness(1.06);
 }
 
 .cancel-btn {
-  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-  color: white;
+  background: var(--admin-card-bg);
+  color: var(--admin-text-sub);
+  border-color: var(--admin-border-strong);
 }
 
 .cancel-btn:hover {
-  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+  background: var(--admin-elevated-bg);
 }
 
 .delete-btn {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
+  background: var(--admin-danger-muted);
+  color: var(--admin-danger);
+  border-color: #fecaca;
 }
 
 .delete-btn:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  background: #fee2e2;
 }
 
 .settlement-amount {
@@ -548,7 +540,7 @@ tbody td {
 }
 
 .total-row td {
-  border-top: 2px solid #667eea;
+  border-top: 2px solid var(--admin-border);
 }
 
 .dragging {
@@ -556,7 +548,7 @@ tbody td {
 }
 
 .drag-over {
-  border-top: 3px solid #667eea !important;
+  border-top: 3px solid var(--admin-primary) !important;
 }
 
 .drag-handle {
@@ -574,7 +566,7 @@ tbody td {
 }
 
 .drag-handle:hover {
-  color: #667eea;
+  color: var(--admin-primary);
 }
 
 tr[draggable="true"] {

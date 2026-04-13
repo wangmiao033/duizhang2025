@@ -1,7 +1,7 @@
 .page-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--admin-page-stack-gap);
   width: 100%;
   min-width: 0;
   flex: 1 1 auto;
@@ -14,14 +14,16 @@
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px 16px;
+  gap: var(--space-3) var(--space-4);
 }
 
 .page-container-title {
   margin: 0;
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: var(--admin-font-page);
+  font-weight: 600;
+  color: var(--admin-text-main);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
 }
 
 [data-theme='dark'] .page-container-title {
@@ -29,29 +31,30 @@
 }
 
 .page-container-desc {
-  margin: 6px 0 0;
-  font-size: 0.9rem;
-  color: #64748b;
+  margin: var(--space-2) 0 0;
+  font-size: var(--admin-font-base);
+  color: var(--admin-text-sub);
+  line-height: 1.45;
 }
 
 .page-container-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
 }
 
 .page-container-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: var(--space-3);
   align-items: center;
 }
 
 .page-container-body {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--admin-page-stack-gap);
   min-width: 0;
   flex: 1 1 auto;
   min-height: 0;
