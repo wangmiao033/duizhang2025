@@ -23,6 +23,7 @@ function BankCollectionRegisterPage() {
   const { showToast } = useAppState()
   const [form, setForm] = useState(INITIAL)
   const [attachmentName, setAttachmentName] = useState('')
+  const [pasteText, setPasteText] = useState('')
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
