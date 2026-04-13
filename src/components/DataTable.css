@@ -63,7 +63,7 @@
 
 .table-wrapper {
   overflow-x: auto;
-  overflow-y: auto;
+  overflow-y: visible;
   flex: 1 1 auto;
   position: relative;
   width: 100%;
@@ -103,7 +103,7 @@ table {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible;
   min-width: 1200px;
   box-shadow: 0 2px 12px rgba(79, 70, 229, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
@@ -651,7 +651,7 @@ tbody td:last-child {
 
 /* 操作列：避免被 table 压缩/裁切，保证按钮可点（研发对账 compact 等） */
 .data-table__col-actions {
-  min-width: 200px;
+  min-width: 220px;
   width: 1%;
   max-width: none;
   vertical-align: middle;
@@ -671,4 +671,19 @@ tbody td:last-child {
 
 table.data-table--compact {
   min-width: 1120px;
+}
+
+/* 状态选择下拉：避免被 table-wrapper / 卡片 overflow 裁切（仅作用于本组件树内菜单） */
+.data-table .status-selector-menu {
+  position: absolute;
+  z-index: 9999;
+}
+
+.data-table .status-selector-menu.status-selector-menu--portal {
+  position: fixed;
+  z-index: 9999;
+}
+
+.data-table .status-selector-overlay.status-selector-overlay--portal {
+  z-index: 9998;
 }

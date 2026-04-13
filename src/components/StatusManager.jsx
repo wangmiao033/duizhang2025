@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useLayoutEffect } from 'react'
+import { createPortal } from 'react-dom'
 import './StatusManager.css'
 
 // 状态定义
@@ -36,9 +37,26 @@ export function StatusTag({ status, onClick, className = '' }) {
 }
 
 // 状态选择器组件
-export function StatusSelector({ currentStatus, onStatusChange, disabled = false }) {
+export function StatusSelector({ currentStatus, onStatusChange, disabled = false, menuInPortal = false }) {
   const [showMenu, setShowMenu] = useState(false)
-  const currentStatusInfo = getStatusInfo(currentStatus)
+  const anchorRef = useRef(null)
+  const [portalPos, setPortalPos] = useState({ top: 0, left: 0 })
+
+  useLayoutEffect(() => {
+    if (!showMenu || !menuInPortal || !anchorRef.current) return
+    const el = anchorRef.current
+    const update = () => {
+      const r = el.getBoundingClientRect()
+      setPortalPos({ top: r.bottom + 8, left: r.left })
+    }
+    update()
+    window.addEventListener('scroll', update, true)
+    window.addEventListener('resize', update)
+    return () => {
+      window.removeEventListener('scroll', update, true)
+      window.removeEventListener('resize', update)
+    }
+  }, [showMenu, menuInPortal])
 
   const handleStatusChange = (newStatus) => {
     if (onStatusChange) {
@@ -47,35 +65,54 @@ export function StatusSelector({ currentStatus, onStatusChange, disabled = false
     setShowMenu(false)
   }
 
+  const closeMenu = () => setShowMenu(false)
+
+  const menuBody = (
+    <>
+      <div
+        className={`status-selector-overlay ${menuInPortal ? 'status-selector-overlay--portal' : ''}`}
+        onClick={closeMenu}
+      />
+      <div
+        className={`status-selector-menu ${menuInPortal ? 'status-selector-menu--portal' : ''}`}
+        style={
+          menuInPortal
+            ? {
+                position: 'fixed',
+                top: `${portalPos.top}px`,
+                left: `${portalPos.left}px`,
+                zIndex: 9999
+              }
+            : undefined
+        }
+      >
+        {STATUS_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            className={`status-option ${currentStatus === option.value ? 'active' : ''}`}
+            onClick={() => handleStatusChange(option.value)}
+            style={{
+              backgroundColor: currentStatus === option.value ? `${option.color}15` : 'transparent',
+              borderColor: option.color,
+              color: option.color
+            }}
+          >
+            <span className="status-icon">{option.icon}</span>
+            <span className="status-label">{option.label}</span>
+          </button>
+        ))}
+      </div>
+    </>
+  )
+
   return (
-    <div className="status-selector">
-      <StatusTag 
-        status={currentStatus} 
+    <div className="status-selector" ref={anchorRef}>
+      <StatusTag
+        status={currentStatus}
         onClick={() => !disabled && setShowMenu(!showMenu)}
         className={disabled ? 'disabled' : 'clickable'}
       />
-      {showMenu && !disabled && (
-        <>
-          <div className="status-selector-overlay" onClick={() => setShowMenu(false)} />
-          <div className="status-selector-menu">
-            {STATUS_OPTIONS.map(option => (
-              <button
-                key={option.value}
-                className={`status-option ${currentStatus === option.value ? 'active' : ''}`}
-                onClick={() => handleStatusChange(option.value)}
-                style={{
-                  backgroundColor: currentStatus === option.value ? `${option.color}15` : 'transparent',
-                  borderColor: option.color,
-                  color: option.color
-                }}
-              >
-                <span className="status-icon">{option.icon}</span>
-                <span className="status-label">{option.label}</span>
-              </button>
-            ))}
-          </div>
-        </>
-      )}
+      {showMenu && !disabled && (menuInPortal ? createPortal(menuBody, document.body) : menuBody)}
     </div>
   )
 }

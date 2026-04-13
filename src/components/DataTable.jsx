@@ -333,6 +333,7 @@ function DataTable({
                             </td>
                             <td>
                               <StatusSelector
+                                menuInPortal
                                 currentStatus={record.status || 'pending'}
                                 onStatusChange={(newStatus) =>
                                   onStatusChange &&
@@ -603,6 +604,7 @@ function DataTable({
                       </td>
                       <td>
                         <StatusSelector
+                          menuInPortal
                           currentStatus={editForm.status || 'pending'}
                           onStatusChange={(newStatus) => setEditForm({ ...editForm, status: newStatus })}
                         />
@@ -658,6 +660,7 @@ function DataTable({
                       )}
                       <td>
                         <StatusSelector
+                          menuInPortal
                           currentStatus={record.status || 'pending'}
                           onStatusChange={(newStatus) =>
                             onStatusChange &&
