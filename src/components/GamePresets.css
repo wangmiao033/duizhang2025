@@ -3,22 +3,23 @@
 }
 
 .game-presets-btn {
-  padding: 8px 16px;
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  padding: 0 16px;
+  min-height: var(--admin-btn-h);
+  background: var(--admin-primary);
+  color: #fff;
+  border: 1px solid var(--admin-primary);
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-base);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .game-presets-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
 }
 
 .game-presets-dialog-overlay {
@@ -27,215 +28,225 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(15, 23, 42, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2000;
-  animation: fadeIn 0.2s;
+  animation: game-presets-fade-in 0.2s ease;
 }
 
 .game-presets-dialog {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-soft);
+  border-radius: var(--admin-radius);
+  padding: var(--admin-space-lg);
   max-width: 900px;
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.3s;
+  box-shadow: var(--admin-shadow-md);
+  animation: game-presets-slide-up 0.2s ease;
 }
 
 .game-presets-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: var(--admin-space-lg);
+  padding-bottom: var(--admin-space-md);
+  border-bottom: 1px solid var(--admin-border-soft);
 }
 
 .game-presets-header h4 {
   margin: 0;
-  color: #1f2937;
-  font-size: 1.3rem;
+  color: var(--admin-text-main);
+  font-size: var(--admin-font-title);
+  font-weight: 600;
 }
 
-.close-btn {
+.game-presets .close-btn {
   background: none;
   border: none;
-  font-size: 24px;
-  color: #6b7280;
+  font-size: 22px;
+  color: var(--admin-text-muted);
   cursor: pointer;
   padding: 0;
-  width: 32px;
-  height: 32px;
+  width: var(--admin-btn-h);
+  height: var(--admin-btn-h);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  transition: all 0.2s;
+  border-radius: var(--admin-radius-sm);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
-.close-btn:hover {
-  background: #f3f4f6;
-  color: #1f2937;
+.game-presets .close-btn:hover {
+  background: var(--admin-elevated-bg);
+  color: var(--admin-text-main);
 }
 
 .game-presets-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: var(--admin-space-lg);
 }
 
 .presets-list-section h5,
 .preset-form-section h5 {
-  margin: 0 0 16px 0;
-  color: #374151;
-  font-size: 1.1rem;
+  margin: 0 0 var(--admin-space-md) 0;
+  color: var(--admin-text-main);
+  font-size: var(--admin-font-base);
+  font-weight: 600;
 }
 
 .presets-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--admin-space-sm);
   max-height: 500px;
   overflow-y: auto;
-  padding-right: 8px;
+  padding-right: var(--space-2);
 }
 
 .empty-presets {
   text-align: center;
   padding: 40px 20px;
-  color: #9ca3af;
-  font-size: 0.95rem;
+  color: var(--admin-text-muted);
+  font-size: var(--admin-font-base);
 }
 
 .preset-item {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 16px;
-  transition: all 0.2s;
+  background: var(--admin-elevated-bg);
+  border: 1px solid var(--admin-border-soft);
+  border-radius: var(--admin-radius-sm);
+  padding: var(--admin-space-md);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .preset-item:hover {
-  border-color: #8b5cf6;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
-  transform: translateY(-2px);
+  border-color: var(--admin-border);
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .preset-info {
-  margin-bottom: 12px;
+  margin-bottom: var(--admin-space-sm);
 }
 
 .preset-name-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 
 .preset-name-row strong {
-  color: #1f2937;
-  font-size: 1rem;
+  color: var(--admin-text-main);
+  font-size: var(--admin-font-base);
 }
 
 .pattern-hint {
-  font-size: 0.8rem;
-  color: #6b7280;
-  background: #f3f4f6;
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-muted);
+  background: var(--admin-card-bg);
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border-soft);
 }
 
 .preset-details {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  font-size: 0.85rem;
-  color: #6b7280;
-  margin-bottom: 8px;
+  gap: var(--admin-space-sm);
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-sub);
+  margin-bottom: var(--space-2);
 }
 
 .preset-details span {
   padding: 4px 8px;
-  background: white;
-  border-radius: 4px;
-  border: 1px solid #e5e7eb;
+  background: var(--admin-card-bg);
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border-soft);
 }
 
 .discount-badge {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
-  color: #92400e !important;
-  border-color: rgba(146, 64, 14, 0.2) !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+  color: var(--admin-warning) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
   font-weight: 600;
 }
 
 .preset-description {
-  font-size: 0.85rem;
-  color: #9ca3af;
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-muted);
   font-style: italic;
   margin-top: 4px;
 }
 
 .preset-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .apply-preset-btn,
 .edit-preset-btn,
 .delete-preset-btn {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  padding: 0 12px;
+  min-height: 32px;
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-sm);
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .apply-preset-btn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
+  background: var(--admin-success);
+  color: #fff;
+  border: 1px solid var(--admin-success);
 }
 
 .apply-preset-btn:hover {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  transform: translateY(-1px);
+  filter: brightness(1.05);
 }
 
 .edit-preset-btn {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
+  background: var(--admin-card-bg);
+  color: var(--admin-primary);
+  border: 1px solid var(--admin-border-strong);
 }
 
 .edit-preset-btn:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  transform: translateY(-1px);
+  background: var(--admin-primary-muted);
+  border-color: var(--admin-primary);
 }
 
 .delete-preset-btn {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
+  background: var(--admin-danger-muted);
+  color: var(--admin-danger);
+  border: 1px solid #fecaca;
 }
 
 .delete-preset-btn:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  transform: translateY(-1px);
+  background: #fee2e2;
 }
 
 .preset-form-section {
-  border-left: 2px solid #e5e7eb;
-  padding-left: 24px;
+  border-left: 1px solid var(--admin-border-soft);
+  padding-left: var(--admin-space-lg);
 }
 
 .preset-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--admin-space-md);
 }
 
 .preset-form .form-group {
@@ -245,83 +256,94 @@
 }
 
 .preset-form label {
-  font-weight: 600;
-  color: #374151;
-  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--admin-text-main);
+  font-size: var(--admin-font-sm);
 }
 
 .preset-form input {
   padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  transition: all 0.2s;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-base);
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .preset-form input:focus {
   outline: none;
-  border-color: #8b5cf6;
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px var(--admin-primary-muted);
 }
 
 .preset-form small {
-  font-size: 0.8rem;
-  color: #6b7280;
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-muted);
   margin-top: -4px;
 }
 
-.form-row {
+.preset-form .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: var(--admin-space-sm);
 }
 
 .preset-form-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 8px;
+  gap: var(--admin-space-sm);
+  margin-top: var(--space-2);
 }
 
 .save-preset-btn,
 .cancel-edit-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  padding: 0 18px;
+  min-height: var(--admin-btn-h);
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-base);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .save-preset-btn {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  color: white;
+  background: var(--admin-primary);
+  color: #fff;
+  border: 1px solid var(--admin-primary);
   flex: 1;
 }
 
 .save-preset-btn:hover {
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
 }
 
 .cancel-edit-btn {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
+  border: 1px solid var(--admin-border-strong);
 }
 
 .cancel-edit-btn:hover {
-  background: #e5e7eb;
+  background: var(--admin-elevated-bg);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
+@keyframes game-presets-fade-in {
   from {
-    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes game-presets-slide-up {
+  from {
+    transform: translateY(12px);
     opacity: 0;
   }
   to {
@@ -334,11 +356,11 @@
   .game-presets-content {
     grid-template-columns: 1fr;
   }
-  
+
   .preset-form-section {
     border-left: none;
-    border-top: 2px solid #e5e7eb;
+    border-top: 1px solid var(--admin-border-soft);
     padding-left: 0;
-    padding-top: 24px;
+    padding-top: var(--admin-space-lg);
   }
 }

@@ -1,209 +1,220 @@
 .statistics-report {
-  background: #f8f9fa;
-  border-radius: 15px;
-  padding: 25px;
-  margin-bottom: 30px;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-soft);
+  border-radius: var(--admin-radius);
+  padding: var(--admin-space-lg);
+  margin-bottom: var(--admin-space-xl);
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .statistics-report h3 {
-  margin: 0 0 20px 0;
-  color: #333;
-  font-size: 1.3rem;
-  border-bottom: 2px solid #667eea;
-  padding-bottom: 10px;
+  margin: 0 0 var(--admin-space-lg) 0;
+  color: var(--admin-text-main);
+  font-size: var(--admin-font-title);
+  font-weight: 600;
+  border-bottom: 1px solid var(--admin-border-soft);
+  padding-bottom: var(--admin-space-sm);
 }
 
 .empty-report {
   text-align: center;
   padding: 40px;
-  color: #6c757d;
+  color: var(--admin-text-muted);
   font-style: italic;
 }
 
 .report-summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 30px;
+  gap: var(--admin-space-md);
+  margin-bottom: var(--admin-space-xl);
 }
 
 .summary-item {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
+  background: var(--admin-elevated-bg);
+  padding: var(--admin-space-md);
+  border-radius: var(--admin-radius-sm);
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--admin-border-soft);
+  box-shadow: none;
 }
 
 .summary-label {
   display: block;
-  color: #6c757d;
-  font-size: 0.9rem;
-  margin-bottom: 8px;
+  color: var(--admin-text-sub);
+  font-size: var(--admin-font-sm);
+  margin-bottom: var(--space-2);
 }
 
 .summary-value {
   display: block;
-  color: #667eea;
-  font-size: 1.5rem;
-  font-weight: 700;
+  color: var(--admin-text-main);
+  font-size: var(--admin-stat-value-size);
+  font-weight: var(--admin-stat-value-weight);
 }
 
 .report-sections {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+  gap: var(--admin-space-lg);
 }
 
 .report-section {
-  background: white;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--admin-elevated-bg);
+  border: 1px solid var(--admin-border-soft);
+  border-radius: var(--admin-radius-sm);
+  padding: var(--admin-space-md);
+  box-shadow: none;
 }
 
 .report-section h4 {
-  margin: 0 0 15px 0;
-  color: #667eea;
-  font-size: 1.1rem;
-  border-bottom: 2px solid #e9ecef;
-  padding-bottom: 10px;
+  margin: 0 0 var(--admin-space-md) 0;
+  color: var(--admin-text-main);
+  font-size: var(--admin-font-base);
+  font-weight: 600;
+  border-bottom: 1px solid var(--admin-border-soft);
+  padding-bottom: var(--admin-space-sm);
 }
 
 .top-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--admin-space-sm);
 }
 
 .top-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  transition: background-color 0.2s;
+  gap: var(--admin-space-sm);
+  padding: var(--admin-space-sm);
+  background: var(--admin-card-bg);
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border-soft);
+  transition: background 0.15s ease;
 }
 
 .top-item:hover {
-  background: #e9ecef;
+  background: var(--admin-border-soft);
 }
 
 .top-rank {
-  width: 30px;
-  height: 30px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  width: 28px;
+  height: 28px;
+  background: var(--admin-primary-muted);
+  color: var(--admin-primary);
+  border: 1px solid var(--admin-border);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 0.9rem;
+  font-weight: 600;
+  font-size: var(--admin-font-sm);
   flex-shrink: 0;
 }
 
 .top-info {
   flex: 1;
+  min-width: 0;
 }
 
 .top-name {
   font-weight: 600;
-  color: #333;
+  color: var(--admin-text-main);
   margin-bottom: 4px;
-  font-size: 0.95rem;
+  font-size: var(--admin-font-base);
 }
 
 .top-details {
   display: flex;
-  gap: 12px;
-  font-size: 0.85rem;
-  color: #6c757d;
+  gap: var(--admin-space-sm);
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-sub);
   flex-wrap: wrap;
 }
 
 .top-amount {
-  font-weight: 700;
-  color: #667eea;
-  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--admin-text-main);
+  font-size: var(--admin-font-base);
   white-space: nowrap;
 }
 
 .distribution-chart {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: var(--admin-space-md);
 }
 
 .distribution-item {
-  padding: 10px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  padding: var(--admin-space-sm);
+  background: var(--admin-card-bg);
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border-soft);
 }
 
 .distribution-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
 }
 
 .distribution-label {
   font-weight: 600;
-  color: #333;
-  font-size: 0.9rem;
+  color: var(--admin-text-main);
+  font-size: var(--admin-font-sm);
 }
 
 .distribution-count {
-  font-size: 0.85rem;
-  color: #6c757d;
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-muted);
 }
 
 .distribution-bar {
   width: 100%;
-  height: 20px;
-  background: #e9ecef;
-  border-radius: 10px;
+  height: 8px;
+  background: var(--admin-border-soft);
+  border-radius: var(--admin-radius-sm);
   overflow: hidden;
 }
 
 .distribution-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  transition: width 0.3s ease;
+  background: var(--admin-primary);
+  transition: width 0.25s ease;
 }
 
 .month-stats {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--admin-space-sm);
 }
 
 .month-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  padding: var(--admin-space-sm);
+  background: var(--admin-card-bg);
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border-soft);
 }
 
 .month-name {
   font-weight: 600;
-  color: #333;
+  color: var(--admin-text-main);
   flex: 1;
 }
 
 .month-count {
-  font-size: 0.85rem;
-  color: #6c757d;
-  margin: 0 15px;
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-muted);
+  margin: 0 var(--admin-space-md);
 }
 
 .month-amount {
-  font-weight: 700;
-  color: #667eea;
+  font-weight: 600;
+  color: var(--admin-text-main);
   white-space: nowrap;
 }
 
@@ -211,10 +222,9 @@
   .report-sections {
     grid-template-columns: 1fr;
   }
-  
+
   .top-details {
     flex-direction: column;
     gap: 4px;
   }
 }
-

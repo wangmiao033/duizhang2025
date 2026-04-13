@@ -45,15 +45,15 @@
 
 .channel-header h2 {
   margin: 0 0 8px 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: var(--admin-font-title);
+  font-weight: 600;
+  color: var(--admin-text-main);
 }
 
 .channel-header .subtitle {
   margin: 0;
-  color: #64748b;
-  font-size: 0.95rem;
+  color: var(--admin-text-sub);
+  font-size: var(--admin-font-base);
 }
 
 /* 统计卡片 */
@@ -70,59 +70,61 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 20px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
-  border-radius: 16px;
-  border: 1px solid rgba(226, 232, 240, 0.6);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.06);
-  transition: all 0.3s ease;
+  padding: var(--admin-space-md);
+  background: var(--admin-card-bg);
+  border-radius: var(--admin-radius);
+  border: 1px solid var(--admin-border-soft);
+  box-shadow: var(--admin-shadow-sm);
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.1);
+  box-shadow: var(--admin-shadow-md);
+  border-color: var(--admin-border);
 }
 
 .stat-card.success {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
-  border-color: rgba(16, 185, 129, 0.3);
+  background: var(--admin-card-bg);
+  border-color: rgba(22, 163, 74, 0.22);
 }
 
 .stat-card.warning {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
-  border-color: rgba(245, 158, 11, 0.3);
+  background: var(--admin-card-bg);
+  border-color: rgba(245, 158, 11, 0.35);
 }
 
 .stat-card.info {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: var(--admin-card-bg);
+  border-color: var(--admin-border);
 }
 
 .stat-card.info .stat-icon {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  background: var(--admin-primary-muted);
+  box-shadow: none;
 }
 
 .stat-icon {
   font-size: 2rem;
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-  border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  background: var(--admin-primary-muted);
+  border-radius: var(--admin-radius-sm);
+  box-shadow: none;
 }
 
 .stat-card.success .stat-icon {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  background: var(--admin-success-muted);
+  box-shadow: none;
 }
 
 .stat-card.warning .stat-icon {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.12);
+  box-shadow: none;
 }
 
 .stat-content {
@@ -131,15 +133,15 @@
 }
 
 .stat-label {
-  font-size: 0.85rem;
-  color: #64748b;
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-sub);
   margin-bottom: 4px;
 }
 
 .stat-value {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: var(--admin-stat-value-size);
+  font-weight: var(--admin-stat-value-weight);
+  color: var(--admin-text-main);
 }
 
 /* 内容区域 */
@@ -161,11 +163,11 @@
 
 /* 表单区域 */
 .channel-form-section {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
-  border-radius: 20px;
-  padding: 20px;
-  border: 1px solid rgba(226, 232, 240, 0.6);
-  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.06);
+  background: var(--admin-card-bg);
+  border-radius: var(--admin-radius);
+  padding: var(--admin-space-md);
+  border: 1px solid var(--admin-border-soft);
+  box-shadow: var(--admin-shadow-sm);
   height: fit-content;
   min-width: 0;
   overflow: hidden;
@@ -174,10 +176,10 @@
 }
 
 .channel-form-section h3 {
-  margin: 0 0 20px 0;
-  font-size: 1.1rem;
+  margin: 0 0 var(--admin-space-md) 0;
+  font-size: var(--admin-font-title);
   font-weight: 600;
-  color: #0f172a;
+  color: var(--admin-text-main);
 }
 
 .channel-form {
@@ -202,12 +204,12 @@
 }
 
 .form-section-title {
-  font-size: 0.85rem;
+  font-size: var(--admin-font-sm);
   font-weight: 600;
-  color: #4f46e5;
+  color: var(--admin-text-sub);
   margin: 16px 0 8px 0;
   padding-bottom: 6px;
-  border-bottom: 1px dashed rgba(79, 70, 229, 0.3);
+  border-bottom: 1px solid var(--admin-border-soft);
 }
 
 .form-section-title:first-of-type {
@@ -232,19 +234,22 @@
 }
 
 .form-group label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #475569;
+  font-size: var(--admin-font-base);
+  font-weight: 500;
+  color: var(--admin-text-sub);
 }
 
 .form-group input,
 .form-group select {
-  padding: 10px 14px;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 10px;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-  background: white;
+  padding: 10px 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-base);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -253,8 +258,8 @@
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px var(--admin-primary-muted);
 }
 
 .form-actions {
@@ -265,46 +270,51 @@
 
 .submit-btn {
   flex: 1;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 0.95rem;
+  padding: 0 16px;
+  min-height: var(--admin-btn-h);
+  background: var(--admin-primary);
+  color: #fff;
+  border: 1px solid var(--admin-primary);
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-base);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
 }
 
 .cancel-btn {
-  padding: 12px 20px;
-  background: rgba(100, 116, 139, 0.1);
-  color: #64748b;
-  border: 1px solid rgba(100, 116, 139, 0.3);
-  border-radius: 12px;
-  font-size: 0.95rem;
-  font-weight: 600;
+  padding: 0 16px;
+  min-height: var(--admin-btn-h);
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
+  border: 1px solid var(--admin-border-strong);
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-base);
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .cancel-btn:hover {
-  background: rgba(100, 116, 139, 0.2);
+  background: var(--admin-elevated-bg);
 }
 
 /* 列表区域 */
 .channel-list-section {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
-  border-radius: 20px;
-  padding: 24px;
-  border: 1px solid rgba(226, 232, 240, 0.6);
-  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.06);
+  background: var(--admin-card-bg);
+  border-radius: var(--admin-radius);
+  padding: var(--admin-space-lg);
+  border: 1px solid var(--admin-border-soft);
+  box-shadow: var(--admin-shadow-sm);
   min-width: 0;
   overflow: hidden;
 }
@@ -320,9 +330,9 @@
 
 .list-header h3 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: var(--admin-font-title);
   font-weight: 600;
-  color: #0f172a;
+  color: var(--admin-text-main);
 }
 
 .list-tools {
@@ -332,31 +342,35 @@
 }
 
 .search-input {
-  padding: 8px 14px;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 10px;
-  font-size: 0.9rem;
+  padding: 8px 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-sm);
   width: 200px;
-  transition: all 0.3s;
+  background: var(--admin-card-bg);
+  color: var(--admin-text-main);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px var(--admin-primary-muted);
 }
 
 .record-count {
-  font-size: 0.9rem;
-  color: #64748b;
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-sub);
 }
 
 /* 表格 */
 .channel-table-wrapper {
   overflow-x: auto;
   overflow-y: visible;
-  border-radius: 12px;
-  border: 1px solid rgba(226, 232, 240, 0.6);
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border-soft);
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -372,15 +386,16 @@
 }
 
 .channel-table thead {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: var(--admin-elevated-bg);
+  border-bottom: 1px solid var(--admin-border);
 }
 
 .channel-table th {
   padding: var(--admin-table-th-py, 9px) var(--admin-table-th-px, 10px);
   text-align: left;
-  color: white;
-  font-weight: 600;
-  font-size: var(--admin-table-font-size, 13px);
+  color: var(--admin-text-sub);
+  font-weight: 500;
+  font-size: var(--admin-font-sm);
   white-space: nowrap;
   position: sticky;
   top: 0;
@@ -407,22 +422,23 @@
   min-width: 120px;
   position: sticky;
   right: 0;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: var(--admin-elevated-bg);
+  box-shadow: -1px 0 0 var(--admin-border-soft);
 }
 
 .channel-table tbody tr {
-  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
-  transition: background 0.2s;
+  border-bottom: 1px solid var(--admin-border-soft);
+  transition: background 0.15s ease;
 }
 
 .channel-table tbody tr:hover {
-  background: rgba(16, 185, 129, 0.05);
+  background: var(--admin-elevated-bg);
 }
 
 .channel-table td {
   padding: var(--admin-table-td-py, 8px) var(--admin-table-td-px, 10px);
   font-size: var(--admin-table-font-size, 13px);
-  color: #475569;
+  color: var(--admin-text-main);
   white-space: nowrap;
 }
 
@@ -437,22 +453,23 @@
 .channel-table td:nth-child(11) {
   position: sticky;
   right: 0;
-  background: white;
+  background: var(--admin-card-bg);
   z-index: 5;
+  box-shadow: -1px 0 0 var(--admin-border-soft);
 }
 
 .channel-table tbody tr:hover td:nth-child(11) {
-  background: rgba(16, 185, 129, 0.05);
+  background: var(--admin-elevated-bg);
 }
 
 .channel-table .channel-name {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--admin-text-main);
 }
 
 .channel-table .settlement {
   font-weight: 600;
-  color: #10b981;
+  color: var(--admin-success);
 }
 
 .empty-row {
@@ -486,11 +503,11 @@
 }
 
 .settlement-input {
-  font-size: 1.1rem !important;
+  font-size: var(--admin-font-title) !important;
   font-weight: 600;
-  color: #10b981 !important;
-  background: rgba(16, 185, 129, 0.05) !important;
-  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: var(--admin-success) !important;
+  background: var(--admin-success-muted) !important;
+  border-color: rgba(22, 163, 74, 0.28) !important;
 }
 
 .form-group.full-width {
@@ -498,8 +515,8 @@
 }
 
 .readonly-input {
-  background: rgba(226, 232, 240, 0.5) !important;
-  color: #10b981 !important;
+  background: var(--admin-elevated-bg) !important;
+  color: var(--admin-success) !important;
   font-weight: 600;
   cursor: not-allowed;
 }
@@ -521,17 +538,19 @@
   text-overflow: ellipsis;
 }
 
-/* 渠道卡片特殊样式 */
+/* 渠道卡片：与默认游戏卡一致，略强调左边线即可 */
 .channel-card .game-card-header {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, rgba(5, 150, 105, 0.03) 100%);
+  border-left: 3px solid var(--admin-success);
 }
 
 .channel-card .game-card-header:hover {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(5, 150, 105, 0.06) 100%);
+  background: var(--admin-border-soft);
 }
 
 .channel-card .channel-badge {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: var(--admin-success-muted);
+  color: var(--admin-success);
+  border: 1px solid rgba(22, 163, 74, 0.25);
 }
 
 /* 操作按钮 */
@@ -543,50 +562,55 @@
 
 .edit-btn,
 .delete-btn {
-  padding: 4px 10px;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  padding: 0 10px;
+  min-height: var(--admin-table-action-btn-h, 32px);
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-sm);
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
   white-space: nowrap;
-  min-width: 50px;
 }
 
 .edit-btn {
-  background: rgba(79, 70, 229, 0.1);
-  color: #4f46e5;
+  background: var(--admin-card-bg);
+  color: var(--admin-primary);
+  border: 1px solid var(--admin-border-strong);
 }
 
 .edit-btn:hover {
-  background: rgba(79, 70, 229, 0.2);
+  background: var(--admin-primary-muted);
+  border-color: var(--admin-primary);
 }
 
 .delete-btn {
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
+  background: var(--admin-danger-muted);
+  color: var(--admin-danger);
+  border: 1px solid #fecaca;
 }
 
 .delete-btn:hover {
-  background: rgba(239, 68, 68, 0.2);
+  background: #fee2e2;
 }
 
 /* 表格底部 */
 .channel-table tfoot {
-  background: rgba(248, 250, 252, 0.8);
+  background: var(--admin-elevated-bg);
 }
 
 .channel-table tfoot td {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--admin-text-main);
 }
 
 .channel-table tfoot td:nth-child(11) {
   position: sticky;
   right: 0;
-  background: rgba(248, 250, 252, 0.8);
+  background: var(--admin-elevated-bg);
   z-index: 5;
+  box-shadow: -1px 0 0 var(--admin-border-soft);
 }
 
 .total-label {
@@ -600,8 +624,8 @@
 }
 
 [data-theme="dark"] .stat-card {
-  background: linear-gradient(135deg, rgba(30, 30, 46, 0.95) 0%, rgba(45, 45, 68, 0.95) 100%);
-  border-color: rgba(77, 77, 108, 0.5);
+  background: var(--admin-card-bg);
+  border-color: var(--admin-border);
 }
 
 [data-theme="dark"] .stat-value {
@@ -610,8 +634,8 @@
 
 [data-theme="dark"] .channel-form-section,
 [data-theme="dark"] .channel-list-section {
-  background: linear-gradient(135deg, rgba(30, 30, 46, 0.95) 0%, rgba(45, 45, 68, 0.95) 100%);
-  border-color: rgba(77, 77, 108, 0.5);
+  background: var(--admin-card-bg);
+  border-color: var(--admin-border);
 }
 
 [data-theme="dark"] .channel-form-section h3,
@@ -652,27 +676,27 @@
 }
 
 [data-theme="dark"] .channel-table td:nth-child(11) {
-  background: rgba(30, 30, 46, 0.95);
+  background: var(--admin-card-bg);
 }
 
 [data-theme="dark"] .channel-table tbody tr:hover td:nth-child(11) {
-  background: rgba(16, 185, 129, 0.05);
+  background: var(--admin-elevated-bg);
 }
 
 [data-theme="dark"] .channel-table tfoot td:nth-child(11) {
-  background: rgba(45, 45, 68, 0.8);
+  background: var(--admin-elevated-bg);
 }
 
 [data-theme="dark"] .channel-detail-table td:nth-child(10) {
-  background: rgba(30, 30, 46, 0.95);
+  background: var(--admin-card-bg);
 }
 
 [data-theme="dark"] .channel-detail-table tbody tr:hover td:nth-child(10) {
-  background: rgba(16, 185, 129, 0.05);
+  background: var(--admin-elevated-bg);
 }
 
 [data-theme="dark"] .channel-detail-table tfoot td:nth-child(10) {
-  background: rgba(30, 30, 46, 0.8);
+  background: var(--admin-elevated-bg);
 }
 
 /* 视图切换 */
@@ -695,10 +719,10 @@
 }
 
 .toggle-btn.active {
-  background: white;
-  color: #4f46e5;
+  background: var(--admin-primary);
+  color: #fff;
   font-weight: 600;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
 }
 
 /* 游戏列表 */
@@ -719,32 +743,34 @@
 
 /* 游戏卡片 */
 .game-card {
-  background: white;
-  border-radius: 16px;
-  border: 1px solid rgba(226, 232, 240, 0.6);
+  background: var(--admin-card-bg);
+  border-radius: var(--admin-radius);
+  border: 1px solid var(--admin-border-soft);
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .game-card:hover {
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .game-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: var(--admin-space-md) var(--admin-space-lg);
   cursor: pointer;
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.03) 0%, rgba(124, 58, 237, 0.03) 100%);
-  border-bottom: 1px solid transparent;
-  transition: all 0.2s;
+  background: var(--admin-elevated-bg);
+  border-bottom: 1px solid var(--admin-border-soft);
+  transition: background 0.15s ease;
   flex-wrap: wrap;
   gap: 12px;
 }
 
 .game-card-header:hover {
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.06) 0%, rgba(124, 58, 237, 0.06) 100%);
+  background: var(--admin-border-soft);
 }
 
 .game-info {
@@ -754,24 +780,25 @@
 }
 
 .expand-icon {
-  color: #4f46e5;
+  color: var(--admin-primary);
   font-size: 0.8rem;
   width: 16px;
 }
 
 .game-title {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: var(--admin-font-title);
   font-weight: 600;
-  color: #0f172a;
+  color: var(--admin-text-main);
 }
 
 .channel-badge {
-  font-size: 0.8rem;
+  font-size: var(--admin-font-sm);
   padding: 4px 10px;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-  color: white;
-  border-radius: 20px;
+  background: var(--admin-primary-muted);
+  color: var(--admin-primary);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
 }
 
 .game-stats {
@@ -798,36 +825,24 @@
 }
 
 .game-stats .value.settlement {
-  color: #10b981;
+  color: var(--admin-success);
 }
 
 .game-stats .value.positive {
-  color: #10b981;
+  color: var(--admin-success);
 }
 
 .game-stats .value.negative {
-  color: #ef4444;
+  color: var(--admin-danger);
 }
 
 /* 游戏渠道详情 */
 .game-channels {
-  padding: 16px;
-  background: rgba(248, 250, 252, 0.8);
-  animation: slideDown 0.3s ease;
+  padding: var(--admin-space-md);
+  background: var(--admin-page-bg);
   overflow-x: auto;
   width: 100%;
   max-width: 100%;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    max-height: 0;
-  }
-  to {
-    opacity: 1;
-    max-height: 1000px;
-  }
 }
 
 .channel-detail-table {
@@ -841,13 +856,15 @@
 .channel-detail-table th {
   padding: var(--admin-table-th-py, 9px) var(--admin-table-th-px, 10px);
   text-align: left;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  font-weight: 600;
+  background: var(--admin-elevated-bg);
+  color: var(--admin-text-sub);
+  font-weight: 500;
+  font-size: var(--admin-font-sm);
   white-space: nowrap;
   position: sticky;
   top: 0;
   z-index: 10;
+  border-bottom: 1px solid var(--admin-border);
 }
 
 .channel-detail-table th:nth-child(1) {
@@ -872,7 +889,8 @@
   min-width: 120px;
   position: sticky;
   right: 0;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: var(--admin-elevated-bg);
+  box-shadow: -1px 0 0 var(--admin-border-soft);
 }
 
 .channel-detail-table th:first-child {
@@ -885,8 +903,8 @@
 
 .channel-detail-table td {
   padding: var(--admin-table-td-py, 8px) var(--admin-table-td-px, 10px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
-  color: #475569;
+  border-bottom: 1px solid var(--admin-border-soft);
+  color: var(--admin-text-main);
   white-space: nowrap;
 }
 
@@ -900,42 +918,44 @@
 .channel-detail-table td:nth-child(10) {
   position: sticky;
   right: 0;
-  background: white;
+  background: var(--admin-card-bg);
   z-index: 5;
+  box-shadow: -1px 0 0 var(--admin-border-soft);
 }
 
 .channel-detail-table tbody tr:hover td:nth-child(10) {
-  background: rgba(16, 185, 129, 0.05);
+  background: var(--admin-elevated-bg);
 }
 
 .channel-detail-table tbody tr:hover {
-  background: rgba(16, 185, 129, 0.05);
+  background: var(--admin-elevated-bg);
 }
 
 .channel-detail-table tfoot {
-  background: rgba(226, 232, 240, 0.3);
+  background: var(--admin-elevated-bg);
 }
 
 .channel-detail-table tfoot td {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--admin-text-main);
 }
 
 .channel-detail-table tfoot td:nth-child(10) {
   position: sticky;
   right: 0;
-  background: rgba(226, 232, 240, 0.3);
+  background: var(--admin-elevated-bg);
   z-index: 5;
+  box-shadow: -1px 0 0 var(--admin-border-soft);
 }
 
 /* 暗色模式 - 游戏卡片 */
 [data-theme="dark"] .game-card {
-  background: rgba(30, 30, 46, 0.95);
-  border-color: rgba(77, 77, 108, 0.5);
+  background: var(--admin-card-bg);
+  border-color: var(--admin-border);
 }
 
 [data-theme="dark"] .game-card-header {
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+  background: var(--admin-elevated-bg);
 }
 
 [data-theme="dark"] .game-title {
@@ -968,8 +988,8 @@
 }
 
 [data-theme="dark"] .toggle-btn.active {
-  background: rgba(79, 70, 229, 0.3);
-  color: #a5b4fc;
+  background: var(--admin-primary);
+  color: #fff;
 }
 
 [data-theme="dark"] .view-toggle {
