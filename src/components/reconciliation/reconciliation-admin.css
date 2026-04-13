@@ -80,9 +80,63 @@
   box-sizing: border-box;
 }
 
-/* 仅隐藏筛选层：不删 JSX，子组件仍挂载；列表仍按 store 中 searchTerm / 周期 / 筛选 计算 filteredRecords */
-.reconciliation-rd.reconciliation-rd--hide-filter-ui .reconciliation-rd__filter-layer {
-  display: none !important;
+/* —— 筛选区：默认收起，顶部轻量入口 —— */
+.reconciliation-rd__filter-toggle-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--admin-space-sm, 10px);
+  margin-bottom: var(--admin-space-sm, 10px);
+  min-height: 0;
+}
+
+.reconciliation-rd__filter-toggle {
+  padding: 5px 11px;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-menu);
+  line-height: var(--line-height-caption);
+  color: var(--admin-text-sub, #64748b);
+  background: var(--admin-elevated-bg, #f8fafc);
+  border: 1px solid var(--admin-border, #e2e8f0);
+  border-radius: var(--admin-radius-sm, 8px);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.reconciliation-rd__filter-toggle:hover {
+  color: var(--admin-text-main, #0f172a);
+  border-color: var(--admin-border-strong, #cbd5e1);
+  background: var(--admin-card-bg, #fff);
+}
+
+.reconciliation-rd__filter-toggle:focus-visible {
+  outline: 2px solid var(--admin-primary, #6c5ce7);
+  outline-offset: 2px;
+}
+
+.reconciliation-rd__filter-toggle--inline {
+  padding: 4px 10px;
+  font-weight: var(--font-weight-body);
+}
+
+.reconciliation-rd__filter-toggle-hint {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-body);
+  line-height: var(--line-height-caption);
+  color: var(--admin-text-muted, #94a3b8);
+}
+
+[data-theme='dark'] .reconciliation-rd__filter-toggle {
+  background: var(--admin-elevated-bg);
+  border-color: var(--admin-border);
+  color: var(--admin-text-secondary, #94a3b8);
+}
+
+[data-theme='dark'] .reconciliation-rd__filter-toggle:hover {
+  color: var(--admin-text-main);
 }
 
 .reconciliation-rd__filter-strip {
