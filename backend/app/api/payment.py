@@ -31,7 +31,6 @@ def _apply_filters(stmt, *, search: str | None, status: str | None):
                 PaymentRecord.recipient.ilike(term),
                 PaymentRecord.customer.ilike(term),
                 PaymentRecord.remark.ilike(term),
-                PaymentRecord.address.ilike(term),
             )
         )
     if status and status.strip():

@@ -1,17 +1,12 @@
--- 回款登记 / 快递寄送台账（Neon / PostgreSQL）
--- 在 Neon SQL Editor 中执行本文件以创建 payment_records 表。
--- 核心列与需求一致；另含 recipient_phone、address、partner_id、expected_date，与 deliveryForm.js 表单对齐。
+-- 回款登记（Neon / PostgreSQL）
+-- 在 Neon 执行本文件创建 payment_records（与 ORM 字段一致）。
 
 CREATE TABLE IF NOT EXISTS payment_records (
   id TEXT PRIMARY KEY,
   delivery_no TEXT,
   company TEXT,
   recipient TEXT,
-  recipient_phone TEXT,
-  address TEXT,
-  partner_id TEXT,
   customer TEXT,
-  expected_date TEXT,
   send_date TEXT,
   status TEXT DEFAULT '待寄出',
   remark TEXT,
