@@ -1,20 +1,53 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
 import { useInvoicePaymentLinks } from '@/hooks/useInvoicePaymentLinks.js'
 import { calculateSettlementAmount } from '@/domain/settlement/calculateSettlementAmount.js'
 import { buildExceptionItems } from '@/lib/exceptions/buildExceptionItems.ts'
+import {
+  fetchExceptionStatusesFromApi,
+  readLocalStatusMap
+} from '@/lib/exceptions/exceptionStatusStorage.ts'
+
+function mergeStatusMaps(
+  localMap,
+  remoteMap
+) {
+  return { ...localMap, ...remoteMap }
+}
 
 /**
- * 异常中心 2.0：聚合识别结果；refresh() 在本地状态变更后调用以重新合并持久化状态 */
+ * 异常中心 2.0：规则在前端识别；状态优先后端，本地为缓存与回退。
+ */
 export function useExceptionItems() {
-  const [rev, setRev] = useState(0)
+  const [statusMap, setStatusMap] = useState(() => readLocalStatusMap())
   const { recon, invoice, settings } = useAppState()
   const { links } = useInvoicePaymentLinks()
 
   useEffect(() => {
-    const bump = () => setRev((r) => r + 1)
-    window.addEventListener('duizhang-exception-status-changed', bump)
-    return () => window.removeEventListener('duizhang-exception-status-changed', bump)
+    const onDetail = (e) => {
+      const d = e?.detail
+      if (d && d.exceptionId && d.status) {
+        setStatusMap((m) => ({ ...m, [d.exceptionId]: d.status }))
+      }
+    }
+    window.addEventListener('duizhang-exception-status-changed', onDetail)
+    return () => window.removeEventListener('duizhang-exception-status-changed', onDetail)
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const remote = await fetchExceptionStatusesFromApi()
+      if (cancelled) return
+      if (remote != null) {
+        setStatusMap((prev) => mergeStatusMaps(prev, remote))
+      } else {
+        setStatusMap(readLocalStatusMap())
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const items = useMemo(
@@ -25,7 +58,8 @@ export function useExceptionItems() {
         links,
         reconciliationRecords: recon?.records ?? [],
         channelRecords: recon?.channelRecords ?? [],
-        calculateSettlementAmount
+        calculateSettlementAmount,
+        statusMap
       }),
     [
       invoice?.invoiceRecords,
@@ -33,13 +67,11 @@ export function useExceptionItems() {
       links,
       recon?.records,
       recon?.channelRecords,
-      rev
+      statusMap
     ]
   )
 
-  const refresh = useCallback(() => setRev((r) => r + 1), [])
-
   const pendingCount = useMemo(() => items.filter((i) => i.status === 'pending').length, [items])
 
-  return { items, refresh, pendingCount }
+  return { items, pendingCount, statusMap }
 }

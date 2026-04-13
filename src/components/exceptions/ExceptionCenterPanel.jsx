@@ -42,7 +42,7 @@ function levelClass(level) {
   return 'exception-hub20__badge exception-hub20__badge--info'
 }
 
-function ExceptionCenterPanel({ items, refresh, setActiveView, showToast }) {
+function ExceptionCenterPanel({ items, setActiveView, showToast }) {
   const [statusFilter, setStatusFilter] = useState('all')
 
   const filtered = useMemo(() => {
@@ -69,10 +69,12 @@ function ExceptionCenterPanel({ items, refresh, setActiveView, showToast }) {
     return c
   }, [items])
 
-  const setStatus = (id, status) => {
-    setExceptionUserStatus(id, status)
-    refresh()
-    showToast?.(status === 'ignored' ? '已标记为忽略' : '已标记为已解决', 'success')
+  const setStatus = async (id, st) => {
+    const { usedFallback } = await setExceptionUserStatus(id, st)
+    const suffix = usedFallback ? '（仅本机，服务器暂不可用）' : '（已同步）'
+    if (st === 'ignored') showToast?.(`已标记为忽略${suffix}`, 'success')
+    else if (st === 'resolved') showToast?.(`已标记为已解决${suffix}`, 'success')
+    else showToast?.(`已恢复为待处理${suffix}`, 'success')
   }
 
   if (items.length === 0) {

@@ -97,4 +97,20 @@ describe('buildExceptionItems', () => {
     expect(neg).toBeDefined()
     expect(neg?.id).toContain('rec-1')
   })
+
+  it('applies statusMap for stable exception id', () => {
+    const items = buildExceptionItems({
+      invoiceRecords: [{ id: 'inv-1', title: 'A公司', amount: '100.00' }],
+      paymentRecords: [],
+      links: [],
+      reconciliationRecords: [],
+      channelRecords: [],
+      calculateSettlementAmount,
+      statusMap: {
+        'invoice_unlinked:invoice:inv-1': 'ignored'
+      }
+    })
+    const row = items.find((i) => i.type === 'invoice_unlinked' && i.targetId === 'inv-1')
+    expect(row?.status).toBe('ignored')
+  })
 })

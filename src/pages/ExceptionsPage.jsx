@@ -12,7 +12,7 @@ import '@/components/reconciliation/reconciliation-admin.css'
 function ExceptionsPage() {
   const { recon, showToast, setActiveView } = useAppState()
   const { records, updateRecord, restoreFullData } = recon
-  const { items: exceptionItems, refresh: refreshExceptions } = useExceptionItems()
+  const { items: exceptionItems } = useExceptionItems()
 
   return (
     <PageContainer hideHeader className="page-container--admin-workspace">
@@ -24,7 +24,6 @@ function ExceptionsPage() {
           </p>
           <ExceptionCenterPanel
             items={exceptionItems}
-            refresh={refreshExceptions}
             setActiveView={setActiveView}
             showToast={showToast}
           />
