@@ -16,24 +16,35 @@ describe('calculateSettlementAmount', () => {
     refund: 0
   }
 
-  it('正常结算金额案例（与公式逐步结果一致）', () => {
+  it('账单 Excel 回归：折后流水先算，再扣费，再乘通道与分成', () => {
+    const v = calculateSettlementAmount({
+      gameFlow: 33174989,
+      testingFee: 0,
+      voucher: 15488.35,
+      channelFeeRate: 0,
+      taxPoint: 0,
+      revenueShareRatio: 15,
+      discount: 0.005,
+      refund: 0
+    })
+    expect(v).toBe(22557.99)
+  })
+
+  it('正常结算金额案例（新公式逐步结果一致）', () => {
     const v = calculateSettlementAmount(base)
-    const baseAmount = 100000 - 1000 - 500
-    const afterChannelFee = baseAmount * (1 - 0.025)
-    const afterTax = afterChannelFee * (1 - 0.06)
-    const afterShare = afterTax * 0.5
-    const afterDiscount = afterShare * 1
-    const finalAmount = afterDiscount - 0
-    const expected = Math.max(0, Math.round(finalAmount * 100) / 100)
+    const discountedFlow = 100000 * 1
+    const settlementBase = discountedFlow - 1000 - 500 - 0
+    const amount = settlementBase * (1 - 0.025) * 0.5
+    const expected = Math.max(0, Math.round(amount * 100) / 100)
     expect(v).toBe(expected)
-    expect(v).toBe(45137.63)
+    expect(v).toBe(48018.75)
   })
 
   it('有退款案例应不大于无退款', () => {
     const noRefund = calculateSettlementAmount(base)
     const withRefund = calculateSettlementAmount({ ...base, refund: 100 })
     expect(withRefund).toBeLessThan(noRefund)
-    expect(withRefund).toBe(45037.63)
+    expect(withRefund).toBe(47970)
   })
 
   it('有折扣案例应小于无折扣', () => {
@@ -42,10 +53,10 @@ describe('calculateSettlementAmount', () => {
     expect(d).toBeLessThan(full)
   })
 
-  it('有税点案例（与无税点对比应更小）', () => {
+  it('税点不参与结算计算（与无税点结果相同）', () => {
     const withTax = calculateSettlementAmount(base)
     const noTax = calculateSettlementAmount({ ...base, taxPoint: 0 })
-    expect(withTax).toBeLessThan(noTax)
+    expect(withTax).toBe(noTax)
   })
 
   it('结果小于 0 时保护为 0', () => {
@@ -57,7 +68,7 @@ describe('calculateSettlementAmount', () => {
     expect(v).toBe(0)
   })
 
-  it('空值字段按旧逻辑 parseFloat 行为（与历史实现一致）', () => {
+  it('空值字段按 parseFloat 行为', () => {
     const v = calculateSettlementAmount({
       gameFlow: '',
       testingFee: undefined,
@@ -94,5 +105,7 @@ describe('calculateSettlementAmount', () => {
     const calc = calculateSettlementAmount(imported)
     const str = formatSettlementAmountString(imported)
     expect(str).toBe(calc.toFixed(2))
+    // 186500×0.97×0.6 在 IEEE 浮点下末位略低于 .3，ROUND 到分为 108543.00
+    expect(calc).toBe(108543)
   })
 })
