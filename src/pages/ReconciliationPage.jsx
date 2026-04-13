@@ -22,6 +22,9 @@ import { VIEWS } from '@/app/routes.js'
 import { getReconciliationRecordId } from '@/lib/api/reconciliation.ts'
 import { consumeReconciliationFocus } from '@/lib/exceptions/navFocus.ts'
 
+/** 设为 true 时隐藏「周期 + 搜索 + 高级筛选」整块 UI（不卸载组件，避免动到 store 逻辑） */
+const RECON_RD_HIDE_FILTER_UI = false
+
 function ReconciliationPage({ variant = 'full' }) {
   const { recon, settings, showToast, setActiveView, openReconciliationEdit } = useAppState()
   const {
@@ -102,7 +105,13 @@ function ReconciliationPage({ variant = 'full' }) {
 
     return (
       <PageContainer hideHeader className="page-container--recon-rd">
-        <div className="reconciliation-rd">
+        <div
+          className={
+            RECON_RD_HIDE_FILTER_UI
+              ? 'reconciliation-rd reconciliation-rd--hide-filter-ui'
+              : 'reconciliation-rd'
+          }
+        >
           <div className="reconciliation-rd__filter-layer reconciliation-rd__filter-layer--single-row">
             <div className="reconciliation-rd__filter-strip">
               {cycleBlock}

@@ -80,6 +80,11 @@
   box-sizing: border-box;
 }
 
+/* 仅隐藏筛选层：不删 JSX，子组件仍挂载；列表仍按 store 中 searchTerm / 周期 / 筛选 计算 filteredRecords */
+.reconciliation-rd.reconciliation-rd--hide-filter-ui .reconciliation-rd__filter-layer {
+  display: none !important;
+}
+
 .reconciliation-rd__filter-strip {
   display: flex;
   flex-wrap: wrap;
