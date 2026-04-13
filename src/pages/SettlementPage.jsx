@@ -31,19 +31,9 @@ function SettlementPage({ section }) {
 
   const statusAggregates = computeStatusAggregates(records, STATUS_OPTIONS)
 
-  const titles = {
-    [VIEWS.SETTLE_MONTHLY]: '月度结算单',
-    [VIEWS.SETTLE_CHANNEL]: '渠道结算单',
-    [VIEWS.SETTLE_STATUS]: '结算状态'
-  }
-
   if (section === VIEWS.SETTLE_MONTHLY) {
     return (
-      <PageContainer
-        title={titles[section]}
-        description="结算单据与状态总览"
-        className="page-container--recon-rd"
-      >
+      <PageContainer hideHeader className="page-container--recon-rd">
         <div className="reconciliation-rd settlement-monthly-workbench">
           <AdminFilterBar className="settlement-workbench__filter">
             <div className="settlement-workbench__meta">
@@ -115,7 +105,7 @@ function SettlementPage({ section }) {
   }
 
   return (
-    <PageContainer title={titles[section] || '结算管理'} description="结算单据与状态总览">
+    <PageContainer hideHeader>
       {section === VIEWS.SETTLE_CHANNEL && (
         <ChannelBilling
           channelRecords={channelRecords}

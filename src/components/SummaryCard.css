@@ -8,6 +8,7 @@
   align-items: center;
   gap: var(--admin-space-md);
   min-height: var(--admin-stat-card-min-height);
+  height: 100%;
   box-sizing: border-box;
   transition:
     box-shadow 0.15s ease,

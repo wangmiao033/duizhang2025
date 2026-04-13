@@ -206,11 +206,7 @@ function ReconciliationPage({ variant = 'full' }) {
 
   /* 对账总表：保留原结构（无右侧抽屉、表格全列）；主内容区须整行占满，避免沿用双列表栅格留下空白列 */
   return (
-    <PageContainer
-      title="对账总表"
-      description="按当前筛选查看全部对账记录（与研发对账共用数据）"
-      className="page-container--reconciliation-ledger"
-    >
+    <PageContainer hideHeader className="page-container--reconciliation-ledger">
       <div className="reconciliation-ledger-page">
       <div className="cycle-manager-section">{cycleBlock}</div>
       <div className="toolbar-section">

@@ -13,15 +13,8 @@ function SettingsHubPage({ section, onSettlementFormatChange }) {
   const { records, updateRecord, handleRestoreFromHistory, restoreFullData } = recon
   const { partyA, partyB, settlementMonth, partners, deliveries } = settings
 
-  const titles = {
-    [VIEWS.SETTINGS_TAGS]: '标签管理',
-    [VIEWS.SETTINGS_HISTORY]: '历史记录',
-    [VIEWS.SETTINGS_BACKUP]: '数据备份',
-    [VIEWS.SETTINGS_APP]: '系统设置'
-  }
-
   return (
-    <PageContainer title={titles[section] || '系统设置'} description="标签、历史、备份与编号规则">
+    <PageContainer hideHeader>
       {section === VIEWS.SETTINGS_TAGS && (
         <TagManager
           records={records}

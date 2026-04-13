@@ -1,6 +1,7 @@
 import React from 'react'
 import './PageContainer.css'
 
+/** hideHeader：与 AppShell 顶栏（面包屑+标题+说明）同时使用时设为 true，避免重复页头。 */
 function PageContainer({ title, description, actions, filters, children, hideHeader = false, className = '' }) {
   return (
     <div className={`page-container ${className}`.trim()}>

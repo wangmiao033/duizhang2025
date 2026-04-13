@@ -12,7 +12,6 @@ import PDFExport from '@/components/PDFExport.jsx'
 import PrintButton from '@/components/PrintButton.jsx'
 import BillExport from '@/components/BillExport.jsx'
 import { VIEWS } from '@/app/routes.js'
-import ReconciliationPageHeader from '@/components/reconciliation/ReconciliationPageHeader.jsx'
 import '@/components/reconciliation/reconciliation-admin.css'
 
 const EXPORT_TARGETS = [
@@ -30,21 +29,10 @@ function ReportsPage({ section }) {
 
   const [exportTarget, setExportTarget] = useState('recon')
 
-  const titles = {
-    [VIEWS.REPORTS_IMPORT]: 'Excel导入',
-    [VIEWS.REPORTS_EXPORT]: '导出中心',
-    [VIEWS.REPORTS_STATS]: '统计分析',
-    [VIEWS.REPORTS_PROFIT]: '利润分析'
-  }
-
   if (section === VIEWS.REPORTS_IMPORT) {
     return (
       <PageContainer hideHeader className="page-container--admin-workspace">
         <div className="admin-workspace">
-          <ReconciliationPageHeader
-            title={titles[section]}
-            description="从 Excel 导入研发对账记录，逻辑与原先一致"
-          />
           <div className="admin-workspace__card">
             <ExcelImport onImport={recon.handleExcelImport} />
           </div>
@@ -57,7 +45,6 @@ function ReportsPage({ section }) {
     return (
       <PageContainer hideHeader className="page-container--admin-workspace">
         <div className="admin-workspace">
-          <ReconciliationPageHeader title={titles[section]} description="图表与报表" />
           <div className="admin-workspace__card">
             <div className="statistics-section">
               <StatisticsChart records={records} />
@@ -78,7 +65,6 @@ function ReportsPage({ section }) {
     return (
       <PageContainer hideHeader className="page-container--admin-workspace">
         <div className="admin-workspace">
-          <ReconciliationPageHeader title={titles[section]} description="项目利润（含渠道）" />
           <div className="admin-workspace__card">
             <div className="project-profit-section">
               <ProjectProfit records={records} channelRecords={channelRecords} />
@@ -92,10 +78,6 @@ function ReportsPage({ section }) {
   return (
     <PageContainer hideHeader className="page-container--admin-workspace">
       <div className="admin-workspace">
-        <ReconciliationPageHeader
-          title={titles[VIEWS.REPORTS_EXPORT]}
-          description="统一选择导出对象，底层仍使用原有导出组件"
-        />
         <div className="admin-workspace__card export-center-panel">
           <div className="export-center-row">
             <label className="export-center-label">导出对象</label>

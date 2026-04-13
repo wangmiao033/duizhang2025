@@ -7,7 +7,7 @@ function RemindersPage() {
   const { showToast } = useAppState()
 
   return (
-    <PageContainer title="提醒事项" description="非主导航入口，可从工作台快捷操作打开">
+    <PageContainer hideHeader>
       <ReminderManager
         onReminderAdd={(reminder) => {
           showToast(`提醒"${reminder.title}"已添加`, 'success')

@@ -43,21 +43,26 @@
 .validator-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: var(--admin-space-md);
   cursor: pointer;
-  padding: 8px;
-  border-radius: 8px;
-  transition: background 0.3s ease;
+  padding: 0 0 var(--admin-space-sm);
+  margin-bottom: var(--admin-space-sm);
+  border-bottom: 1px solid var(--admin-border-soft);
+  border-radius: 0;
+  transition: background 0.15s ease;
 }
 
 .validator-header:hover {
-  background: var(--admin-elevated-bg);
+  background: transparent;
 }
 
 .validator-header-left {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-start;
+  gap: var(--admin-space-sm);
+  min-width: 0;
+  flex: 1;
 }
 
 .validator-icon {
@@ -81,6 +86,8 @@
 }
 
 .expand-btn {
+  flex-shrink: 0;
+  align-self: flex-start;
   background: var(--admin-elevated-bg);
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-sm);
@@ -98,15 +105,16 @@
 .validator-filters {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: var(--admin-space-sm);
+  margin-bottom: var(--admin-space-md);
 }
 
 .filter-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   flex-wrap: wrap;
+  row-gap: var(--space-2);
 }
 
 .filter-group label {

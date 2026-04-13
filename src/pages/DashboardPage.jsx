@@ -39,14 +39,14 @@ function DashboardPage() {
   const statusAggregates = computeStatusAggregates(records, STATUS_OPTIONS)
 
   return (
-    <PageContainer title="工作台" description="总览与快捷入口">
+    <PageContainer hideHeader>
       {lastSaveTime && (
         <div className="save-indicator">
           <span className="save-time">
-            {ICON.save} 数据已自动保存：{lastSaveTime.toLocaleTimeString('zh-CN')}
+            {ICON.save} 已自动保存 {lastSaveTime.toLocaleTimeString('zh-CN')}
           </span>
-          <span className="shortcut-hint" style={{ marginLeft: '12px', fontSize: '0.8rem', opacity: 0.7 }}>
-            (Ctrl+F 搜索 | Ctrl+P 打印 | Ctrl+Enter 保存编辑)
+          <span className="shortcut-hint">
+            Ctrl+F 搜索 · Ctrl+P 打印 · Ctrl+Enter 保存编辑
           </span>
         </div>
       )}

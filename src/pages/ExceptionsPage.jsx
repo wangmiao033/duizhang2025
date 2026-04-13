@@ -1,7 +1,6 @@
 import React from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
 import PageContainer from '@/components/layout/PageContainer.jsx'
-import ReconciliationPageHeader from '@/components/reconciliation/ReconciliationPageHeader.jsx'
 import DataValidator from '@/components/DataValidator.jsx'
 import DataRecoveryHelper from '@/components/DataRecoveryHelper.jsx'
 import { calculateSettlementAmount } from '@/domain/settlement/calculateSettlementAmount.js'
@@ -15,11 +14,6 @@ function ExceptionsPage() {
   return (
     <PageContainer hideHeader className="page-container--admin-workspace">
       <div className="admin-workspace">
-        <ReconciliationPageHeader
-          title="异常中心"
-          description="数据诊断、本地恢复入口与校验异常集中处理，不再占用研发对账主界面"
-        />
-
         <section className="admin-workspace__card">
           <h3 className="admin-workspace__card-title">数据诊断与恢复</h3>
           <p className="admin-workspace__card-desc">

@@ -10,14 +10,8 @@ function PartnerPage({ section }) {
   const { settings, showToast } = useAppState()
   const { partyA, partyB, setPartyA, setPartyB, partners, setPartners } = settings
 
-  const titles = {
-    [VIEWS.PARTNER_CONTACTS]: '合作方管理',
-    [VIEWS.PARTNER_GAMES]: '游戏管理',
-    [VIEWS.PARTNER_COMPANY]: '公司信息'
-  }
-
   return (
-    <PageContainer title={titles[section] || '基础资料'} description="客户、游戏与公司抬头维护">
+    <PageContainer hideHeader>
       {section === VIEWS.PARTNER_CONTACTS && (
         <div className="partner-page">
           <PartnerManager

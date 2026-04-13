@@ -48,7 +48,7 @@ export const VIEWS = {
 export const SIDEBAR_GROUPS = [
   {
     id: 'workbench',
-    label: '工作台',
+    label: '常用',
     items: [{ view: VIEWS.DASHBOARD, label: '工作台' }]
   },
   {
@@ -171,10 +171,10 @@ const VIEW_DESCRIPTIONS = {
   [VIEWS.RECON_CHANNEL]: '渠道对账数据维护与核对',
   [VIEWS.CHANNEL_RECON_CREATE]: '完整表单录入渠道记录，与编辑页共用 ChannelBillingForm',
   [VIEWS.CHANNEL_RECON_EDIT]: '完整编辑已有渠道记录；保存后返回渠道对账列表',
-  [VIEWS.RECON_MASTER]: '全量对账汇总视图',
-  [VIEWS.RECON_EXCEPTIONS]: '差异与异常集中处理',
-  [VIEWS.RECON_HISTORY]: '本地操作历史（operationHistory）',
-  [VIEWS.DATA_BACKUP_RESTORE]: 'JSON 备份与恢复',
+  [VIEWS.RECON_MASTER]: '按当前筛选查看全部对账记录（与研发对账共用数据）',
+  [VIEWS.RECON_EXCEPTIONS]: '数据诊断、恢复入口与校验异常集中处理',
+  [VIEWS.RECON_HISTORY]: '按时间查看操作快照，可从列表恢复历史数据',
+  [VIEWS.DATA_BACKUP_RESTORE]: '本地备份、JSON 导入导出与备份历史',
   [VIEWS.SETTLE_MONTHLY]: '月度结算单生成与查看',
   [VIEWS.SETTLE_CHANNEL]: '渠道维度结算',
   [VIEWS.SETTLE_STATUS]: '结算进度与状态跟踪',

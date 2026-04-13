@@ -19,42 +19,54 @@ function Sidebar({ activeView, onNavigate }) {
     setExpandedId((cur) => (cur === groupId ? cur : groupId))
   }
 
+  const renderItems = (group) => (
+    <div className="sidebar-group-items">
+      {group.items.map((item) => {
+        const isActive = item.view === activeView
+        return (
+          <button
+            key={item.view}
+            type="button"
+            className={`sidebar-item ${isActive ? 'active' : ''}`}
+            onClick={() => onNavigate && onNavigate(item.view)}
+          >
+            <span className="sidebar-item-icon" aria-hidden>
+              {VIEW_ICONS[item.view] || '·'}
+            </span>
+            <span className="sidebar-item-label">{item.label}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+
   return (
     <aside className="app-sidebar" aria-label="主导航">
       <div className="app-sidebar-inner">
         {SIDEBAR_GROUPS.map((group) => {
-          const open = expandedId === group.id
+          const isSingleton = group.items.length === 1
+          const open = isSingleton || expandedId === group.id
+
+          if (isSingleton) {
+            return (
+              <div key={group.id} className="sidebar-group sidebar-group--singleton">
+                {renderItems(group)}
+              </div>
+            )
+          }
+
           return (
             <div key={group.id} className="sidebar-group">
               <button
                 type="button"
-                className={`sidebar-group-header ${open ? 'is-open' : ''}`}
+                className="sidebar-group-header"
                 aria-expanded={open}
                 onClick={() => toggleGroup(group.id)}
               >
                 <span className="sidebar-group-header-label">{group.label}</span>
                 <span className={`sidebar-group-chevron ${open ? 'is-open' : ''}`} aria-hidden />
               </button>
-              {open && (
-                <div className="sidebar-group-items">
-                  {group.items.map((item) => {
-                    const isActive = item.view === activeView
-                    return (
-                      <button
-                        key={item.view}
-                        type="button"
-                        className={`sidebar-item ${isActive ? 'active' : ''}`}
-                        onClick={() => onNavigate && onNavigate(item.view)}
-                      >
-                        <span className="sidebar-item-icon" aria-hidden>
-                          {VIEW_ICONS[item.view] || '·'}
-                        </span>
-                        <span className="sidebar-item-label">{item.label}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
+              {open && renderItems(group)}
             </div>
           )
         })}
