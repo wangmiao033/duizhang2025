@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react'
-import DragSort from './DragSort.jsx'
 import { StatusSelector } from './StatusManager.jsx'
 import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
 import { getReconciliationRecordId } from '@/lib/api/reconciliation.ts'
@@ -19,7 +18,6 @@ function DataTable({
   onSelectAll,
   onSelectRecord,
   onBatchDelete,
-  onReorder,
   sortOptions = { field: '', order: 'asc' },
   onSortChange,
   onStatusChange,
@@ -34,8 +32,6 @@ function DataTable({
 }) {
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({})
-  const [draggedIndex, setDraggedIndex] = useState(null)
-  const [dragOverIndex, setDragOverIndex] = useState(null)
   const [viewMode, setViewMode] = useState('list') // 'byPartner' or 'list'
   const [expandedPartners, setExpandedPartners] = useState({})
   const compact = columnPreset === 'compact'
@@ -111,40 +107,6 @@ function DataTable({
 
   const allSelected = records.length > 0 && selectedIds.length === records.length
   const someSelected = selectedIds.length > 0 && selectedIds.length < records.length
-
-  const handleDragStart = (e, index) => {
-    setDraggedIndex(index)
-    e.dataTransfer.effectAllowed = 'move'
-  }
-
-  const handleDragOver = (e, index) => {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
-    setDragOverIndex(index)
-  }
-
-  const handleDrop = (e, dropIndex) => {
-    e.preventDefault()
-    if (draggedIndex === null || draggedIndex === dropIndex || !onReorder) {
-      setDraggedIndex(null)
-      setDragOverIndex(null)
-      return
-    }
-
-    const newRecords = [...records]
-    const draggedItem = newRecords[draggedIndex]
-    newRecords.splice(draggedIndex, 1)
-    newRecords.splice(dropIndex, 0, draggedItem)
-
-    onReorder(newRecords)
-    setDraggedIndex(null)
-    setDragOverIndex(null)
-  }
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null)
-    setDragOverIndex(null)
-  }
 
   const handleSort = (field) => {
     if (!onSortChange) return
@@ -253,8 +215,6 @@ function DataTable({
           {groupedByPartner.length} 个合作方 / {records.length} 条记录
         </div>
       )}
-      {onReorder && viewMode === 'list' && <DragSort records={records} onReorder={onReorder} />}
-      
       {viewMode === 'byPartner' ? (
         <div className="partner-group-view">
           {groupedByPartner.length === 0 ? (
@@ -484,12 +444,7 @@ function DataTable({
               records.map((record, index) => (
                 <tr 
                   key={getReconciliationRecordId(record) || `row-${index}`} 
-                  className={`${rowSelected(selectedIds, record) ? 'selected-row' : ''} ${draggedIndex === index ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''}`}
-                  draggable={!!onReorder}
-                  onDragStart={(e) => handleDragStart(e, index)}
-                  onDragOver={(e) => handleDragOver(e, index)}
-                  onDrop={(e) => handleDrop(e, index)}
-                  onDragEnd={handleDragEnd}
+                  className={rowSelected(selectedIds, record) ? 'selected-row' : ''}
                 >
                   {String(editingId) === String(record.id) && !useDrawerForEdit ? (
                     <>
@@ -637,9 +592,6 @@ function DataTable({
                   ) : (
                     <>
                       <td>
-                        {onReorder && (
-                          <span className="drag-handle" title="拖拽调整顺序">↕️</span>
-                        )}
                         <input
                           type="checkbox"
                           checked={rowSelected(selectedIds, record)}

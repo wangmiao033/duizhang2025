@@ -41,6 +41,10 @@ function ReconciliationToolbar({
           statistics={statistics}
           onExportSuccess={(message) => onExportSuccess(message || '账单导出成功！')}
           onExportError={onExportError}
+          triggerLabel="导出当前页账单"
+          triggerTitle="导出当前列表中的全部记录（Excel / PDF / CSV），与「导出选中账单」不同"
+          excelMenuLabel={'\uD83D\uDCCA \u5bfc\u51fa\u5f53\u524d\u9875\u8d26\u5355'}
+          excelMenuTitle="将当前列表中的全部记录导出为一个 Excel 工作表（单张结算确认单）"
         />
         {filteredRecords.length < records.length && (
           <button
@@ -62,7 +66,7 @@ function ReconciliationToolbar({
               : '请先勾选要导出的研发对账记录'
           }
         >
-          导出选中 ({selectedIds.length})
+          导出选中账单 ({selectedIds.length})
         </button>
         {selectedIds.length > 0 && (
           <div className="rec-toolbar__batch">

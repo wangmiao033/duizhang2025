@@ -16,7 +16,11 @@ function BillExport({
   onExportSuccess,
   onExportError,
   variant = 'default',
-  className = ''
+  className = '',
+  triggerLabel = '导出账单',
+  triggerTitle,
+  excelMenuLabel = '\uD83D\uDCCA Excel格式',
+  excelMenuTitle = '导出Excel格式的结算确认单'
 }) {
   const [showMenu, setShowMenu] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 })
@@ -386,10 +390,14 @@ function BillExport({
         ref={buttonRef}
         className={`bill-export-btn ${showMenu ? 'menu-open' : ''} ${!records || records.length === 0 ? 'disabled' : ''}`}
         onClick={handleButtonClick}
-        title={records && records.length > 0 ? "导出对账单" : "请先添加对账记录"}
+        title={
+          records && records.length > 0
+            ? triggerTitle || '导出对账单'
+            : '请先添加对账记录'
+        }
         type="button"
       >
-        📥 导出账单
+        {"📥"} {triggerLabel}
         <span className="dropdown-arrow">▼</span>
       </button>
       
@@ -414,10 +422,10 @@ function BillExport({
                 e.stopPropagation()
                 exportToExcel()
               }}
-              title="导出Excel格式的结算确认单"
+              title={excelMenuTitle}
               type="button"
             >
-              📊 Excel格式
+              {excelMenuLabel}
             </button>
             <button 
               className="export-menu-item" 

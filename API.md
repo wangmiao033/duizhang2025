@@ -208,7 +208,6 @@ interface DataTableProps {
   onSelectAll?: (checked: boolean) => void
   onSelectRecord?: (id: number, checked: boolean) => void
   onBatchDelete?: () => void
-  onReorder?: (records: ReconciliationRecord[]) => void
 }
 ```
 

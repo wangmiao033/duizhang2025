@@ -456,14 +456,6 @@ export function useReconciliationStore(settings, showToast) {
     [records, showToast, reconciliationApiEnabled, refetchReconciliationFromApi]
   )
 
-  const handleReorder = useCallback(
-    (newRecords) => {
-      setRecords(newRecords)
-      showToast('记录顺序已调整', 'success')
-    },
-    [showToast]
-  )
-
   const handleRestoreFromHistory = useCallback(
     (data) => {
       if (data.records) setRecords(data.records)
@@ -754,7 +746,6 @@ export function useReconciliationStore(settings, showToast) {
     handleBatchUpdate,
     handleBatchStatusUpdate,
     handleStatusChange,
-    handleReorder,
     handleRestoreFromHistory,
     handleApplyTemplate,
     handleLoadBill,

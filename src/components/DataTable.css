@@ -553,44 +553,6 @@ tbody td {
   border-top: 2px solid var(--admin-border);
 }
 
-.dragging {
-  opacity: 0.5;
-}
-
-.drag-over {
-  border-top: 3px solid var(--admin-primary) !important;
-}
-
-.drag-handle {
-  cursor: grab;
-  padding: 0 8px;
-  color: #6c757d;
-  font-size: 1rem;
-  user-select: none;
-  display: inline-block;
-  margin-right: 5px;
-}
-
-.drag-handle:active {
-  cursor: grabbing;
-}
-
-.drag-handle:hover {
-  color: var(--admin-primary);
-}
-
-tr[draggable="true"] {
-  cursor: move;
-}
-
-tr[draggable="true"]:hover {
-  background-color: #f0f4ff !important;
-}
-
-[data-theme="dark"] tr[draggable="true"]:hover {
-  background-color: #2a2a3e !important;
-}
-
 /* 表内输入框统一宽度和样式，避免挤压 */
 .data-table td input[type="text"],
 .data-table td input[type="number"],
