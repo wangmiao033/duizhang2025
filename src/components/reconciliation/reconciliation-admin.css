@@ -494,6 +494,70 @@
   width: min(400px, 100vw);
 }
 
+.rec-drawer--wide.rec-drawer--light {
+  max-width: min(720px, 100vw);
+  width: min(720px, 100vw);
+}
+
+.rec-drawer__title-sub {
+  font-weight: 400;
+  font-size: 0.85em;
+  color: var(--admin-text-muted, #64748b);
+}
+
+.rec-rd-payments-table-wrap {
+  overflow-x: auto;
+  margin-top: 8px;
+}
+
+.rec-rd-payments-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-small, 13px);
+}
+
+.rec-rd-payments-table th,
+.rec-rd-payments-table td {
+  border-bottom: 1px solid var(--admin-border, #e2e8f0);
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.rec-rd-payments-table th {
+  font-weight: 600;
+  color: var(--admin-text-secondary, #475569);
+}
+
+.rec-rd-payments-table__mono {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rec-bank-rd-link {
+  border: 1px solid var(--admin-border, #e2e8f0);
+  border-radius: var(--admin-radius, 10px);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  background: var(--admin-surface-subtle, #f8fafc);
+}
+
+.rec-bank-rd-link__title {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rec-bank-rd-link__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px 14px;
+  align-items: end;
+}
+
+.rec-bank-rd-link__field--full {
+  grid-column: 1 / -1;
+}
+
 .reconciliation-rd .export-filtered-btn,
 .reconciliation-rd .export-selected-btn {
   /*旧类名若仍被使用，与 rec-btn 统一 */

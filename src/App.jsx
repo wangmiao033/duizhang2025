@@ -44,6 +44,7 @@ function App() {
   const [channelEditRecordId, setChannelEditRecordId] = useState(null)
   const [invoiceEditId, setInvoiceEditId] = useState(null)
   const [paymentEditId, setPaymentEditId] = useState(null)
+  const [bankPaymentReconciliationPrefillId, setBankPaymentReconciliationPrefillId] = useState(null)
   const prevActiveViewRef = useRef(activeView)
   const [toast, setToast] = useState({ isVisible: false, message: '', type: 'success' })
 
@@ -129,6 +130,15 @@ function App() {
     setActiveViewRaw(VIEWS.PAYMENT_EDIT)
   }, [])
 
+  const navigateBankPaymentForReconciliation = useCallback((reconciliationId) => {
+    if (reconciliationId != null && String(reconciliationId).trim() !== '') {
+      setBankPaymentReconciliationPrefillId(String(reconciliationId).trim())
+    } else {
+      setBankPaymentReconciliationPrefillId(null)
+    }
+    navigate(VIEWS.BANK_PAYMENT_REGISTER)
+  }, [navigate])
+
   const appCtx = {
     settings,
     recon,
@@ -144,7 +154,10 @@ function App() {
     invoiceEditId,
     openInvoiceEdit,
     paymentEditId,
-    openPaymentEdit
+    openPaymentEdit,
+    bankPaymentReconciliationPrefillId,
+    setBankPaymentReconciliationPrefillId,
+    navigateBankPaymentForReconciliation
   }
 
   const handleHeaderSettingsChange = (s) => {

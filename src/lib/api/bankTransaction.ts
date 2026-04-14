@@ -32,6 +32,10 @@ export interface BankTransactionRow {
   status: string | null
   raw_text: string | null
   attachment_url: string | null
+  reconciliation_id?: string | null
+  reconciliation_type?: string | null
+  reconciliation_no?: string | null
+  linked_amount?: string | number | null
   created_at: string
   updated_at: string
 }

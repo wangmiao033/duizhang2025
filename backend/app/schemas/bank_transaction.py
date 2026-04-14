@@ -33,6 +33,10 @@ class BankTransactionCreate(BaseModel):
     status: str | None = None
     raw_text: str | None = None
     attachment_url: str | None = None
+    reconciliation_id: str | None = None
+    reconciliation_type: str | None = None
+    reconciliation_no: str | None = None
+    linked_amount: Decimal | None = None
 
 
 class BankTransactionUpdate(BaseModel):
@@ -57,6 +61,10 @@ class BankTransactionUpdate(BaseModel):
     status: str | None = None
     raw_text: str | None = None
     attachment_url: str | None = None
+    reconciliation_id: str | None = None
+    reconciliation_type: str | None = None
+    reconciliation_no: str | None = None
+    linked_amount: Decimal | None = None
 
 
 class BankTransactionRead(BaseModel):
@@ -84,6 +92,10 @@ class BankTransactionRead(BaseModel):
     status: str | None
     raw_text: str | None
     attachment_url: str | None
+    reconciliation_id: str | None = None
+    reconciliation_type: str | None = None
+    reconciliation_no: str | None = None
+    linked_amount: Decimal | None = None
     created_at: datetime
     updated_at: datetime
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
 import PageContainer from '@/components/layout/PageContainer.jsx'
 import BankPasteAutoParseBlock from '@/components/bank/BankPasteAutoParseBlock.jsx'
@@ -7,6 +7,7 @@ import { createBankTransaction } from '@/lib/api/bankTransaction.ts'
 import { buildPaymentRegisterPayload } from '@/lib/bank/bankTransactionPayloads.js'
 import { parseBankText } from '@/utils/parseBankText.js'
 import { icbcToPaymentFormPatch, parseIcbcReceiptText } from '@/utils/parseIcbcReceipt.js'
+import { apiRowToFrontend, getReconciliationRecord } from '@/lib/api/reconciliation.ts'
 import '@/components/reconciliation/reconciliation-admin.css'
 
 const INITIAL = {
@@ -33,11 +34,29 @@ const INITIAL = {
   remittance_method: ''
 }
 
+const INITIAL_RD = {
+  reconciliationId: '',
+  statementNo: '',
+  partner: '',
+  game: '',
+  payable: '',
+  unpaid: '',
+  linkedAmount: ''
+}
+
 function BankPaymentRegisterPage() {
-  const { showToast } = useAppState()
+  const {
+    showToast,
+    recon,
+    bankPaymentReconciliationPrefillId,
+    setBankPaymentReconciliationPrefillId
+  } = useAppState()
+  const { records, refetchReconciliationFromApi } = recon
   const [form, setForm] = useState(INITIAL)
   const [pasteText, setPasteText] = useState('')
   const [saving, setSaving] = useState(false)
+  const [rdFilter, setRdFilter] = useState('')
+  const [rdLink, setRdLink] = useState(INITIAL_RD)
 
   const set =
     (key) =>
@@ -46,20 +65,115 @@ function BankPaymentRegisterPage() {
       setForm((f) => ({ ...f, [key]: v }))
     }
 
+  const applyFrontendRecordToRdLink = (rec) => {
+    if (!rec || rec.id == null) return
+    const id = String(rec.id)
+    const payable = parseFloat(String(rec.settlementAmount ?? 0)) || 0
+    const unpaidRaw = rec.unpaidAmount != null ? parseFloat(String(rec.unpaidAmount)) : NaN
+    const unpaid = Number.isFinite(unpaidRaw) ? unpaidRaw : payable
+    const linkDefault = Math.max(0, unpaid)
+    setRdLink({
+      reconciliationId: id,
+      statementNo: rec.settlementNumber != null ? String(rec.settlementNumber) : '',
+      partner: rec.partner != null ? String(rec.partner) : '',
+      game: rec.game != null ? String(rec.game) : '',
+      payable: payable.toFixed(2),
+      unpaid: (Number.isFinite(unpaid) ? unpaid : payable).toFixed(2),
+      linkedAmount: linkDefault > 0 ? String(linkDefault) : payable > 0 ? String(payable) : ''
+    })
+  }
+
+  useEffect(() => {
+    const id = bankPaymentReconciliationPrefillId
+    if (id == null || id === '') return
+    const consume = () => setBankPaymentReconciliationPrefillId?.(null)
+
+    const local = records.find((r) => String(r.id) === String(id))
+    if (local) {
+      applyFrontendRecordToRdLink(local)
+      showToast('已预选关联的研发对账单', 'success')
+      consume()
+      return
+    }
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        const row = await getReconciliationRecord(String(id))
+        if (cancelled) return
+        applyFrontendRecordToRdLink(apiRowToFrontend(row))
+        showToast('已预选关联的研发对账单', 'success')
+      } catch (e) {
+        if (!cancelled) {
+          showToast(
+            e instanceof ApiError ? e.message : '无法加载研发对账记录，请从列表重试',
+            'info'
+          )
+        }
+      } finally {
+        if (!cancelled) consume()
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [bankPaymentReconciliationPrefillId, records, setBankPaymentReconciliationPrefillId, showToast])
+
+  const filteredRdRecords = useMemo(() => {
+    const q = rdFilter.trim().toLowerCase()
+    if (!q) return records
+    return records.filter((r) => {
+      const blob = [
+        r.settlementNumber,
+        r.partner,
+        r.game,
+        r.settlementMonth,
+        r.id
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+      return blob.includes(q)
+    })
+  }, [records, rdFilter])
+
   const handleReset = () => {
     setForm(INITIAL)
     setPasteText('')
+    setRdLink(INITIAL_RD)
+    setRdFilter('')
     showToast('已清空表单', 'info')
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const rid = rdLink.reconciliationId?.trim()
+    let rdPayload = null
+    if (rid) {
+      const linked = parseFloat(String(rdLink.linkedAmount || '').replace(/,/g, ''))
+      if (!Number.isFinite(linked) || linked <= 0) {
+        showToast('请填写大于0 的本次关联金额', 'info')
+        return
+      }
+      rdPayload = {
+        reconciliation_id: rid,
+        reconciliation_type: 'rd',
+        reconciliation_no: rdLink.statementNo?.trim() || null,
+        linked_amount: linked
+      }
+    }
+
     setSaving(true)
     try {
-      const body = buildPaymentRegisterPayload(form, pasteText)
+      const body = buildPaymentRegisterPayload(form, pasteText, rdPayload)
       await createBankTransaction(body)
       showToast('保存成功。已写入服务端。', 'success')
       handleReset()
+      try {
+        await refetchReconciliationFromApi?.()
+      } catch {
+        /* 忽略刷新失败 */
+      }
     } catch (err) {
       showToast(err instanceof ApiError ? err.message : '保存失败，请检查网络或后端配置', 'info')
     } finally {
@@ -112,6 +226,86 @@ function BankPaymentRegisterPage() {
           <p className="admin-workspace__card-desc" style={{ marginTop: 0 }}>
             付款单字段录入（与银行企业网银导出对照）；可粘贴工行回单等文本自动识别，保存后写入服务端「银行流水表」台账。
           </p>
+
+          <div className="rec-bank-rd-link">
+            <h3 className="rec-bank-rd-link__title">关联研发对账（可选）</h3>
+            <div className="rec-bank-rd-link__grid">
+              <label className="rec-bank-payment__field">
+                关联业务类型
+                <input className="admin-input" readOnly value="研发对账" />
+              </label>
+              <label className="rec-bank-payment__field rec-bank-rd-link__field--full">
+                筛选 / 搜索对账单
+                <input
+                  className="admin-input"
+                  value={rdFilter}
+                  onChange={(e) => setRdFilter(e.target.value)}
+                  placeholder="对账单号、合作方、游戏…"
+                />
+              </label>
+              <label className="rec-bank-payment__field rec-bank-rd-link__field--full">
+                选择研发对账单
+                <select
+                  className="admin-input"
+                  value={rdLink.reconciliationId}
+                  onChange={(e) => {
+                    const v = e.target.value
+                    if (!v) {
+                      setRdLink(INITIAL_RD)
+                      return
+                    }
+                    const rec = records.find((r) => String(r.id) === String(v))
+                    if (rec) applyFrontendRecordToRdLink(rec)
+                  }}
+                >
+                  <option value="">不关联</option>
+                  {filteredRdRecords.map((r) => (
+                    <option key={String(r.id)} value={String(r.id)}>
+                      {(r.settlementNumber || '无编号') +
+                        ' · ' +
+                        (r.partner || '—') +
+                        ' · ' +
+                        (r.game || '—')}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="rec-bank-payment__field">
+                对账单号
+                <input className="admin-input" readOnly value={rdLink.statementNo} placeholder="选择后自动带出" />
+              </label>
+              <label className="rec-bank-payment__field">
+                合作方
+                <input className="admin-input" readOnly value={rdLink.partner} />
+              </label>
+              <label className="rec-bank-payment__field">
+                游戏
+                <input className="admin-input" readOnly value={rdLink.game} />
+              </label>
+              <label className="rec-bank-payment__field">
+                应付金额
+                <input className="admin-input" readOnly value={rdLink.payable} />
+              </label>
+              <label className="rec-bank-payment__field">
+                未付金额（参考）
+                <input className="admin-input" readOnly value={rdLink.unpaid} />
+              </label>
+              <label className="rec-bank-payment__field">
+                本次关联金额
+                <input
+                  className="admin-input"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={rdLink.linkedAmount}
+                  onChange={(e) => setRdLink((s) => ({ ...s, linkedAmount: e.target.value }))}
+                  placeholder="关联研发对账时必填"
+                  disabled={!rdLink.reconciliationId}
+                />
+              </label>
+            </div>
+          </div>
+
           <BankPasteAutoParseBlock
             pasteText={pasteText}
             onPasteTextChange={setPasteText}

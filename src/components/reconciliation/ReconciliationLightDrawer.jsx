@@ -9,7 +9,9 @@ function ReconciliationLightDrawer({
   onClose,
   onStatusChange,
   onUpdateRecord,
-  onNavigateToFullEdit
+  onNavigateToFullEdit,
+  onRdLinkPayment,
+  onRdViewPayments
 }) {
   const [memo, setMemo] = useState('')
 
@@ -69,7 +71,44 @@ function ReconciliationLightDrawer({
             <dd>¥{parseFloat(record.gameFlow || 0).toFixed(2)}</dd>
             <dt>结算金额</dt>
             <dd className="rec-light-dl__emph">¥{parseFloat(record.settlementAmount || 0).toFixed(2)}</dd>
+            <dt>支付状态</dt>
+            <dd>{record.paymentStatus != null ? String(record.paymentStatus) : '未付款'}</dd>
+            <dt>已付 / 未付</dt>
+            <dd>
+              ¥{parseFloat(record.paidAmount ?? 0).toFixed(2)} / ¥{parseFloat(record.unpaidAmount ?? 0).toFixed(2)}
+            </dd>
+            <dt>最近付款</dt>
+            <dd>
+              {record.latestPaymentDate
+                ? String(record.latestPaymentDate).slice(0, 10)
+                : '—'}
+            </dd>
+            <dt>关联付款笔数</dt>
+            <dd>{record.paymentCount != null ? String(record.paymentCount) : '0'}</dd>
           </dl>
+
+          {(onRdLinkPayment || onRdViewPayments) && (
+            <div className="rec-light-field rec-light-field--row">
+              {onRdLinkPayment && (
+                <button
+                  type="button"
+                  className="rec-btn rec-btn--ghost"
+                  onClick={() => onRdLinkPayment(record)}
+                >
+                  关联付款
+                </button>
+              )}
+              {onRdViewPayments && (
+                <button
+                  type="button"
+                  className="rec-btn rec-btn--ghost"
+                  onClick={() => onRdViewPayments(record)}
+                >
+                  查看付款
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="rec-light-field">
             <span className="rec-light-field__label">状态</span>

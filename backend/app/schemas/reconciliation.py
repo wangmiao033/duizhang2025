@@ -6,6 +6,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.bank_transaction import BankTransactionRead
+
 
 class ReconciliationCreate(BaseModel):
     statement_no: str | None = Field(
@@ -68,8 +70,18 @@ class ReconciliationRead(BaseModel):
     created_at: datetime
     updated_at: datetime
     bank_payment_list_status: str | None = None
+    paid_amount: float = 0
+    unpaid_amount: float = 0
+    payment_status: str = "未付款"
+    payment_count: int = 0
+    latest_payment_date: str | None = None
 
 
 class ReconciliationListResponse(BaseModel):
     items: list[ReconciliationRead]
+    total: int
+
+
+class ReconciliationPaymentsResponse(BaseModel):
+    items: list[BankTransactionRead]
     total: int

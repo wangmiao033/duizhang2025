@@ -35,6 +35,10 @@ class BankTransaction(Base):
     status: Mapped[str | None] = mapped_column(String, nullable=True)
     raw_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     attachment_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reconciliation_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    reconciliation_type: Mapped[str | None] = mapped_column(String, nullable=True)
+    reconciliation_no: Mapped[str | None] = mapped_column(String, nullable=True)
+    linked_amount: Mapped[float | None] = mapped_column(Numeric(18, 2), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

@@ -14,6 +14,7 @@ import SettlementCycleManager from '@/components/SettlementCycleManager.jsx'
 import ReconciliationStatsCards from '@/components/reconciliation/ReconciliationStatsCards.jsx'
 import ReconciliationToolbar from '@/components/reconciliation/ReconciliationToolbar.jsx'
 import ReconciliationLightDrawer from '@/components/reconciliation/ReconciliationLightDrawer.jsx'
+import ReconciliationRdPaymentsDrawer from '@/components/reconciliation/ReconciliationRdPaymentsDrawer.jsx'
 import '@/components/reconciliation/reconciliation-admin.css'
 import { BatchStatusUpdate } from '@/components/StatusManager.jsx'
 import { calculateSettlementAmount } from '@/domain/settlement/calculateSettlementAmount.js'
@@ -35,7 +36,14 @@ function readStoredFilterPanelExpanded() {
 }
 
 function ReconciliationPage({ variant = 'full' }) {
-  const { recon, settings, showToast, setActiveView, openReconciliationEdit } = useAppState()
+  const {
+    recon,
+    settings,
+    showToast,
+    setActiveView,
+    openReconciliationEdit,
+    navigateBankPaymentForReconciliation
+  } = useAppState()
   const {
     records,
     filteredRecords,
@@ -76,6 +84,11 @@ function ReconciliationPage({ variant = 'full' }) {
   const { settlementMonth, partyA, partyB, partners, deliveries, setPartners } = settings
 
   const [lightDrawerRecord, setLightDrawerRecord] = useState(null)
+  const [rdPaymentsDrawer, setRdPaymentsDrawer] = useState({
+    open: false,
+    reconciliationId: '',
+    statementNo: ''
+  })
   const [filterPanelExpanded, setFilterPanelExpanded] = useState(readStoredFilterPanelExpanded)
 
   useEffect(() => {
@@ -239,6 +252,24 @@ function ReconciliationPage({ variant = 'full' }) {
               onStatusChange={handleStatusChange}
               columnPreset="compact"
               useDrawerForEdit={false}
+              showRdBankPaymentColumns
+              onRdLinkPayment={(r) => {
+                const id = getReconciliationRecordId(r)
+                if (!id) {
+                  showToast('该记录缺少主键 id，无法关联付款', 'error')
+                  return
+                }
+                navigateBankPaymentForReconciliation(id)
+              }}
+              onRdViewPayments={(r) => {
+                const id = getReconciliationRecordId(r)
+                if (!id) return
+                setRdPaymentsDrawer({
+                  open: true,
+                  reconciliationId: id,
+                  statementNo: r.settlementNumber != null ? String(r.settlementNumber) : ''
+                })
+              }}
               onRequestPageEdit={(r) => {
                 const id = getReconciliationRecordId(r)
                 if (!id) {
@@ -259,6 +290,34 @@ function ReconciliationPage({ variant = 'full' }) {
           onStatusChange={handleStatusChange}
           onUpdateRecord={updateRecord}
           onNavigateToFullEdit={(id) => openReconciliationEdit(id != null ? String(id) : '')}
+          onRdLinkPayment={(rec) => {
+            const id = getReconciliationRecordId(rec)
+            if (!id) {
+              showToast('该记录缺少主键 id，无法关联付款', 'error')
+              return
+            }
+            navigateBankPaymentForReconciliation(id)
+            setLightDrawerRecord(null)
+          }}
+          onRdViewPayments={(rec) => {
+            const id = getReconciliationRecordId(rec)
+            if (!id) return
+            setRdPaymentsDrawer({
+              open: true,
+              reconciliationId: id,
+              statementNo: rec.settlementNumber != null ? String(rec.settlementNumber) : ''
+            })
+            setLightDrawerRecord(null)
+          }}
+        />
+
+        <ReconciliationRdPaymentsDrawer
+          open={rdPaymentsDrawer.open}
+          reconciliationId={rdPaymentsDrawer.reconciliationId}
+          statementNo={rdPaymentsDrawer.statementNo}
+          onClose={() =>
+            setRdPaymentsDrawer({ open: false, reconciliationId: '', statementNo: '' })
+          }
         />
 
       </PageContainer>
@@ -374,10 +433,36 @@ function ReconciliationPage({ variant = 'full' }) {
             sortOptions={sortOptions}
             onSortChange={(field, order) => setSortOptions({ field, order })}
             onStatusChange={handleStatusChange}
+            showRdBankPaymentColumns
+            onRdLinkPayment={(r) => {
+              const id = getReconciliationRecordId(r)
+              if (!id) {
+                showToast('该记录缺少主键 id，无法关联付款', 'error')
+                return
+              }
+              navigateBankPaymentForReconciliation(id)
+            }}
+            onRdViewPayments={(r) => {
+              const id = getReconciliationRecordId(r)
+              if (!id) return
+              setRdPaymentsDrawer({
+                open: true,
+                reconciliationId: id,
+                statementNo: r.settlementNumber != null ? String(r.settlementNumber) : ''
+              })
+            }}
           />
         </div>
       </div>
       </div>
+      <ReconciliationRdPaymentsDrawer
+        open={rdPaymentsDrawer.open}
+        reconciliationId={rdPaymentsDrawer.reconciliationId}
+        statementNo={rdPaymentsDrawer.statementNo}
+        onClose={() =>
+          setRdPaymentsDrawer({ open: false, reconciliationId: '', statementNo: '' })
+        }
+      />
     </PageContainer>
   )
 }

@@ -10,6 +10,7 @@ import {
   apiPut,
   ApiError
 } from '@/lib/api/client.ts'
+import type { BankTransactionRow } from '@/lib/api/bankTransaction.ts'
 
 export type ApiReconciliationRow = {
   id: string
@@ -32,6 +33,12 @@ export type ApiReconciliationRow = {
   updated_at: string
   /** 列表用：未登记 / 待打款 / 已提交 / 已付款 / 金额异常 / 打款失败 */
   bank_payment_list_status?: string | null
+  /** 银行付款登记（bank_transactions）关联聚合，由后端计算 */
+  paid_amount?: number
+  unpaid_amount?: number
+  payment_status?: string
+  payment_count?: number
+  latest_payment_date?: string | null
 }
 
 export type BankPaymentTransferStatus = 'pending_submit' | 'submitted' | 'paid' | 'failed'
@@ -165,6 +172,14 @@ export function deleteReconciliationRecord(id: string): Promise<void> {
   return apiDelete(`${PATH}/${encodeURIComponent(id)}`)
 }
 
+export function listReconciliationLinkedBankPayments(
+  reconciliationId: string
+): Promise<{ items: BankTransactionRow[]; total: number }> {
+  return apiGet<{ items: BankTransactionRow[]; total: number }>(
+    `${PATH}/${encodeURIComponent(reconciliationId)}/payments`
+  )
+}
+
 export async function getReconciliationBankPayment(
   reconciliationId: string
 ): Promise<ApiBankPaymentRow | null> {
@@ -247,7 +262,21 @@ export function apiRowToFrontend(row: ApiReconciliationRow): Record<string, unkn
     settlementAmount:
       row.settlement_amount != null ? Number(row.settlement_amount).toFixed(2) : '0.00',
     status: row.status || 'pending',
-    memo: row.remark != null ? String(row.remark) : ''
+    memo: row.remark != null ? String(row.remark) : '',
+    paidAmount:
+      row.paid_amount != null && Number.isFinite(Number(row.paid_amount))
+        ? Number(row.paid_amount).toFixed(2)
+        : '0.00',
+    unpaidAmount:
+      row.unpaid_amount != null && Number.isFinite(Number(row.unpaid_amount))
+        ? Number(row.unpaid_amount).toFixed(2)
+        : '0.00',
+    paymentStatus: row.payment_status != null ? String(row.payment_status) : '未付款',
+    paymentCount:
+      row.payment_count != null && Number.isFinite(Number(row.payment_count))
+        ? Number(row.payment_count)
+        : 0,
+    latestPaymentDate: row.latest_payment_date != null ? String(row.latest_payment_date) : ''
   }
 }
 

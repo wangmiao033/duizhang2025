@@ -12,11 +12,19 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
 from app.models.bank_payment import BankPaymentRecord
+from app.models.bank_transaction import BankTransaction
 from app.models.reconciliation import ReconciliationRecord
 from app.services.bank_payment_status import compute_bank_payment_list_status
+from app.services.rd_bank_payment_aggregate import (
+    RD_TYPE,
+    aggregate_rd_payments_for_ids,
+    fill_payable_for_row,
+)
+from app.schemas.bank_transaction import BankTransactionRead
 from app.schemas.reconciliation import (
     ReconciliationCreate,
     ReconciliationListResponse,
+    ReconciliationPaymentsResponse,
     ReconciliationRead,
     ReconciliationUpdate,
 )
@@ -96,12 +104,47 @@ def list_reconciliation(
             bp_map = {b.reconciliation_id: b for b in bps}
         except (OperationalError, ProgrammingError):
             bp_map = {}
+    try:
+        agg_map = aggregate_rd_payments_for_ids(db, [r.id for r in rows])
+    except (OperationalError, ProgrammingError):
+        agg_map = {}
     items = []
     for r in rows:
         base_read = ReconciliationRead.model_validate(r)
         st = compute_bank_payment_list_status(float(r.settlement_amount or 0), bp_map.get(r.id))
-        items.append(base_read.model_copy(update={"bank_payment_list_status": st}))
+        pay = fill_payable_for_row(agg_map.get(r.id), r.settlement_amount)
+        items.append(
+            base_read.model_copy(
+                update={
+                    "bank_payment_list_status": st,
+                    "paid_amount": float(pay.paid_amount),
+                    "unpaid_amount": float(pay.unpaid_amount),
+                    "payment_status": pay.payment_status,
+                    "payment_count": pay.payment_count,
+                    "latest_payment_date": pay.latest_payment_date,
+                }
+            )
+        )
     return ReconciliationListResponse(items=items, total=total)
+
+
+@router.get("/{record_id}/payments", response_model=ReconciliationPaymentsResponse)
+def list_reconciliation_payments(record_id: str, db: Session = Depends(get_db)) -> ReconciliationPaymentsResponse:
+    row = db.get(ReconciliationRecord, record_id)
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"error": "not_found", "id": record_id})
+    stmt = (
+        select(BankTransaction)
+        .where(
+            BankTransaction.reconciliation_id == record_id,
+            BankTransaction.reconciliation_type == RD_TYPE,
+            BankTransaction.type == "payment_register",
+        )
+        .order_by(BankTransaction.created_at.desc())
+    )
+    btx_rows = db.execute(stmt).scalars().all()
+    items = [BankTransactionRead.model_validate(x) for x in btx_rows]
+    return ReconciliationPaymentsResponse(items=items, total=len(items))
 
 
 @router.get("/{record_id}", response_model=ReconciliationRead)
@@ -109,7 +152,29 @@ def get_reconciliation(record_id: str, db: Session = Depends(get_db)) -> Reconci
     row = db.get(ReconciliationRecord, record_id)
     if row is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"error": "not_found", "id": record_id})
-    return ReconciliationRead.model_validate(row)
+    base_read = ReconciliationRead.model_validate(row)
+    try:
+        bp = db.execute(
+            select(BankPaymentRecord).where(BankPaymentRecord.reconciliation_id == record_id)
+        ).scalars().first()
+    except (OperationalError, ProgrammingError):
+        bp = None
+    st = compute_bank_payment_list_status(float(row.settlement_amount or 0), bp)
+    try:
+        agg_map = aggregate_rd_payments_for_ids(db, [record_id])
+    except (OperationalError, ProgrammingError):
+        agg_map = {}
+    pay = fill_payable_for_row(agg_map.get(record_id), row.settlement_amount)
+    return base_read.model_copy(
+        update={
+            "bank_payment_list_status": st,
+            "paid_amount": float(pay.paid_amount),
+            "unpaid_amount": float(pay.unpaid_amount),
+            "payment_status": pay.payment_status,
+            "payment_count": pay.payment_count,
+            "latest_payment_date": pay.latest_payment_date,
+        }
+    )
 
 
 @router.post("", response_model=ReconciliationRead, status_code=status.HTTP_201_CREATED)

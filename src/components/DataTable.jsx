@@ -27,7 +27,10 @@ function DataTable({
   useDrawerForEdit = false,
   onRequestEdit,
   onRequestPageEdit = null,
-  onQuickView = null
+  onQuickView = null,
+  showRdBankPaymentColumns = false,
+  onRdLinkPayment = null,
+  onRdViewPayments = null
 }) {
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({})
@@ -36,7 +39,8 @@ function DataTable({
   const [viewMode, setViewMode] = useState('list') // 'byPartner' or 'list'
   const [expandedPartners, setExpandedPartners] = useState({})
   const compact = columnPreset === 'compact'
-  const emptyListColSpan = compact ? 10 : 16
+  const rdPayCols = showRdBankPaymentColumns ? 5 : 0
+  const emptyListColSpan = compact ? 10 + rdPayCols : 16 + rdPayCols
 
   const startEdit = (record) => {
     if (onRequestPageEdit) {
@@ -452,6 +456,15 @@ function DataTable({
                   </th>
                 </>
               )}
+              {showRdBankPaymentColumns && (
+                <>
+                  <th>支付状态</th>
+                  <th>已付金额</th>
+                  <th>未付金额</th>
+                  <th>最近付款</th>
+                  <th>关联笔数</th>
+                </>
+              )}
               <th>状态</th>
               <th className="data-table__col-actions">操作</th>
             </tr>
@@ -600,6 +613,15 @@ function DataTable({
                       <td className="amount-cell">
                         ¥{(Math.round(calculateSettlementAmount(editForm) * 100) / 100).toFixed(2)}
                       </td>
+                      {showRdBankPaymentColumns && (
+                        <>
+                          <td>—</td>
+                          <td>—</td>
+                          <td>—</td>
+                          <td>—</td>
+                          <td>—</td>
+                        </>
+                      )}
                       <td>
                         <StatusSelector
                           menuInPortal
@@ -654,7 +676,24 @@ function DataTable({
                           <td className="amount-cell settlement-amount">
                             ¥{parseFloat(record.settlementAmount || 0).toFixed(2)}
                           </td>
-                                               </>
+                        </>
+                      )}
+                      {showRdBankPaymentColumns && (
+                        <>
+                          <td>{record.paymentStatus != null ? String(record.paymentStatus) : '未付款'}</td>
+                          <td className="amount-cell">
+                            ¥{parseFloat(record.paidAmount ?? 0).toFixed(2)}
+                          </td>
+                          <td className="amount-cell">
+                            ¥{parseFloat(record.unpaidAmount ?? 0).toFixed(2)}
+                          </td>
+                          <td>
+                            {record.latestPaymentDate
+                              ? String(record.latestPaymentDate).slice(0, 10)
+                              : '—'}
+                          </td>
+                          <td>{record.paymentCount != null ? String(record.paymentCount) : '0'}</td>
+                        </>
                       )}
                       <td>
                         <StatusSelector
@@ -668,6 +707,24 @@ function DataTable({
                       </td>
                       <td className="data-table__col-actions">
                         <div className="data-table__row-actions">
+                          {onRdLinkPayment && (
+                            <button
+                              type="button"
+                              className="edit-btn"
+                              onClick={() => onRdLinkPayment(record)}
+                            >
+                              关联付款
+                            </button>
+                          )}
+                          {onRdViewPayments && (
+                            <button
+                              type="button"
+                              className="edit-btn"
+                              onClick={() => onRdViewPayments(record)}
+                            >
+                              查看付款
+                            </button>
+                          )}
                           {onQuickView && (
                             <button type="button" className="edit-btn" onClick={() => onQuickView(record)}>
                               查看
@@ -709,6 +766,15 @@ function DataTable({
                 <td className="amount-cell settlement-amount">
                   <strong>¥{records.reduce((sum, r) => sum + (parseFloat(r.settlementAmount) || 0), 0).toFixed(2)}</strong>
                 </td>
+                {showRdBankPaymentColumns && (
+                  <>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>—</td>
+                  </>
+                )}
                 <td>-</td>
                 <td></td>
               </tr>
@@ -726,6 +792,15 @@ function DataTable({
                 <td className="amount-cell settlement-amount">
                   <strong>¥{records.reduce((sum, r) => sum + (parseFloat(r.settlementAmount) || 0), 0).toFixed(2)}</strong>
                 </td>
+                {showRdBankPaymentColumns && (
+                  <>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>—</td>
+                  </>
+                )}
                 <td>—</td>
                 <td />
               </tr>

@@ -27,8 +27,9 @@ function paymentExtraRemark(form) {
 /**
  * @param {Record<string, unknown>} form BankPaymentRegisterPage 表单
  * @param {string} pasteText 粘贴区原文（工行回单等）
+ * @param {{ reconciliation_id?: string | null, reconciliation_type?: string | null, reconciliation_no?: string | null, linked_amount?: number | null } | null} [rdLink] 关联研发对账
  */
-export function buildPaymentRegisterPayload(form, pasteText) {
+export function buildPaymentRegisterPayload(form, pasteText, rdLink) {
   const icbc = parseIcbcReceiptText(pasteText || '')
   const instructionNo =
     icbc.recognized && icbc.fields?.instructionNo ? String(icbc.fields.instructionNo).trim() : ''
@@ -38,7 +39,7 @@ export function buildPaymentRegisterPayload(form, pasteText) {
   const extra = paymentExtraRemark(form)
   const remark = [baseRemark, extra].filter(Boolean).join('\n\n')
 
-  return {
+  const base = {
     type: 'payment_register',
     trade_date: form.payment_date ? String(form.payment_date) : null,
     bank_account: form.remitter_account ? String(form.remitter_account).trim() : null,
@@ -61,6 +62,21 @@ export function buildPaymentRegisterPayload(form, pasteText) {
     raw_text: pasteText ? String(pasteText) : null,
     attachment_url: null
   }
+  const rid = rdLink?.reconciliation_id != null ? String(rdLink.reconciliation_id).trim() : ''
+  if (rid) {
+    base.reconciliation_id = rid
+    base.reconciliation_type =
+      rdLink?.reconciliation_type != null && String(rdLink.reconciliation_type).trim() !== ''
+        ? String(rdLink.reconciliation_type).trim()
+        : 'rd'
+    base.reconciliation_no =
+      rdLink?.reconciliation_no != null && String(rdLink.reconciliation_no).trim() !== ''
+        ? String(rdLink.reconciliation_no).trim()
+        : null
+    const la = rdLink?.linked_amount
+    base.linked_amount = la != null && Number.isFinite(Number(la)) ? Number(la) : null
+  }
+  return base
 }
 
 /**

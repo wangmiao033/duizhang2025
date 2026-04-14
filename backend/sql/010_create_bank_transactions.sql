@@ -24,6 +24,10 @@ CREATE TABLE IF NOT EXISTS bank_transactions (
     status TEXT,
     raw_text TEXT,
     attachment_url TEXT,
+    reconciliation_id TEXT,
+    reconciliation_type TEXT,
+    reconciliation_no TEXT,
+    linked_amount NUMERIC(18, 2),
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
