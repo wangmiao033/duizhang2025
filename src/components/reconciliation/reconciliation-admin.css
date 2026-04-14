@@ -1410,3 +1410,310 @@
   font-size: var(--font-size-caption);
   font-weight: var(--font-weight-button);
 }
+
+/* —— 银行流水台账表（卡片化表格） —— */
+.bank-ledger-table-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.bank-ledger-table {
+  width: 100%;
+  min-width: 920px;
+  border-collapse: collapse;
+  font-size: var(--font-size-button, 14px);
+}
+
+.bank-ledger-table__th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--admin-text-secondary, #475569);
+  background: var(--admin-elevated-bg, #f1f5f9);
+  border-bottom: 1px solid var(--admin-border, #e2e8f0);
+  padding: 12px 14px;
+  white-space: nowrap;
+}
+
+.bank-ledger-table__th--center {
+  text-align: center;
+}
+
+.bank-ledger-table__th--right {
+  text-align: right;
+}
+
+.bank-ledger-table__row {
+  transition: background 0.12s ease;
+}
+
+.bank-ledger-table__row:hover {
+  background: rgba(99, 102, 241, 0.04);
+}
+
+.bank-ledger-table__td {
+  border-bottom: 1px solid var(--admin-border-soft, #e5e7eb);
+  padding: 14px 14px;
+  vertical-align: top;
+  min-height: 60px;
+  line-height: 1.45;
+  color: var(--admin-text-main, #0f172a);
+}
+
+.bank-ledger-table__td--center {
+  text-align: center;
+}
+
+.bank-ledger-table__td--right {
+  text-align: right;
+}
+
+.bank-ledger-table__td--multi {
+  min-height: 64px;
+}
+
+.bank-ledger-table__td--nowrap {
+  white-space: nowrap;
+  font-size: var(--font-size-caption, 13px);
+  color: var(--admin-text-sub, #64748b);
+}
+
+.bank-ledger-table__primary {
+  font-weight: 600;
+  color: var(--admin-text-main, #0f172a);
+}
+
+.bank-ledger-table__amount-main {
+  font-weight: 700;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--admin-text-main, #0f172a);
+}
+
+.bank-ledger-table__sub {
+  margin-top: 4px;
+  font-size: var(--font-size-caption, 12px);
+  color: var(--admin-text-muted, #64748b);
+}
+
+.bank-ledger-table__biz-line {
+  font-size: var(--font-size-caption, 12px);
+  color: var(--admin-text-secondary, #475569);
+  word-break: break-all;
+}
+
+.bank-ledger-table__biz-line + .bank-ledger-table__biz-line {
+  margin-top: 4px;
+}
+
+.bank-ledger-table__muted {
+  color: var(--admin-text-muted, #94a3b8);
+  font-size: var(--font-size-caption, 12px);
+}
+
+.bank-ledger-table__empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--admin-text-sub, #64748b);
+}
+
+.bank-ledger-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: var(--font-size-caption, 12px);
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.bank-ledger-tag--success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.bank-ledger-tag--warn {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.bank-ledger-tag--muted {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.bank-ledger-tag--info {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.bank-ledger-tag--danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.bank-ledger__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.bank-ledger__more-wrap {
+  position: relative;
+}
+
+.bank-ledger__dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  min-width: 112px;
+  padding: 6px;
+  background: var(--admin-card-bg, #fff);
+  border: 1px solid var(--admin-border, #e2e8f0);
+  border-radius: var(--admin-radius-sm, 8px);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  z-index: 20;
+}
+
+.bank-ledger__dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-size: var(--font-size-caption, 13px);
+  cursor: pointer;
+  color: var(--admin-text-main, #0f172a);
+}
+
+.bank-ledger__dropdown-item:hover {
+  background: var(--admin-elevated-bg, #f8fafc);
+}
+
+.bank-ledger__dropdown-item--danger {
+  color: #b91c1c;
+}
+
+.bank-ledger-table .rec-btn--xs {
+  min-height: 30px;
+  padding: 4px 10px;
+  font-size: var(--font-size-caption, 12px);
+}
+
+button.rec-drawer-backdrop {
+  cursor: pointer;
+}
+
+.bank-ledger-drawer__head {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.bank-ledger-drawer__title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--admin-text-main, #0f172a);
+}
+
+.bank-ledger-drawer__btn-danger {
+  color: #b91c1c !important;
+  border-color: rgba(185, 28, 28, 0.35) !important;
+}
+
+.bank-ledger-detail__section {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--admin-border-soft, #e5e7eb);
+}
+
+.bank-ledger-detail__section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.bank-ledger-detail__section-title {
+  margin: 0 0 10px;
+  font-size: var(--font-size-section-title, 14px);
+  font-weight: 700;
+  color: #334155;
+}
+
+.bank-ledger-detail__section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bank-ledger-detail__kv {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 8px 12px;
+  align-items: start;
+  font-size: var(--font-size-button, 14px);
+}
+
+.bank-ledger-detail__k {
+  color: var(--admin-text-muted, #64748b);
+  flex-shrink: 0;
+}
+
+.bank-ledger-detail__v {
+  color: var(--admin-text-main, #0f172a);
+  word-break: break-word;
+}
+
+.bank-ledger-detail__link {
+  color: var(--admin-primary, #6366f1);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.bank-ledger-detail__link:hover {
+  text-decoration: underline;
+}
+
+.bank-ledger-detail__muted {
+  color: var(--admin-text-muted, #94a3b8);
+  font-size: var(--font-size-caption, 13px);
+}
+
+[data-theme='dark'] .bank-ledger-table__th {
+  background: rgba(30, 41, 59, 0.85);
+  color: #cbd5e1;
+}
+
+[data-theme='dark'] .bank-ledger-table__row:hover {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+[data-theme='dark'] .bank-ledger-tag--success {
+  background: rgba(22, 101, 52, 0.35);
+  color: #86efac;
+}
+
+[data-theme='dark'] .bank-ledger-tag--warn {
+  background: rgba(194, 65, 12, 0.3);
+  color: #fdba74;
+}
+
+[data-theme='dark'] .bank-ledger-tag--muted {
+  background: rgba(71, 85, 105, 0.4);
+  color: #e2e8f0;
+}
+
+[data-theme='dark'] .bank-ledger-tag--info {
+  background: rgba(29, 78, 216, 0.35);
+  color: #93c5fd;
+}
+
+[data-theme='dark'] .bank-ledger-tag--danger {
+  background: rgba(185, 28, 28, 0.35);
+  color: #fca5a5;
+}

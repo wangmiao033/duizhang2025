@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import PageContainer from '@/components/layout/PageContainer.jsx'
 import { useAppState } from '@/app/AppStateContext.jsx'
-import { ApiError } from '@/lib/api/client.ts'
+import { API_BASE_URL, ApiError } from '@/lib/api/client.ts'
 import {
   createBankTransaction,
   deleteBankTransaction,
@@ -15,6 +15,16 @@ const TYPE_LABELS = {
   statement_import: '流水导入',
   payment_register: '付款登记',
   collection_register: '回款登记'
+}
+
+const NA = '暂无'
+
+const STATUS_TAG = {
+  paid: { label: '已付款', cls: 'bank-ledger-tag--success' },
+  pending: { label: '待处理', cls: 'bank-ledger-tag--warn' },
+  draft: { label: '草稿', cls: 'bank-ledger-tag--muted' },
+  matched: { label: '已匹配', cls: 'bank-ledger-tag--info' },
+  unmatched: { label: '未匹配', cls: 'bank-ledger-tag--danger' }
 }
 
 const EMPTY_EDIT = {
@@ -38,18 +48,24 @@ const EMPTY_EDIT = {
   remark: '',
   status: '',
   raw_text: '',
-  attachment_url: ''
+  attachment_url: '',
+  created_at: ''
 }
 
-function fmtMoney(v) {
-  if (v == null || v === '') return '—'
+function fmtMoneyVal(v) {
+  if (v == null || v === '') return null
   const n = Number(v)
   if (!Number.isFinite(n)) return String(v)
   return n.toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
 }
 
-function fmtDt(iso) {
-  if (!iso) return '—'
+function fmtYuan(v) {
+  const s = fmtMoneyVal(v)
+  return s == null ? NA : `¥${s}`
+}
+
+function fmtDtShort(iso) {
+  if (!iso) return NA
   try {
     const d = new Date(iso)
     if (Number.isNaN(d.getTime())) return iso
@@ -59,10 +75,85 @@ function fmtDt(iso) {
   }
 }
 
-function rowPartyLabel(row) {
-  const self = row.bank_account || '—'
-  const other = row.payer_name || row.payee_name || '—'
-  return `${self} / ${other}`
+function formatBankLine(bankName, account) {
+  const parts = []
+  if (bankName) parts.push(bankName)
+  if (account && String(account).length >= 4) parts.push(`尾号 ${String(account).slice(-4)}`)
+  else if (account) parts.push(String(account))
+  return parts.length ? parts.join(' ') : null
+}
+
+function buildCounterpartyPrimary(row) {
+  if (row.type === 'payment_register') {
+    const name = row.payee_name?.trim()
+    return name ? `付款给 ${name}` : NA
+  }
+  if (row.type === 'collection_register') {
+    const name = row.payer_name?.trim()
+    return name ? `来自 ${name}` : NA
+  }
+  const p = row.payer_name?.trim()
+  const q = row.payee_name?.trim()
+  if (p && q) return `${p} → ${q}`
+  if (p || q) return p || q
+  return NA
+}
+
+function buildCounterpartySub(row) {
+  if (row.type === 'payment_register') {
+    return formatBankLine(row.payee_bank_name, row.payee_account)
+  }
+  if (row.type === 'collection_register') {
+    return formatBankLine(row.payer_bank_name, row.payer_account)
+  }
+  const bits = []
+  if (row.bank_account?.trim()) bits.push(`本方 ${row.bank_account.trim()}`)
+  if (row.payer_account?.trim()) bits.push(`付方账号 ${row.payer_account.trim()}`)
+  if (row.payee_account?.trim()) bits.push(`收方账号 ${row.payee_account.trim()}`)
+  return bits.length ? bits.join(' · ') : null
+}
+
+function buildAmountDisplay(row) {
+  if (row.type === 'payment_register') {
+    const v = row.expense_amount ?? row.amount
+    return { main: fmtYuan(v), sub: '支出' }
+  }
+  if (row.type === 'collection_register') {
+    const v = row.income_amount ?? row.amount
+    return { main: fmtYuan(v), sub: '收入' }
+  }
+  const inc = Number(row.income_amount)
+  const exp = Number(row.expense_amount)
+  if (Number.isFinite(exp) && exp > 0) return { main: fmtYuan(row.expense_amount ?? row.amount), sub: '支出' }
+  if (Number.isFinite(inc) && inc > 0) return { main: fmtYuan(row.income_amount ?? row.amount), sub: '收入' }
+  return { main: fmtYuan(row.amount), sub: '金额' }
+}
+
+function buildBizLines(row) {
+  const lines = []
+  if (row.transaction_no?.trim()) lines.push({ t: '流水号', v: row.transaction_no.trim() })
+  if (row.instruction_no?.trim()) lines.push({ t: '指令编号', v: row.instruction_no.trim() })
+  if (row.bank_account?.trim()) lines.push({ t: '银行账户', v: row.bank_account.trim() })
+  return lines
+}
+
+function statusTagMeta(raw) {
+  const key = (raw || '').trim().toLowerCase()
+  if (STATUS_TAG[key]) return STATUS_TAG[key]
+  if (!raw) return { label: NA, cls: 'bank-ledger-tag--muted' }
+  return { label: raw, cls: 'bank-ledger-tag--muted' }
+}
+
+function StatusTag({ status }) {
+  const { label, cls } = statusTagMeta(status)
+  return <span className={`bank-ledger-tag ${cls}`}>{label}</span>
+}
+
+function attachmentHref(url) {
+  if (!url?.trim()) return ''
+  const u = url.trim()
+  if (u.startsWith('http')) return u
+  return `${API_BASE_URL}${u.startsWith('/') ? u : `/${u}`}`
 }
 
 function mapRowToEditForm(row) {
@@ -87,8 +178,28 @@ function mapRowToEditForm(row) {
     remark: row.remark || '',
     status: row.status || '',
     raw_text: row.raw_text || '',
-    attachment_url: row.attachment_url || ''
+    attachment_url: row.attachment_url || '',
+    created_at: row.created_at || ''
   }
+}
+
+function DetailSection({ title, children }) {
+  return (
+    <div className="bank-ledger-detail__section">
+      <h4 className="bank-ledger-detail__section-title">{title}</h4>
+      <div className="bank-ledger-detail__section-body">{children}</div>
+    </div>
+  )
+}
+
+function DetailKV({ label, value }) {
+  const display = value == null || value === '' ? NA : value
+  return (
+    <div className="bank-ledger-detail__kv">
+      <span className="bank-ledger-detail__k">{label}</span>
+      <span className="bank-ledger-detail__v">{display}</span>
+    </div>
+  )
 }
 
 export default function BankTransactionsLedgerPage() {
@@ -106,6 +217,7 @@ export default function BankTransactionsLedgerPage() {
   const [modal, setModal] = useState({ open: false, mode: 'view', id: null })
   const [editForm, setEditForm] = useState(EMPTY_EDIT)
   const [saving, setSaving] = useState(false)
+  const [actionMenuId, setActionMenuId] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -136,7 +248,15 @@ export default function BankTransactionsLedgerPage() {
     load()
   }, [load])
 
+  useEffect(() => {
+    if (!actionMenuId) return
+    const close = () => setActionMenuId(null)
+    document.addEventListener('click', close)
+    return () => document.removeEventListener('click', close)
+  }, [actionMenuId])
+
   const openView = async (id) => {
+    setActionMenuId(null)
     try {
       const row = await getBankTransactionDetail(id)
       setEditForm(mapRowToEditForm(row))
@@ -147,6 +267,7 @@ export default function BankTransactionsLedgerPage() {
   }
 
   const openEdit = async (id) => {
+    setActionMenuId(null)
     try {
       const row = await getBankTransactionDetail(id)
       setEditForm(mapRowToEditForm(row))
@@ -216,6 +337,8 @@ export default function BankTransactionsLedgerPage() {
     try {
       await deleteBankTransaction(id)
       showToast('已删除', 'success')
+      if (modal.id === id) closeModal()
+      setActionMenuId(null)
       load()
     } catch (e) {
       showToast(e instanceof ApiError ? e.message : '删除失败', 'info')
@@ -253,6 +376,58 @@ export default function BankTransactionsLedgerPage() {
       showToast(e instanceof ApiError ? e.message : '新增失败', 'info')
     }
   }
+
+  const renderViewBody = () => (
+    <>
+      <DetailSection title="基本信息">
+        <DetailKV label="类型" value={TYPE_LABELS[editForm.type] || editForm.type || NA} />
+        <DetailKV label="交易日期" value={editForm.trade_date || NA} />
+        <div className="bank-ledger-detail__kv">
+          <span className="bank-ledger-detail__k">状态</span>
+          <span className="bank-ledger-detail__v">
+            <StatusTag status={editForm.status} />
+          </span>
+        </div>
+        <DetailKV label="创建时间" value={fmtDtShort(editForm.created_at)} />
+      </DetailSection>
+      <DetailSection title="付款/收款信息">
+        <DetailKV label="本方账号" value={editForm.bank_account} />
+        <DetailKV label="付款方名称" value={editForm.payer_name} />
+        <DetailKV label="付款方账号" value={editForm.payer_account} />
+        <DetailKV label="付款方开户行" value={editForm.payer_bank_name} />
+        <DetailKV label="收款方名称" value={editForm.payee_name} />
+        <DetailKV label="收款方账号" value={editForm.payee_account} />
+        <DetailKV label="收款方开户行" value={editForm.payee_bank_name} />
+      </DetailSection>
+      <DetailSection title="金额信息">
+        <DetailKV label="金额" value={fmtYuan(editForm.amount)} />
+        <DetailKV label="收入" value={fmtYuan(editForm.income_amount)} />
+        <DetailKV label="支出" value={fmtYuan(editForm.expense_amount)} />
+        <DetailKV label="币种" value={editForm.currency} />
+      </DetailSection>
+      <DetailSection title="业务信息">
+        <DetailKV label="流水号" value={editForm.transaction_no} />
+        <DetailKV label="指令编号" value={editForm.instruction_no} />
+        <DetailKV label="用途" value={editForm.purpose} />
+        <DetailKV label="摘要" value={editForm.summary} />
+        <DetailKV label="备注" value={editForm.remark} />
+      </DetailSection>
+      <DetailSection title="附件">
+        {editForm.attachment_url?.trim() ? (
+          <a
+            className="bank-ledger-detail__link"
+            href={attachmentHref(editForm.attachment_url)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            查看附件
+          </a>
+        ) : (
+          <span className="bank-ledger-detail__muted">{NA}</span>
+        )}
+      </DetailSection>
+    </>
+  )
 
   return (
     <PageContainer hideHeader className="page-container--admin-workspace">
@@ -333,82 +508,116 @@ export default function BankTransactionsLedgerPage() {
             </div>
           </div>
 
-          <div style={{ overflowX: 'auto' }}>
-            <table className="data-table--compact" style={{ width: '100%', minWidth: 1100 }}>
-              <thead>
-                <tr>
-                  <th>类型</th>
-                  <th>交易日期</th>
-                  <th>本方账户 / 对方名称</th>
-                  <th>金额</th>
-                  <th>收入</th>
-                  <th>支出</th>
-                  <th>流水号</th>
-                  <th>指令编号</th>
-                  <th>银行账户</th>
-                  <th>状态</th>
-                  <th>备注</th>
-                  <th>创建时间</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.length === 0 ? (
+          <div className="reconciliation-rd__table-card bank-ledger-table-card">
+            <div className="table-wrapper">
+              <table className="bank-ledger-table">
+                <thead>
                   <tr>
-                    <td colSpan={13} style={{ textAlign: 'center', padding: 24, color: '#64748b' }}>
-                      {loading ? '加载中…' : '暂无数据'}
-                    </td>
+                    <th className="bank-ledger-table__th">类型</th>
+                    <th className="bank-ledger-table__th bank-ledger-table__th--center">交易日期</th>
+                    <th className="bank-ledger-table__th">交易对象</th>
+                    <th className="bank-ledger-table__th bank-ledger-table__th--right">金额信息</th>
+                    <th className="bank-ledger-table__th">业务标识</th>
+                    <th className="bank-ledger-table__th bank-ledger-table__th--center">状态</th>
+                    <th className="bank-ledger-table__th bank-ledger-table__th--center">创建时间</th>
+                    <th className="bank-ledger-table__th bank-ledger-table__th--center">操作</th>
                   </tr>
-                ) : (
-                  items.map((row) => (
-                    <tr key={row.id}>
-                      <td>{TYPE_LABELS[row.type] || row.type}</td>
-                      <td>{row.trade_date || '—'}</td>
-                      <td style={{ maxWidth: 220, wordBreak: 'break-word' }}>{rowPartyLabel(row)}</td>
-                      <td>{fmtMoney(row.amount)}</td>
-                      <td>{fmtMoney(row.income_amount)}</td>
-                      <td>{fmtMoney(row.expense_amount)}</td>
-                      <td style={{ maxWidth: 120, wordBreak: 'break-all' }}>{row.transaction_no || '—'}</td>
-                      <td style={{ maxWidth: 100, wordBreak: 'break-all' }}>{row.instruction_no || '—'}</td>
-                      <td style={{ maxWidth: 140, wordBreak: 'break-all' }}>{row.bank_account || '—'}</td>
-                      <td>{row.status || '—'}</td>
-                      <td style={{ maxWidth: 160, wordBreak: 'break-word' }} title={row.remark || ''}>
-                        {row.remark ? (row.remark.length > 40 ? `${row.remark.slice(0, 40)}…` : row.remark) : '—'}
-                      </td>
-                      <td style={{ whiteSpace: 'nowrap', fontSize: 12 }}>{fmtDt(row.created_at)}</td>
-                      <td>
-                        <div className="rec-bank-payment__footer-actions" style={{ marginTop: 0, gap: 6 }}>
-                          <button
-                            type="button"
-                            className="rec-btn rec-btn--ghost"
-                            style={{ padding: '4px 8px', fontSize: 12 }}
-                            onClick={() => openView(row.id)}
-                          >
-                            详情
-                          </button>
-                          <button
-                            type="button"
-                            className="rec-btn rec-btn--secondary"
-                            style={{ padding: '4px 8px', fontSize: 12 }}
-                            onClick={() => openEdit(row.id)}
-                          >
-                            编辑
-                          </button>
-                          <button
-                            type="button"
-                            className="rec-btn rec-btn--ghost"
-                            style={{ padding: '4px 8px', fontSize: 12 }}
-                            onClick={() => handleDelete(row.id)}
-                          >
-                            删除
-                          </button>
-                        </div>
+                </thead>
+                <tbody>
+                  {items.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="bank-ledger-table__empty">
+                        {loading ? '加载中…' : '暂无数据'}
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    items.map((row) => {
+                      const cpSub = buildCounterpartySub(row)
+                      const amt = buildAmountDisplay(row)
+                      const biz = buildBizLines(row)
+                      return (
+                        <tr key={row.id} className="bank-ledger-table__row">
+                          <td className="bank-ledger-table__td">{TYPE_LABELS[row.type] || row.type}</td>
+                          <td className="bank-ledger-table__td bank-ledger-table__td--center">
+                            {row.trade_date?.trim() || NA}
+                          </td>
+                          <td className="bank-ledger-table__td bank-ledger-table__td--multi">
+                            <div className="bank-ledger-table__primary">{buildCounterpartyPrimary(row)}</div>
+                            {cpSub ? <div className="bank-ledger-table__sub">{cpSub}</div> : null}
+                          </td>
+                          <td className="bank-ledger-table__td bank-ledger-table__td--right bank-ledger-table__td--multi">
+                            <div className="bank-ledger-table__amount-main">{amt.main}</div>
+                            <div className="bank-ledger-table__sub">{amt.sub}</div>
+                          </td>
+                          <td className="bank-ledger-table__td bank-ledger-table__td--multi">
+                            {biz.length === 0 ? (
+                              <span className="bank-ledger-table__muted">{NA}</span>
+                            ) : (
+                              biz.map((line) => (
+                                <div key={`${row.id}-${line.t}`} className="bank-ledger-table__biz-line">
+                                  {line.v}
+                                </div>
+                              ))
+                            )}
+                          </td>
+                          <td className="bank-ledger-table__td bank-ledger-table__td--center">
+                            <StatusTag status={row.status} />
+                          </td>
+                          <td className="bank-ledger-table__td bank-ledger-table__td--center bank-ledger-table__td--nowrap">
+                            {fmtDtShort(row.created_at)}
+                          </td>
+                          <td className="bank-ledger-table__td bank-ledger-table__td--center">
+                            <div className="bank-ledger__actions" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                className="rec-btn rec-btn--primary rec-btn--xs"
+                                onClick={() => openView(row.id)}
+                              >
+                                详情
+                              </button>
+                              <button
+                                type="button"
+                                className="rec-btn rec-btn--secondary rec-btn--xs"
+                                onClick={() => openEdit(row.id)}
+                              >
+                                编辑
+                              </button>
+                              <div className="bank-ledger__more-wrap">
+                                <button
+                                  type="button"
+                                  className="rec-btn rec-btn--ghost rec-btn--xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setActionMenuId((id) => (id === row.id ? null : row.id))
+                                  }}
+                                >
+                                  更多
+                                </button>
+                                {actionMenuId === row.id ? (
+                                  <div
+                                    className="bank-ledger__dropdown"
+                                    role="menu"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <button
+                                      type="button"
+                                      className="bank-ledger__dropdown-item bank-ledger__dropdown-item--danger"
+                                      onClick={() => handleDelete(row.id)}
+                                    >
+                                      删除
+                                    </button>
+                                  </div>
+                                ) : null}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
           <p style={{ marginTop: 8, fontSize: 13, color: 'var(--admin-text-sub, #64748b)' }}>
             共 {total} 条（本页最多 100 条，可改筛选条件后查询）
@@ -417,240 +626,255 @@ export default function BankTransactionsLedgerPage() {
       </div>
 
       {modal.open ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15,23,42,0.45)',
-            zIndex: 1200,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16
-          }}
-          onClick={closeModal}
-        >
-          <div
-            className="admin-workspace__card"
-            style={{ maxWidth: 720, width: '100%', maxHeight: '90vh', overflow: 'auto' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 style={{ marginTop: 0 }}>{modal.mode === 'edit' ? '编辑银行流水' : '银行流水详情'}</h3>
-            <form
-              onSubmit={(ev) => {
-                ev.preventDefault()
-                if (modal.mode === 'edit') handleSaveEdit(ev)
-              }}
-            >
-              <div className="rec-bank-payment__grid">
-                <label className="rec-bank-payment__field">
-                  记录类型
-                  <select
-                    className="admin-input"
-                    value={editForm.type}
-                    onChange={setField('type')}
-                    disabled={modal.mode === 'view'}
-                  >
-                    <option value="statement_import">流水导入</option>
-                    <option value="payment_register">付款登记</option>
-                    <option value="collection_register">回款登记</option>
-                  </select>
-                </label>
-                <label className="rec-bank-payment__field">
-                  交易日期
-                  <input
-                    className="admin-input"
-                    type="date"
-                    value={editForm.trade_date}
-                    onChange={setField('trade_date')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field rec-bank-payment__field--full">
-                  银行账户（本方）
-                  <input
-                    className="admin-input"
-                    value={editForm.bank_account}
-                    onChange={setField('bank_account')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field rec-bank-payment__field--full">
-                  付款方名称
-                  <input
-                    className="admin-input"
-                    value={editForm.payer_name}
-                    onChange={setField('payer_name')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field">
-                  付款方账号
-                  <input
-                    className="admin-input"
-                    value={editForm.payer_account}
-                    onChange={setField('payer_account')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field rec-bank-payment__field--full">
-                  付款方开户行
-                  <input
-                    className="admin-input"
-                    value={editForm.payer_bank_name}
-                    onChange={setField('payer_bank_name')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field rec-bank-payment__field--full">
-                  收款方名称
-                  <input
-                    className="admin-input"
-                    value={editForm.payee_name}
-                    onChange={setField('payee_name')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field">
-                  收款方账号
-                  <input
-                    className="admin-input"
-                    value={editForm.payee_account}
-                    onChange={setField('payee_account')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field rec-bank-payment__field--full">
-                  收款方开户行
-                  <input
-                    className="admin-input"
-                    value={editForm.payee_bank_name}
-                    onChange={setField('payee_bank_name')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field">
-                  金额
-                  <input
-                    className="admin-input"
-                    value={editForm.amount}
-                    onChange={setField('amount')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field">
-                  收入金额
-                  <input
-                    className="admin-input"
-                    value={editForm.income_amount}
-                    onChange={setField('income_amount')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field">
-                  支出金额
-                  <input
-                    className="admin-input"
-                    value={editForm.expense_amount}
-                    onChange={setField('expense_amount')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field">
-                  币种
-                  <input
-                    className="admin-input"
-                    value={editForm.currency}
-                    onChange={setField('currency')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field">
-                  交易流水号
-                  <input
-                    className="admin-input"
-                    value={editForm.transaction_no}
-                    onChange={setField('transaction_no')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field">
-                  指令编号
-                  <input
-                    className="admin-input"
-                    value={editForm.instruction_no}
-                    onChange={setField('instruction_no')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field rec-bank-payment__field--full">
-                  摘要
-                  <input
-                    className="admin-input"
-                    value={editForm.summary}
-                    onChange={setField('summary')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field rec-bank-payment__field--full">
-                  用途
-                  <input
-                    className="admin-input"
-                    value={editForm.purpose}
-                    onChange={setField('purpose')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field">
-                  状态
-                  <input
-                    className="admin-input"
-                    value={editForm.status}
-                    onChange={setField('status')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field rec-bank-payment__field--full">
-                  附件 URL
-                  <input
-                    className="admin-input"
-                    value={editForm.attachment_url}
-                    onChange={setField('attachment_url')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field rec-bank-payment__field--full">
-                  备注
-                  <textarea
-                    className="admin-input"
-                    rows={2}
-                    value={editForm.remark}
-                    onChange={setField('remark')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
-                <label className="rec-bank-payment__field rec-bank-payment__field--full">
-                  原始粘贴文本
-                  <textarea
-                    className="admin-input"
-                    rows={4}
-                    value={editForm.raw_text}
-                    onChange={setField('raw_text')}
-                    disabled={modal.mode === 'view'}
-                  />
-                </label>
+        <>
+          <button
+            type="button"
+            className="rec-drawer-backdrop"
+            aria-label="关闭"
+            onClick={closeModal}
+          />
+          <aside className="rec-drawer rec-drawer--wide rec-drawer--light bank-ledger-drawer">
+            <div className="rec-drawer__tools bank-ledger-drawer__head">
+              <div>
+                <h3 className="bank-ledger-drawer__title">
+                  {modal.mode === 'edit' ? '编辑银行流水' : '银行流水详情'}
+                </h3>
+                <p className="rec-drawer__title-sub">统一台账 · 流水导入 / 付款 / 回款</p>
               </div>
-              <div className="rec-bank-payment__footer-actions" style={{ marginTop: 16 }}>
-                <button type="button" className="rec-btn rec-btn--ghost" onClick={closeModal}>
-                  关闭
-                </button>
-                {modal.mode === 'edit' ? (
-                  <button type="submit" className="rec-btn rec-btn--primary" disabled={saving}>
-                    {saving ? '保存中…' : '保存'}
-                  </button>
+              <button type="button" className="rec-btn rec-btn--ghost rec-btn--xs" onClick={closeModal}>
+                关闭
+              </button>
+            </div>
+            <div className="rec-drawer__body">
+              {modal.mode === 'view' ? (
+                renderViewBody()
+              ) : (
+                <form
+                  id="bank-ledger-edit-form"
+                  onSubmit={(ev) => {
+                    ev.preventDefault()
+                    handleSaveEdit(ev)
+                  }}
+                >
+                  <DetailSection title="基本信息">
+                    <div className="rec-bank-payment__grid">
+                      <label className="rec-bank-payment__field">
+                        记录类型
+                        <select
+                          className="admin-input"
+                          value={editForm.type}
+                          onChange={setField('type')}
+                        >
+                          <option value="statement_import">流水导入</option>
+                          <option value="payment_register">付款登记</option>
+                          <option value="collection_register">回款登记</option>
+                        </select>
+                      </label>
+                      <label className="rec-bank-payment__field">
+                        交易日期
+                        <input
+                          className="admin-input"
+                          type="date"
+                          value={editForm.trade_date}
+                          onChange={setField('trade_date')}
+                        />
+                      </label>
+                      <label className="rec-bank-payment__field rec-bank-payment__field--full">
+                        状态（paid / pending / draft 等）
+                        <input
+                          className="admin-input"
+                          value={editForm.status}
+                          onChange={setField('status')}
+                        />
+                      </label>
+                    </div>
+                  </DetailSection>
+                  <DetailSection title="付款/收款信息">
+                    <div className="rec-bank-payment__grid">
+                      <label className="rec-bank-payment__field rec-bank-payment__field--full">
+                        银行账户（本方）
+                        <input
+                          className="admin-input"
+                          value={editForm.bank_account}
+                          onChange={setField('bank_account')}
+                        />
+                      </label>
+                      <label className="rec-bank-payment__field rec-bank-payment__field--full">
+                        付款方名称
+                        <input
+                          className="admin-input"
+                          value={editForm.payer_name}
+                          onChange={setField('payer_name')}
+                        />
+                      </label>
+                      <label className="rec-bank-payment__field">
+                        付款方账号
+                        <input
+                          className="admin-input"
+                          value={editForm.payer_account}
+                          onChange={setField('payer_account')}
+                        />
+                      </label>
+                      <label className="rec-bank-payment__field rec-bank-payment__field--full">
+                        付款方开户行
+                        <input
+                          className="admin-input"
+                          value={editForm.payer_bank_name}
+                          onChange={setField('payer_bank_name')}
+                        />
+                      </label>
+                      <label className="rec-bank-payment__field rec-bank-payment__field--full">
+                        收款方名称
+                        <input
+                          className="admin-input"
+                          value={editForm.payee_name}
+                          onChange={setField('payee_name')}
+                        />
+                      </label>
+                      <label className="rec-bank-payment__field">
+                        收款方账号
+                        <input
+                          className="admin-input"
+                          value={editForm.payee_account}
+                          onChange={setField('payee_account')}
+                        />
+                      </label>
+                      <label className="rec-bank-payment__field rec-bank-payment__field--full">
+                        收款方开户行
+                        <input
+                          className="admin-input"
+                          value={editForm.payee_bank_name}
+                          onChange={setField('payee_bank_name')}
+                        />
+                      </label>
+                    </div>
+                  </DetailSection>
+                  <DetailSection title="金额信息">
+                    <div className="rec-bank-payment__grid">
+                      <label className="rec-bank-payment__field">
+                        金额
+                        <input
+                          className="admin-input"
+                          value={editForm.amount}
+                          onChange={setField('amount')}
+                        />
+                      </label>
+                      <label className="rec-bank-payment__field">
+                        收入金额
+                        <input
+                          className="admin-input"
+                          value={editForm.income_amount}
+                          onChange={setField('income_amount')}
+                        />
+                      </label>
+                      <label className="rec-bank-payment__field">
+                        支出金额
+                        <input
+                          className="admin-input"
+                          value={editForm.expense_amount}
+                          onChange={setField('expense_amount')}
+                        />
+                      </label>
+                      <label className="rec-bank-payment__field">
+                        币种
+                        <input
+                          className="admin-input"
+                          value={editForm.currency}
+                          onChange={setField('currency')}
+                        />
+                      </label>
+                    </div>
+                  </DetailSection>
+                  <DetailSection title="业务信息">
+                    <div className="rec-bank-payment__grid">
+                      <label className="rec-bank-payment__field">
+                        交易流水号
+                        <input
+                          className="admin-input"
+                          value={editForm.transaction_no}
+                          onChange={setField('transaction_no')}
+                        />
+                      </label>
+                      <label className="rec-bank-payment__field">
+                        指令编号
+                        <input
+                          className="admin-input"
+                          value={editForm.instruction_no}
+                          onChange={setField('instruction_no')}
+                        />
+                      </label>
+                      <label className="rec-bank-payment__field rec-bank-payment__field--full">
+                        摘要
+                        <input
+                          className="admin-input"
+                          value={editForm.summary}
+                          onChange={setField('summary')}
+                        />
+                      </label>
+                      <label className="rec-bank-payment__field rec-bank-payment__field--full">
+                        用途
+                        <input
+                          className="admin-input"
+                          value={editForm.purpose}
+                          onChange={setField('purpose')}
+                        />
+                      </label>
+                      <label className="rec-bank-payment__field rec-bank-payment__field--full">
+                        备注
+                        <textarea
+                          className="admin-input"
+                          rows={2}
+                          value={editForm.remark}
+                          onChange={setField('remark')}
+                        />
+                      </label>
+                      <label className="rec-bank-payment__field rec-bank-payment__field--full">
+                        附件 URL
+                        <input
+                          className="admin-input"
+                          value={editForm.attachment_url}
+                          onChange={setField('attachment_url')}
+                        />
+                      </label>
+                      <label className="rec-bank-payment__field rec-bank-payment__field--full">
+                        原始粘贴文本
+                        <textarea
+                          className="admin-input"
+                          rows={4}
+                          value={editForm.raw_text}
+                          onChange={setField('raw_text')}
+                        />
+                      </label>
+                    </div>
+                  </DetailSection>
+                </form>
+              )}
+            </div>
+            <div className="rec-drawer__footer">
+              <div className="rec-drawer__footer-actions">
+                {modal.mode === 'view' ? (
+                  <>
+                    <button type="button" className="rec-btn rec-btn--ghost" onClick={closeModal}>
+                      关闭
+                    </button>
+                    {modal.id ? (
+                      <button
+                        type="button"
+                        className="rec-btn rec-btn--ghost bank-ledger-drawer__btn-danger"
+                        onClick={() => handleDelete(modal.id)}
+                      >
+                        删除
+                      </button>
+                    ) : null}
+                  </>
                 ) : (
+                  <button type="button" className="rec-btn rec-btn--ghost" onClick={closeModal}>
+                    取消
+                  </button>
+                )}
+              </div>
+              <div className="rec-drawer__footer-actions">
+                {modal.mode === 'view' ? (
                   <button
                     type="button"
                     className="rec-btn rec-btn--primary"
@@ -658,11 +882,20 @@ export default function BankTransactionsLedgerPage() {
                   >
                     改为编辑
                   </button>
+                ) : (
+                  <button
+                    type="submit"
+                    form="bank-ledger-edit-form"
+                    className="rec-btn rec-btn--primary"
+                    disabled={saving}
+                  >
+                    {saving ? '保存中…' : '保存'}
+                  </button>
                 )}
               </div>
-            </form>
-          </div>
-        </div>
+            </div>
+          </aside>
+        </>
       ) : null}
     </PageContainer>
   )
