@@ -103,16 +103,19 @@ export function validateRecordCompleteness(record, index) {
     })
   }
 
-  if (!record.settlementNumber || record.settlementNumber.trim() === '') {
+  const sn = record.settlementNumber != null ? String(record.settlementNumber).trim() : ''
+  const corruptSn =
+    typeof record.settlementNumber === 'string' && /NaN/i.test(record.settlementNumber)
+  if (!sn || corruptSn) {
     issues.push({
       type: VALIDATION_TYPES.INFO,
       recordIndex: index + 1,
       recordId,
       field: '结算单编号',
-      message: '未设置结算单编号',
+      message: corruptSn ? '结算单编号异常，保存时将自动重新生成' : '未设置结算单编号',
       fixable: true,
       category: 'completeness',
-      suggestion: '系统将自动生成编号'
+      suggestion: corruptSn ? '保存本条记录即可写入新编号' : '系统将自动生成编号'
     })
   }
 

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react'
 import { StatusSelector } from './StatusManager.jsx'
 import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
 import { getReconciliationRecordId } from '@/lib/api/reconciliation.ts'
+import { displaySettlementNumber } from '@/utils/settlementNumber.js'
 import './DataTable.css'
 
 function rowSelected(selectedIds, record) {
@@ -278,8 +279,13 @@ function DataTable({
                       <tbody>
                         {group.records.map((record, recIdx) => (
                           <tr key={getReconciliationRecordId(record) || `g-${recIdx}`}>
-                            <td className="settlement-number-cell" title={record.settlementNumber || '未设置编号'}>
-                              {record.settlementNumber || '-'}
+                            <td
+                              className="settlement-number-cell"
+                              title={displaySettlementNumber(record.settlementNumber, {
+                                emptyLabel: '未设置编号'
+                              })}
+                            >
+                              {displaySettlementNumber(record.settlementNumber)}
                             </td>
                             <td>{record.settlementMonth || '-'}</td>
                             <td className="game-name-cell">{record.game || '-'}</td>
@@ -601,8 +607,13 @@ function DataTable({
                           }
                         />
                       </td>
-                      <td className="settlement-number-cell" title={record.settlementNumber || '未设置编号'}>
-                        {record.settlementNumber || '-'}
+                      <td
+                        className="settlement-number-cell"
+                        title={displaySettlementNumber(record.settlementNumber, {
+                          emptyLabel: '未设置编号'
+                        })}
+                      >
+                        {displaySettlementNumber(record.settlementNumber)}
                       </td>
                       <td>{record.settlementMonth || '-'}</td>
                       <td>{record.partner || '-'}</td>

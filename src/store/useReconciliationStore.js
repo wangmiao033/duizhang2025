@@ -2,9 +2,10 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { STORAGE_KEYS, storageGet, storageSet } from '@/store/useAppStorage.js'
 import { addHistoryItem } from '@/utils/history.js'
 import {
-  generateSettlementNumber,
   getNumberFormatFromStorage,
-  isSettlementNumberUnique
+  isCorruptSettlementNumber,
+  isSettlementNumberUnique,
+  nextSettlementNumberForRecord
 } from '@/utils/settlementNumber.js'
 import { CYCLE_TYPES, getCurrentCycle } from '@/utils/settlementCycle.js'
 import { filterAndSortReconciliationRecords } from '@/domain/reconciliation/reconciliationFilters.js'
@@ -46,19 +47,17 @@ function normalizeLocalChannelRecords(saved) {
 }
 
 function normalizeLocalReconciliationRecords(savedRecords) {
-  return savedRecords.map((r) => ({
-    ...r,
-    id: r.id != null ? String(r.id) : String(Date.now()),
-    status: r.status || 'pending',
-    settlementNumber:
-      r.settlementNumber ||
-      generateSettlementNumber(
-        [],
-        r.settlementMonth ? new Date(r.settlementMonth + '-01') : new Date(),
-        getNumberFormatFromStorage(),
-        r.partner
-      )
-  }))
+  const fmt = getNumberFormatFromStorage()
+  const out = []
+  for (const r of savedRecords) {
+    out.push({
+      ...r,
+      id: r.id != null ? String(r.id) : String(Date.now()),
+      status: r.status || 'pending',
+      settlementNumber: nextSettlementNumberForRecord(r, out, fmt)
+    })
+  }
+  return out
 }
 
 export function useReconciliationStore(settings, showToast) {
@@ -178,14 +177,7 @@ export function useReconciliationStore(settings, showToast) {
   const addRecord = useCallback(
     async (record) => {
       const roundedStr = formatSettlementAmountString(record)
-      const settlementNumber =
-        record.settlementNumber ||
-        generateSettlementNumber(
-          records,
-          record.settlementMonth ? new Date(record.settlementMonth + '-01') : new Date(),
-          settlementNumberFormat,
-          record.partner
-        )
+      const settlementNumber = nextSettlementNumberForRecord(record, records, settlementNumberFormat)
       const merged = {
         ...record,
         settlementAmount: roundedStr,
@@ -225,15 +217,28 @@ export function useReconciliationStore(settings, showToast) {
   const updateRecord = useCallback(
     async (id, updatedRecord) => {
       const sid = String(id)
-      if (updatedRecord.settlementNumber) {
-        const isUnique = isSettlementNumberUnique(records, updatedRecord.settlementNumber, sid)
+      const others = records.filter((r) => String(r.id) !== sid)
+      let working = { ...updatedRecord }
+      const sn = working.settlementNumber != null ? String(working.settlementNumber).trim() : ''
+      if (!sn || isCorruptSettlementNumber(sn)) {
+        working = {
+          ...working,
+          settlementNumber: nextSettlementNumberForRecord(
+            { ...working, settlementNumber: '' },
+            others,
+            settlementNumberFormat
+          )
+        }
+      }
+      if (working.settlementNumber) {
+        const isUnique = isSettlementNumberUnique(records, working.settlementNumber, sid)
         if (!isUnique) {
           showToast('结算单编号已存在，请使用其他编号', 'error')
           return false
         }
       }
-      const roundedStr = formatSettlementAmountString(updatedRecord)
-      const merged = { ...updatedRecord, id: sid, settlementAmount: roundedStr }
+      const roundedStr = formatSettlementAmountString(working)
+      const merged = { ...working, id: sid, settlementAmount: roundedStr }
 
       if (reconciliationApiEnabled) {
         try {
@@ -256,7 +261,16 @@ export function useReconciliationStore(settings, showToast) {
       showToast('记录更新成功！', 'success')
       return true
     },
-    [records, partyA, partyB, settlementMonth, showToast, reconciliationApiEnabled, refetchReconciliationFromApi]
+    [
+      records,
+      partyA,
+      partyB,
+      settlementMonth,
+      settlementNumberFormat,
+      showToast,
+      reconciliationApiEnabled,
+      refetchReconciliationFromApi
+    ]
   )
 
   const deleteRecord = useCallback((id) => {
@@ -489,21 +503,16 @@ export function useReconciliationStore(settings, showToast) {
     async (importedRecords) => {
       if (reconciliationApiEnabled) {
         try {
+          let acc = [...records]
           for (const r of importedRecords) {
             const withNum = {
               ...r,
-              settlementNumber:
-                r.settlementNumber ||
-                generateSettlementNumber(
-                  records,
-                  r.settlementMonth ? new Date(r.settlementMonth + '-01') : new Date(),
-                  settlementNumberFormat,
-                  r.partner
-                )
+              settlementNumber: nextSettlementNumberForRecord(r, acc, settlementNumberFormat)
             }
             const roundedStr = formatSettlementAmountString(withNum)
             const merged = { ...withNum, settlementAmount: roundedStr, status: r.status || 'pending' }
             await createReconciliationRecord(frontendRecordToApiPayload(merged))
+            acc.push(merged)
           }
           await refetchReconciliationFromApi()
           showToast(`成功导入 ${importedRecords.length} 条记录！`, 'success')
@@ -515,10 +524,19 @@ export function useReconciliationStore(settings, showToast) {
         }
       }
 
-      const newRecords = importedRecords.map((r) => ({
-        ...r,
-        id: String(Date.now() + Math.random())
-      }))
+      let acc = [...records]
+      const newRecords = []
+      for (const r of importedRecords) {
+        const withNum = {
+          ...r,
+          settlementNumber: nextSettlementNumberForRecord(r, acc, settlementNumberFormat),
+          id: String(Date.now() + Math.random())
+        }
+        const roundedStr = formatSettlementAmountString(withNum)
+        const merged = { ...withNum, settlementAmount: roundedStr, status: r.status || 'pending' }
+        acc.push(merged)
+        newRecords.push(merged)
+      }
       setRecords((prev) => [...prev, ...newRecords])
       showToast(`成功导入 ${importedRecords.length} 条记录！`, 'success')
     },

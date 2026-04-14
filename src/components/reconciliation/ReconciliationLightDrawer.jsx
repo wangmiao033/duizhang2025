@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { StatusSelector } from '@/components/StatusManager.jsx'
+import { displaySettlementNumber } from '@/utils/settlementNumber.js'
 /**
  * 轻量侧栏：快速查看核心字段、改状态、备注；完整编辑跳转独立页。
  */
@@ -60,7 +61,7 @@ function ReconciliationLightDrawer({
         <div className="rec-drawer__body rec-drawer__body--light">
           <dl className="rec-light-dl">
             <dt>结算单编号</dt>
-            <dd>{record.settlementNumber || '—'}</dd>
+            <dd>{displaySettlementNumber(record.settlementNumber, { emptyLabel: '—' })}</dd>
             <dt>结算月份</dt>
             <dd>{record.settlementMonth || '—'}</dd>
             <dt>合作方</dt>

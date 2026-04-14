@@ -12,6 +12,7 @@ import {
   getReconciliationRecord,
   getReconciliationRecordId
 } from '@/lib/api/reconciliation.ts'
+import { displaySettlementNumber } from '@/utils/settlementNumber.js'
 import '@/components/reconciliation/reconciliation-admin.css'
 
 const FORM_ID = 'reconciliation-edit-form'
@@ -243,13 +244,15 @@ function ReconciliationEditPage() {
             onClick={() => {
               const id = getReconciliationRecordId(stableEditRecord)
               if (!id) return
-              setRdPaymentsDrawer({
+                           setRdPaymentsDrawer({
                 open: true,
                 reconciliationId: id,
-                statementNo:
+                statementNo: displaySettlementNumber(
                   stableEditRecord.settlementNumber != null
                     ? String(stableEditRecord.settlementNumber)
-                    : ''
+                    : '',
+                  { emptyLabel: '' }
+                )
               })
             }}
           >

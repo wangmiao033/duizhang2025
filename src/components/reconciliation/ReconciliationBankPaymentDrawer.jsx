@@ -8,6 +8,7 @@ import {
   uploadBankPaymentAttachment,
   upsertReconciliationBankPayment
 } from '@/lib/api/reconciliation.ts'
+import { displaySettlementNumber } from '@/utils/settlementNumber.js'
 
 const EMPTY_FORM = {
   transaction_serial: '',
@@ -243,7 +244,7 @@ function ReconciliationBankPaymentDrawer({ open, record, onClose, onSaved, showT
                 <h3 className="rec-bank-payment__section-title">关联账单（只读）</h3>
                 <dl className="rec-bank-payment__dl">
                   <dt>结算单编号</dt>
-                  <dd>{record.settlementNumber || '—'}</dd>
+                  <dd>{displaySettlementNumber(record.settlementNumber, { emptyLabel: '—' })}</dd>
                   <dt>结算月份</dt>
                   <dd>{record.settlementMonth || '—'}</dd>
                   <dt>合作方 / 研发公司</dt>

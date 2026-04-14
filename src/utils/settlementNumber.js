@@ -37,8 +37,93 @@ export const SETTLEMENT_NUMBER_FORMATS = {
   }
 }
 
-// 默认格式
+// 默认格式（JS-YYYYMMDD-001）
 const DEFAULT_FORMAT = 'DATE_SEQUENCE'
+
+/**
+ * 将结算月份/日期字符串解析为 Date（本地日历日）。
+ * 支持 YYYY-MM、YYYY-MM-DD；非法或空返回 null。
+ */
+export function parseSettlementMonthToDate(raw) {
+  if (raw == null) return null
+  const s = String(raw).trim()
+  if (!s) return null
+
+  let m = s.match(/^(\d{4})-(\d{2})$/)
+  if (m) {
+    const y = parseInt(m[1], 10)
+    const mo = parseInt(m[2], 10)
+    if (mo < 1 || mo > 12 || !Number.isFinite(y)) return null
+    return new Date(y, mo - 1, 1)
+  }
+
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (m) {
+    const y = parseInt(m[1], 10)
+    const mo = parseInt(m[2], 10)
+    const d = parseInt(m[3], 10)
+    if (!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(d)) return null
+    const dt = new Date(y, mo - 1, d)
+    if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null
+    return dt
+  }
+
+  const t = Date.parse(s)
+  if (!Number.isNaN(t)) {
+    const dt = new Date(t)
+    if (!Number.isNaN(dt.getTime())) return dt
+  }
+  return null
+}
+
+/**
+ * 生成编号用的基准日期：优先结算月份，缺失或非法时用当前日期。
+ */
+export function resolveDateForSettlementNumber(settlementMonth) {
+  const d = parseSettlementMonthToDate(settlementMonth)
+  if (d && !Number.isNaN(d.getTime())) return d
+  return new Date()
+}
+
+/**
+ * 保证用于格式化的 Date 有效，避免 YYYYMMDD 出现 NaN。
+ */
+export function ensureValidDate(date) {
+  if (date instanceof Date && !Number.isNaN(date.getTime())) {
+    return date
+  }
+  if (typeof date === 'string') {
+    const parsed = parseSettlementMonthToDate(date)
+    if (parsed && !Number.isNaN(parsed.getTime())) return parsed
+    const t = Date.parse(date)
+    if (!Number.isNaN(t)) {
+      const d = new Date(t)
+      if (!Number.isNaN(d.getTime())) return d
+    }
+  }
+  if (typeof date === 'number' && Number.isFinite(date)) {
+    const d = new Date(date)
+    if (!Number.isNaN(d.getTime())) return d
+  }
+  return new Date()
+}
+
+/** 编号是否包含非法片段（如历史 bug 产生的 NaN） */
+export function isCorruptSettlementNumber(value) {
+  if (value == null || typeof value !== 'string') return false
+  const t = value.trim()
+  if (!t) return false
+  return /NaN/i.test(t)
+}
+
+/**
+ * 列表/抽屉展示：脏数据与空值区分（空仍为列表里的「-」由调用方决定）
+ */
+export function displaySettlementNumber(value, { emptyLabel = '-' } = {}) {
+  if (value == null || String(value).trim() === '') return emptyLabel
+  if (isCorruptSettlementNumber(String(value))) return '未生成'
+  return String(value).trim()
+}
 
 /**
  * 获取合作方简称（取前3个字符或拼音首字母）
@@ -59,12 +144,13 @@ function getPartnerShortName(partner) {
  * 格式化日期
  */
 function formatDate(date, format) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  const seconds = String(date.getSeconds()).padStart(2, '0')
+  const d = ensureValidDate(date)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  const seconds = String(d.getSeconds()).padStart(2, '0')
   
   return {
     YYYY: year,
@@ -139,8 +225,9 @@ function getSequenceNumber(records, date, format, partner = null) {
  * @returns {string} 生成的编号
  */
 export function generateSettlementNumber(records = [], date = new Date(), format = DEFAULT_FORMAT, partner = null) {
-  const dateStr = formatDate(date, format)
-  const seq = getSequenceNumber(records, date, format, partner)
+  const safeDate = ensureValidDate(date)
+  const dateStr = formatDate(safeDate, format)
+  const seq = getSequenceNumber(records, safeDate, format, partner)
   
   switch (format) {
     case 'DATE_SEQUENCE':
@@ -168,6 +255,25 @@ export function generateSettlementNumber(records = [], date = new Date(), format
     default:
       return `JS-${dateStr.YYYYMMDD}-${String(seq).padStart(3, '0')}`
   }
+}
+
+/**
+ * 单条记录写入前解析结算单号：合法非空且非脏数据则保留，否则按规则生成（新建 / 导入 / 修复脏号）。
+ */
+export function nextSettlementNumberForRecord(record, existingRecords = [], format = DEFAULT_FORMAT) {
+  const trimmed =
+    record.settlementNumber != null && String(record.settlementNumber).trim() !== ''
+      ? String(record.settlementNumber).trim()
+      : ''
+  const baseDate = resolveDateForSettlementNumber(record.settlementMonth)
+  let n =
+    trimmed && !isCorruptSettlementNumber(trimmed)
+      ? trimmed
+      : generateSettlementNumber(existingRecords, baseDate, format, record.partner)
+  if (isCorruptSettlementNumber(n)) {
+    n = generateSettlementNumber(existingRecords, new Date(), format, record.partner)
+  }
+  return n
 }
 
 /**

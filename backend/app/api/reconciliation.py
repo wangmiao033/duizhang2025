@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -30,6 +31,12 @@ from app.schemas.reconciliation import (
 )
 
 router = APIRouter()
+
+_STATEMENT_NO_CORRUPT_RE = re.compile(r"NaN", re.IGNORECASE)
+
+
+def _statement_no_is_corrupt(raw: str) -> bool:
+    return bool(raw and _STATEMENT_NO_CORRUPT_RE.search(raw))
 
 
 def _apply_filters(
@@ -180,6 +187,8 @@ def get_reconciliation(record_id: str, db: Session = Depends(get_db)) -> Reconci
 @router.post("", response_model=ReconciliationRead, status_code=status.HTTP_201_CREATED)
 def create_reconciliation(payload: ReconciliationCreate, db: Session = Depends(get_db)) -> ReconciliationRead:
     raw_no = (payload.statement_no or "").strip()
+    if _statement_no_is_corrupt(raw_no):
+        raw_no = ""
     statement_no = raw_no or f"RD-{uuid4().hex[:12].upper()}"
     row = ReconciliationRecord(
         id=str(uuid4()),

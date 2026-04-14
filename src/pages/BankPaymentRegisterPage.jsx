@@ -8,6 +8,7 @@ import {
 } from '@/lib/api/bankTransaction.ts'
 import { buildRdPaymentConfirmPayload } from '@/lib/bank/bankTransactionPayloads.js'
 import { apiRowToFrontend, getReconciliationRecord } from '@/lib/api/reconciliation.ts'
+import { displaySettlementNumber } from '@/utils/settlementNumber.js'
 import '@/components/reconciliation/reconciliation-admin.css'
 
 const INITIAL_RD = {
@@ -70,7 +71,10 @@ function BankPaymentRegisterPage() {
 
     setRdLink({
       reconciliationId: id,
-      statementNo: rec.settlementNumber != null ? String(rec.settlementNumber) : '',
+      statementNo: displaySettlementNumber(
+        rec.settlementNumber != null ? String(rec.settlementNumber) : '',
+        { emptyLabel: '' }
+      ),
       partner,
       game: rec.game != null ? String(rec.game) : '',
       payable: payable.toFixed(2),
@@ -298,7 +302,7 @@ function BankPaymentRegisterPage() {
                     <option value="">请选择</option>
                     {filteredRdRecords.map((r) => (
                       <option key={String(r.id)} value={String(r.id)}>
-                        {(r.settlementNumber || '无编号') +
+                        {displaySettlementNumber(r.settlementNumber, { emptyLabel: '无编号' }) +
                           ' · ' +
                           (r.partner || '—') +
                           ' · ' +

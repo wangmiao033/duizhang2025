@@ -5,6 +5,7 @@
 
 import * as XLSX from 'xlsx'
 import dayjs from 'dayjs'
+import { isCorruptSettlementNumber } from '@/utils/settlementNumber.js'
 
 /** 阿拉伯数字转中文大写金额（与历史 BillExport 口径一致） */
 export function toChineseUppercase(num) {
@@ -141,7 +142,11 @@ export function buildSettlementSheetAoa(records) {
 
 /** Excel sheet 名合法且 ≤31 字符 */
 export function sanitizeExcelSheetName(raw) {
-  const base = String(raw || '结算单')
+  let src = raw
+  if (src != null && isCorruptSettlementNumber(String(src))) {
+    src = '结算单'
+  }
+  const base = String(src || '结算单')
     .replace(/[:\\/?*[\]]/g, '_')
     .replace(/\s+/g, ' ')
     .trim()
