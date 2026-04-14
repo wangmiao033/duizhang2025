@@ -2,6 +2,19 @@
  * 渠道对账：多游戏明细聚合（列表/筛选/导出用）
  */
 
+/** 单行折扣系数，默认 1 */
+export function getLineDiscountFactor(line) {
+  const d = parseFloat(String(line.discountFactor ?? 1))
+  if (!Number.isFinite(d) || d <= 0) return 1
+  return d
+}
+
+/** 总流水 = 后台流水(flow) × 折扣系数，2 位小数 */
+export function getLineEffectiveFlow(line) {
+  const raw = parseFloat(line.flow) || 0
+  return Math.round(raw * getLineDiscountFactor(line) * 100) / 100
+}
+
 /** @param {Record<string, unknown>} record */
 export function getChannelLineItems(record) {
   const raw = record?.items
@@ -12,6 +25,7 @@ export function getChannelLineItems(record) {
         id: record._legacyLineId || `legacy-${record.id}`,
         gameName: record.gameName,
         flow: record.flow,
+        discountFactor: record.discountFactor ?? 1,
         voucherCost: record.voucherCost,
         noWorryCost: record.noWorryCost,
         refundCost: record.refundCost,
@@ -39,7 +53,8 @@ export function expandChannelRecordByGameLines(record) {
     _virtualLineKey: `${record.id}::${line.id ?? idx}`,
     gameName: line.gameName,
     flow: line.flow,
-    channelFlow: line.flow,
+    discountFactor: line.discountFactor ?? 1,
+    channelFlow: getLineEffectiveFlow(line),
     voucherCost: line.voucherCost,
     noWorryCost: line.noWorryCost,
     refundCost: line.refundCost,
@@ -61,15 +76,17 @@ export function sumChannelNumericLines(record, field) {
 export function getChannelTotals(record) {
   const lines = getChannelLineItems(record)
   if (lines.length === 0) {
+    const raw = parseFloat(record.flow) || 0
+    const fac = getLineDiscountFactor(record)
     return {
-      flow: parseFloat(record.flow) || 0,
+      flow: Math.round(raw * fac * 100) / 100,
       voucherCost: parseFloat(record.voucherCost) || 0,
       refundCost: parseFloat(record.refundCost) || 0,
       settlementAmount: parseFloat(record.settlementAmount) || 0
     }
   }
   return {
-    flow: lines.reduce((s, l) => s + (parseFloat(l.flow) || 0), 0),
+    flow: lines.reduce((s, l) => s + getLineEffectiveFlow(l), 0),
     voucherCost: lines.reduce((s, l) => s + (parseFloat(l.voucherCost) || 0), 0),
     refundCost: lines.reduce((s, l) => s + (parseFloat(l.refundCost) || 0), 0),
     settlementAmount: lines.reduce((s, l) => s + (parseFloat(l.settlementAmount) || 0), 0)

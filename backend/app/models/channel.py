@@ -74,6 +74,7 @@ class ChannelRecordLineItem(Base):
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     game_name: Mapped[str | None] = mapped_column(String, nullable=True)
     billing_flow: Mapped[float] = mapped_column(Numeric(18, 2), nullable=False, default=0)
+    discount_factor: Mapped[float] = mapped_column(Numeric(12, 6), nullable=False, default=1)
     voucher_cost: Mapped[float] = mapped_column(Numeric(18, 2), nullable=False, default=0)
     no_worry_cost: Mapped[float] = mapped_column(Numeric(18, 2), nullable=False, default=0)
     refund_cost: Mapped[float] = mapped_column(Numeric(18, 2), nullable=False, default=0)

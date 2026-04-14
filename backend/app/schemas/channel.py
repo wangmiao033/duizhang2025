@@ -39,6 +39,7 @@ class ChannelLineItemCreate(BaseModel):
 
     game_name: str | None = None
     billing_flow: float = 0
+    discount_factor: float = 1
     voucher_cost: float = 0
     no_worry_cost: float = 0
     refund_cost: float = 0
@@ -60,6 +61,7 @@ class ChannelLineItemRead(BaseModel):
     sort_order: int
     game_name: str | None
     billing_flow: float
+    discount_factor: float = 1
     voucher_cost: float
     no_worry_cost: float
     refund_cost: float

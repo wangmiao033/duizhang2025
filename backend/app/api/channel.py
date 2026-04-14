@@ -64,7 +64,13 @@ def _sync_denormalized_totals(row: ChannelRecord, db: Session) -> None:
     )
     if not items:
         return
-    row.billing_flow = float(sum(float(i.billing_flow or 0) for i in items))
+    row.billing_flow = round(
+        sum(
+            float(i.billing_flow or 0) * float(i.discount_factor if i.discount_factor is not None else 1)
+            for i in items
+        ),
+        2,
+    )
     row.voucher_cost = float(sum(float(i.voucher_cost or 0) for i in items))
     row.no_worry_cost = float(sum(float(i.no_worry_cost or 0) for i in items))
     row.refund_cost = float(sum(float(i.refund_cost or 0) for i in items))
@@ -90,6 +96,7 @@ def _legacy_items_from_row(row: ChannelRecord) -> list[ChannelLineItemRead]:
             sort_order=0,
             game_name=row.game_name,
             billing_flow=float(row.billing_flow or 0),
+            discount_factor=1.0,
             voucher_cost=float(row.voucher_cost or 0),
             no_worry_cost=float(row.no_worry_cost or 0),
             refund_cost=float(row.refund_cost or 0),

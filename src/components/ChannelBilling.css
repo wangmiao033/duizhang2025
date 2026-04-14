@@ -1232,6 +1232,11 @@
   margin-top: 4px;
 }
 
+.channel-discount-hint {
+  font-size: 12px;
+  margin: 0 0 10px;
+}
+
 /* 渠道收款状态 Tag */
 .channel-receipt-tag {
   display: inline-block;

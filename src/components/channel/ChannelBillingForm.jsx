@@ -5,6 +5,7 @@ import {
   calculateBillingAmount,
   calculateShareAmount,
   calculateSettlement,
+  effectiveLineFlowFromFormData,
   buildFullChannelRecord,
   recordToHeaderForm,
   recordToLineForms
@@ -47,6 +48,7 @@ function updateLineField(lines, index, field, value) {
   if (
     [
       'flow',
+      'discountFactor',
       'voucherCost',
       'noWorryCost',
       'refundCost',
@@ -85,18 +87,20 @@ function ChannelBillingForm({
   const totals = useMemo(() => {
     return lines.reduce(
       (acc, row) => {
-        const flow = parseFloat(row.flow || 0)
+        const rawFlow = parseFloat(row.flow || 0)
+        const effFlow = effectiveLineFlowFromFormData(row)
         const voucher = parseFloat(row.voucherCost || 0)
         const refund = parseFloat(row.refundCost || 0)
         const settlement = parseFloat(row.settlementAmount || 0)
         return {
-          flow: acc.flow + flow,
+          rawFlow: acc.rawFlow + rawFlow,
+          effectiveFlow: acc.effectiveFlow + effFlow,
           voucher: acc.voucher + voucher,
           refund: acc.refund + refund,
           settlement: acc.settlement + (Number.isFinite(settlement) ? settlement : 0)
         }
       },
-      { flow: 0, voucher: 0, refund: 0, settlement: 0 }
+      { rawFlow: 0, effectiveFlow: 0, voucher: 0, refund: 0, settlement: 0 }
     )
   }, [lines])
 
@@ -252,6 +256,8 @@ function ChannelBillingForm({
             <tr>
               <th>游戏名称</th>
               <th>后台流水</th>
+              <th>折扣系数</th>
+              <th>总流水</th>
               <th>代金券</th>
               <th>无忧试</th>
               <th>玩家退款</th>
@@ -286,6 +292,21 @@ function ChannelBillingForm({
                     value={row.flow}
                     onChange={(e) => handleLineChange(index, 'flow', e.target.value)}
                   />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    step="0.000001"
+                    min="0"
+                    className="admin-input"
+                    value={row.discountFactor}
+                    onChange={(e) => handleLineChange(index, 'discountFactor', e.target.value)}
+                    placeholder="默认1；0.05折填0.005"
+                    title="仅填数字。0.05折请填 0.005，0.1折请填 0.01"
+                  />
+                </td>
+                <td className="channel-line-num" title="后台流水×折扣系数">
+                  {effectiveLineFlowFromFormData(row).toFixed(2)}
                 </td>
                 <td>
                   <input
@@ -390,10 +411,22 @@ function ChannelBillingForm({
       </div>
 
       <div className="form-section-title">3）汇总</div>
+      <p className="channel-discount-hint muted">
+        折扣系数仅填数字（如 0.005 表示 0.05 折）。结算与导出均以「折算后总流水」为准。
+      </p>
       <div className="form-row four-col channel-totals-row">
         <div className="form-group">
-          <label>总后台流水</label>
-          <input type="text" readOnly className="admin-input readonly-input" value={totals.flow.toFixed(2)} />
+          <label>原始后台流水合计</label>
+          <input type="text" readOnly className="admin-input readonly-input" value={totals.rawFlow.toFixed(2)} />
+        </div>
+        <div className="form-group">
+          <label>折算后总流水（结算用）</label>
+          <input
+            type="text"
+            readOnly
+            className="admin-input readonly-input"
+            value={totals.effectiveFlow.toFixed(2)}
+          />
         </div>
         <div className="form-group">
           <label>总代金券</label>
@@ -403,6 +436,8 @@ function ChannelBillingForm({
           <label>总退款</label>
           <input type="text" readOnly className="admin-input readonly-input" value={totals.refund.toFixed(2)} />
         </div>
+      </div>
+      <div className="form-row four-col channel-totals-row">
         <div className="form-group">
           <label>总结算金额</label>
           <input

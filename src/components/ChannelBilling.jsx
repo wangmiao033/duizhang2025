@@ -21,6 +21,8 @@ import {
   getChannelTotals,
   getChannelReceivedAmount,
   getChannelUnpaidAmount,
+  getLineEffectiveFlow,
+  getLineDiscountFactor,
   receiptStatusTagLabel,
   isChannelReceiptSettled,
   receiptProgressPercent
@@ -258,6 +260,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
           channelName,
           records: [],
           totalFlow: 0,
+          totalRawFlow: 0,
           totalSettlement: 0,
           totalReceived: 0,
           totalUnpaid: 0,
@@ -268,13 +271,14 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
         }
       }
       grouped[channelName].records.push(record)
+      const lines = getChannelLineItems(record)
       const t = getChannelTotals(record)
       grouped[channelName].totalFlow += t.flow
+      grouped[channelName].totalRawFlow += lines.reduce((s, l) => s + (parseFloat(l.flow) || 0), 0)
       grouped[channelName].totalSettlement += t.settlementAmount
       grouped[channelName].totalReceived += getChannelReceivedAmount(record)
       grouped[channelName].totalUnpaid += getChannelUnpaidAmount(record)
       grouped[channelName].totalVoucherCost += t.voucherCost
-      const lines = getChannelLineItems(record)
       grouped[channelName].totalNoWorryCost =
         (grouped[channelName].totalNoWorryCost || 0) +
         lines.reduce((s, l) => s + (parseFloat(l.noWorryCost) || 0), 0)
@@ -368,6 +372,8 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
           ...base,
           游戏: line.gameName,
           后台流水: line.flow,
+          折扣系数: getLineDiscountFactor(line),
+          '总流水(元)': getLineEffectiveFlow(line),
           代金券: line.voucherCost,
           无忧试: line.noWorryCost,
           玩家退款: line.refundCost,
@@ -402,6 +408,8 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
           渠道: r.channelName,
           游戏: line.gameName,
           后台流水: line.flow,
+          折扣系数: getLineDiscountFactor(line),
+          '总流水(元)': getLineEffectiveFlow(line),
           结算金额: line.settlementAmount,
           已收金额: getChannelReceivedAmount(r),
           未收金额: getChannelUnpaidAmount(r),
@@ -439,6 +447,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
     out.startDate = str(get('结算开始', '开始日期', 'startdate'), '')
     out.endDate = str(get('结算结束', '结束日期', 'enddate'), '')
     out.flow = str(get('后台流水', '流水', 'flow'), '')
+    out.discountFactor = str(get('折扣系数', 'discount_factor', 'discountfactor', '折扣'), '1')
     out.voucherCost = str(get('代金券', 'vouchercost'), '')
     out.noWorryCost = str(get('无忧试', 'noworrycost'), '')
     out.refundCost = str(get('玩家退款', '退款', 'refundcost'), '')
@@ -804,6 +813,8 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                               <th className="channel-rd__th-check" aria-label="选择" />
                               <th>游戏名称</th>
                               <th>后台流水</th>
+                              <th>折扣系数</th>
+                              <th>总流水</th>
                               <th>代金券</th>
                               <th>测试费</th>
                               <th>计费金额</th>
@@ -819,13 +830,14 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                               const rid = getChannelRecordId(record) || record.id
                               const lines = getChannelLineItems(record)
                               return lines.map((line, lineIdx) => {
-                                const flow = parseFloat(line.flow) || 0
+                                const rawFlow = parseFloat(line.flow) || 0
+                                const effFlow = getLineEffectiveFlow(line)
                                 const voucher = parseFloat(line.voucherCost) || 0
                                 const noWorry = parseFloat(line.noWorryCost) || 0
                                 const refund = parseFloat(line.refundCost) || 0
                                 const test = parseFloat(line.testCost) || 0
                                 const welfare = parseFloat(line.welfareCost) || 0
-                                const billingAmount = flow - voucher - noWorry - refund - test - welfare
+                                const billingAmount = effFlow - voucher - noWorry - refund - test - welfare
                                 const shareRate = parseFloat(line.shareRate ||30)
                                 const shareAmount = billingAmount * (shareRate / 100)
                                 const settlement = parseFloat(line.settlementAmount) || shareAmount
@@ -843,7 +855,9 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                                       ) : null}
                                     </td>
                                     <td className="game-name-cell">{line.gameName}</td>
-                                    <td>{formatMoney(flow)}</td>
+                                    <td>{formatMoney(rawFlow)}</td>
+                                    <td>{getLineDiscountFactor(line)}</td>
+                                    <td>{effFlow.toFixed(2)}</td>
                                     <td>{voucher}</td>
                                     <td>{test}</td>
                                     <td>{formatMoney(billingAmount)}</td>
@@ -887,6 +901,8 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                             <tr>
                               <td />
                               <td className="total-label">合计</td>
+                              <td>{formatMoney(channel.totalRawFlow || 0)}</td>
+                              <td />
                               <td>{formatMoney(channel.totalFlow)}</td>
                               <td>{formatMoney(channel.totalVoucherCost)}</td>
                               <td>{formatMoney(channel.totalTestCost)}</td>

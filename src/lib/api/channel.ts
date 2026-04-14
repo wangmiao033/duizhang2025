@@ -10,6 +10,7 @@ export type ApiChannelLineItem = {
   sort_order: number
   game_name: string | null
   billing_flow: number
+  discount_factor: number
   voucher_cost: number
   no_worry_cost: number
   refund_cost: number
@@ -67,6 +68,7 @@ export type ChannelListResponse = {
 export type ChannelLinePayload = {
   game_name?: string | null
   billing_flow: number
+  discount_factor: number
   voucher_cost: number
   no_worry_cost: number
   refund_cost: number
@@ -194,6 +196,7 @@ function apiLineToFrontend(row: ApiChannelLineItem): Record<string, unknown> {
     sortOrder: row.sort_order,
     gameName: row.game_name ?? '',
     flow: row.billing_flow,
+    discountFactor: row.discount_factor ?? 1,
     voucherCost: row.voucher_cost,
     noWorryCost: row.no_worry_cost,
     refundCost: row.refund_cost,
@@ -209,9 +212,12 @@ function apiLineToFrontend(row: ApiChannelLineItem): Record<string, unknown> {
 }
 
 function frontendLineToPayload(line: Record<string, unknown>): ChannelLinePayload {
+  const df = parseFloat(String(line.discountFactor ?? 1))
+  const discount_factor = Number.isFinite(df) && df > 0 ? df : 1
   return {
     game_name: (line.gameName as string) || null,
     billing_flow: parseFloat(String(line.flow ?? 0)),
+    discount_factor,
     voucher_cost: parseFloat(String(line.voucherCost ?? 0)),
     no_worry_cost: parseFloat(String(line.noWorryCost ?? 0)),
     refund_cost: parseFloat(String(line.refundCost ?? 0)),

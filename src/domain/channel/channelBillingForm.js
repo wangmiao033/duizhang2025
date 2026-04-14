@@ -24,6 +24,7 @@ export function initialLineItem() {
     id: '',
     gameName: '',
     flow: '',
+    discountFactor: '1',
     voucherCost: '',
     noWorryCost: '',
     refundCost: '',
@@ -42,8 +43,24 @@ export const initialForm = {
   ...initialLineItem()
 }
 
+/** 折扣系数：空/非法/≤0 时按 1 */
+export function resolveDiscountFactor(data) {
+  const raw = data.discountFactor
+  if (raw === '' || raw === undefined || raw === null) return 1
+  const n = parseFloat(String(raw))
+  if (!Number.isFinite(n) || n <= 0) return 1
+  return n
+}
+
+/** 总流水 = 后台流水 × 折扣系数（2 位小数） */
+export function effectiveLineFlowFromFormData(data) {
+  const raw = parseFloat(data.flow || 0)
+  const fac = resolveDiscountFactor(data)
+  return Math.round(raw * fac * 100) / 100
+}
+
 export function calculateBillingAmount(data) {
-  const flow = parseFloat(data.flow || 0)
+  const flow = effectiveLineFlowFromFormData(data)
   const voucher = parseFloat(data.voucherCost || 0)
   const noWorry = parseFloat(data.noWorryCost || 0)
   const refund = parseFloat(data.refundCost || 0)
@@ -77,12 +94,16 @@ function resolveSettlementAmount(fd) {
 
 /** 单行游戏明细（数值化 + 计费/分成/结算），公式与历史单游戏一致 */
 export function buildLineRecordFromForm(fd) {
+  const discountFactor = resolveDiscountFactor(fd)
+  const effectiveFlow = effectiveLineFlowFromFormData(fd)
   const billingAmount = calculateBillingAmount(fd)
   const shareAmount = calculateShareAmount(fd)
   const settlementAmount = resolveSettlementAmount(fd)
   return {
     gameName: fd.gameName != null ? String(fd.gameName) : '',
     flow: parseFloat(fd.flow || 0),
+    discountFactor,
+    effectiveFlow,
     voucherCost: parseFloat(fd.voucherCost || 0),
     noWorryCost: parseFloat(fd.noWorryCost || 0),
     refundCost: parseFloat(fd.refundCost || 0),
@@ -122,7 +143,8 @@ export function buildFullChannelRecord(headerForm, lineFormList) {
     profitRate: parseOptionalNum(headerForm.profitRate),
     items,
     gameName: items.map((i) => i.gameName).filter(Boolean).join('、'),
-    flow: sum((i) => i.flow),
+    rawFlowTotal: sum((i) => i.flow),
+    flow: sum((i) => i.effectiveFlow),
     voucherCost: sum((i) => i.voucherCost),
     noWorryCost: sum((i) => i.noWorryCost),
     refundCost: sum((i) => i.refundCost),
@@ -194,6 +216,8 @@ export function recordToLineForms(record) {
     id: line.id != null ? String(line.id) : '',
     gameName: line.gameName || '',
     flow: String(line.flow ?? ''),
+    discountFactor:
+      line.discountFactor !== undefined && line.discountFactor !== null ? String(line.discountFactor) : '1',
     voucherCost: String(line.voucherCost ?? ''),
     noWorryCost: String(line.noWorryCost ?? ''),
     refundCost: String(line.refundCost ?? ''),
