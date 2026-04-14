@@ -1489,6 +1489,30 @@
   color: var(--admin-text-main, #0f172a);
 }
 
+.bank-ledger-table__amount-main--income {
+  color: #15803d;
+}
+
+.bank-ledger-table__amount-main--expense {
+  color: #c2410c;
+}
+
+.bank-ledger-type-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.bank-ledger-tag--rd-link {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  background: #eef2ff;
+  color: #4338ca;
+  border: 1px solid rgba(67, 56, 202, 0.22);
+}
+
 .bank-ledger-table__sub {
   margin-top: 4px;
   font-size: var(--font-size-caption, 12px);
@@ -1716,4 +1740,18 @@ button.rec-drawer-backdrop {
 [data-theme='dark'] .bank-ledger-tag--danger {
   background: rgba(185, 28, 28, 0.35);
   color: #fca5a5;
+}
+
+[data-theme='dark'] .bank-ledger-table__amount-main--income {
+  color: #4ade80;
+}
+
+[data-theme='dark'] .bank-ledger-table__amount-main--expense {
+  color: #fb923c;
+}
+
+[data-theme='dark'] .bank-ledger-tag--rd-link {
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  border-color: rgba(165, 180, 252, 0.35);
 }

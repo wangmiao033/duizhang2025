@@ -12,9 +12,9 @@ import {
 import '@/components/reconciliation/reconciliation-admin.css'
 
 const TYPE_LABELS = {
-  statement_import: '流水导入',
-  payment_register: '付款登记',
-  collection_register: '回款登记'
+  statement_import: '银行流水',
+  payment_register: '银行付款',
+  collection_register: '银行回款'
 }
 
 const NA = '暂无'
@@ -49,7 +49,11 @@ const EMPTY_EDIT = {
   status: '',
   raw_text: '',
   attachment_url: '',
-  created_at: ''
+  created_at: '',
+  reconciliation_id: '',
+  reconciliation_type: '',
+  reconciliation_no: '',
+  linked_amount: ''
 }
 
 function fmtMoneyVal(v) {
@@ -83,50 +87,68 @@ function formatBankLine(bankName, account) {
   return parts.length ? parts.join(' ') : null
 }
 
-function buildCounterpartyPrimary(row) {
-  if (row.type === 'payment_register') {
-    const name = row.payee_name?.trim()
-    return name ? `付款给 ${name}` : NA
-  }
-  if (row.type === 'collection_register') {
-    const name = row.payer_name?.trim()
-    return name ? `来自 ${name}` : NA
-  }
+/** 第一行：对象公司名（不含「付款给」等前缀） */
+function buildCounterpartyCompany(row) {
   const p = row.payer_name?.trim()
   const q = row.payee_name?.trim()
-  if (p && q) return `${p} → ${q}`
-  if (p || q) return p || q
-  return NA
-}
-
-function buildCounterpartySub(row) {
   if (row.type === 'payment_register') {
-    return formatBankLine(row.payee_bank_name, row.payee_account)
+    return q || NA
   }
   if (row.type === 'collection_register') {
-    return formatBankLine(row.payer_bank_name, row.payer_account)
+    return p || NA
   }
-  const bits = []
-  if (row.bank_account?.trim()) bits.push(`本方 ${row.bank_account.trim()}`)
-  if (row.payer_account?.trim()) bits.push(`付方账号 ${row.payer_account.trim()}`)
-  if (row.payee_account?.trim()) bits.push(`收方账号 ${row.payee_account.trim()}`)
-  return bits.length ? bits.join(' · ') : null
+  if (q && p) return `${q} · ${p}`
+  return q || p || NA
+}
+
+/** 第二行：辅助说明（支付对象 / 回款来源 / 流水对象）+ 账号或银行信息 */
+function buildCounterpartyHint(row) {
+  if (row.type === 'payment_register') {
+    const bank = formatBankLine(row.payee_bank_name, row.payee_account)
+    return bank ? `支付对象 · ${bank}` : '支付对象'
+  }
+  if (row.type === 'collection_register') {
+    const bank = formatBankLine(row.payer_bank_name, row.payer_account)
+    return bank ? `回款来源 · ${bank}` : '回款来源'
+  }
+  const extra = []
+  if (row.bank_account?.trim()) extra.push(`本方 ${row.bank_account.trim()}`)
+  if (row.payer_account?.trim()) extra.push(`付方 ${row.payer_account.trim()}`)
+  if (row.payee_account?.trim()) extra.push(`收方 ${row.payee_account.trim()}`)
+  return extra.length ? `流水对象 · ${extra.join(' · ')}` : '流水对象'
 }
 
 function buildAmountDisplay(row) {
   if (row.type === 'payment_register') {
     const v = row.expense_amount ?? row.amount
-    return { main: fmtYuan(v), sub: '支出' }
+    return { main: fmtYuan(v), sub: '支出', tone: 'expense' }
   }
   if (row.type === 'collection_register') {
     const v = row.income_amount ?? row.amount
-    return { main: fmtYuan(v), sub: '收入' }
+    return { main: fmtYuan(v), sub: '收入', tone: 'income' }
   }
   const inc = Number(row.income_amount)
   const exp = Number(row.expense_amount)
-  if (Number.isFinite(exp) && exp > 0) return { main: fmtYuan(row.expense_amount ?? row.amount), sub: '支出' }
-  if (Number.isFinite(inc) && inc > 0) return { main: fmtYuan(row.income_amount ?? row.amount), sub: '收入' }
-  return { main: fmtYuan(row.amount), sub: '金额' }
+  if (Number.isFinite(exp) && exp > 0) {
+    return { main: fmtYuan(row.expense_amount ?? row.amount), sub: '支出', tone: 'expense' }
+  }
+  if (Number.isFinite(inc) && inc > 0) {
+    return { main: fmtYuan(row.income_amount ?? row.amount), sub: '收入', tone: 'income' }
+  }
+  return { main: fmtYuan(row.amount), sub: '金额', tone: 'neutral' }
+}
+
+function hasReconciliation(row) {
+  const id = row.reconciliation_id != null && String(row.reconciliation_id).trim() !== ''
+  const no = row.reconciliation_no != null && String(row.reconciliation_no).trim() !== ''
+  return id || no
+}
+
+function reconciliationDisplayNo(row) {
+  const no = row.reconciliation_no != null && String(row.reconciliation_no).trim()
+  if (no) return no
+  const id = row.reconciliation_id != null && String(row.reconciliation_id).trim()
+  return id || ''
 }
 
 function buildBizLines(row) {
@@ -179,7 +201,11 @@ function mapRowToEditForm(row) {
     status: row.status || '',
     raw_text: row.raw_text || '',
     attachment_url: row.attachment_url || '',
-    created_at: row.created_at || ''
+    created_at: row.created_at || '',
+    reconciliation_id: row.reconciliation_id != null ? String(row.reconciliation_id) : '',
+    reconciliation_type: row.reconciliation_type || '',
+    reconciliation_no: row.reconciliation_no || '',
+    linked_amount: row.linked_amount != null ? String(row.linked_amount) : ''
   }
 }
 
@@ -319,7 +345,11 @@ export default function BankTransactionsLedgerPage() {
         remark: editForm.remark || null,
         status: editForm.status || null,
         raw_text: editForm.raw_text || null,
-        attachment_url: editForm.attachment_url || null
+        attachment_url: editForm.attachment_url || null,
+        reconciliation_id: editForm.reconciliation_id?.trim() || null,
+        reconciliation_type: editForm.reconciliation_type?.trim() || null,
+        reconciliation_no: editForm.reconciliation_no?.trim() || null,
+        linked_amount: toNum(editForm.linked_amount)
       }
       await updateBankTransaction(modal.id, body)
       showToast('保存成功。已写入服务端。', 'success')
@@ -389,6 +419,12 @@ export default function BankTransactionsLedgerPage() {
           </span>
         </div>
         <DetailKV label="创建时间" value={fmtDtShort(editForm.created_at)} />
+        {hasReconciliation(editForm) ? (
+          <DetailKV
+            label="关联研发对账单号"
+            value={reconciliationDisplayNo(editForm) || NA}
+          />
+        ) : null}
       </DetailSection>
       <DetailSection title="付款/收款信息">
         <DetailKV label="本方账号" value={editForm.bank_account} />
@@ -434,7 +470,7 @@ export default function BankTransactionsLedgerPage() {
       <div className="admin-workspace">
         <div className="admin-workspace__card">
           <p className="admin-workspace__card-desc" style={{ marginTop: 0 }}>
-            统一展示流水导入、付款登记、回款登记写入的记录；支持筛选与维护。
+            统一展示银行流水、银行付款、银行回款写入的记录；支持筛选与维护。
           </p>
 
           <div
@@ -458,9 +494,9 @@ export default function BankTransactionsLedgerPage() {
                 onChange={(e) => setTypeFilter(e.target.value)}
               >
                 <option value="">全部</option>
-                <option value="statement_import">流水导入</option>
-                <option value="payment_register">付款登记</option>
-                <option value="collection_register">回款登记</option>
+                <option value="statement_import">{TYPE_LABELS.statement_import}</option>
+                <option value="payment_register">{TYPE_LABELS.payment_register}</option>
+                <option value="collection_register">{TYPE_LABELS.collection_register}</option>
               </select>
             </label>
             <label className="rec-bank-payment__field">
@@ -532,21 +568,39 @@ export default function BankTransactionsLedgerPage() {
                     </tr>
                   ) : (
                     items.map((row) => {
-                      const cpSub = buildCounterpartySub(row)
+                      const cpHint = buildCounterpartyHint(row)
                       const amt = buildAmountDisplay(row)
                       const biz = buildBizLines(row)
+                      const amtToneClass =
+                        amt.tone === 'income'
+                          ? ' bank-ledger-table__amount-main--income'
+                          : amt.tone === 'expense'
+                            ? ' bank-ledger-table__amount-main--expense'
+                            : ''
                       return (
                         <tr key={row.id} className="bank-ledger-table__row">
-                          <td className="bank-ledger-table__td">{TYPE_LABELS[row.type] || row.type}</td>
+                          <td className="bank-ledger-table__td">
+                            <div className="bank-ledger-type-cell">
+                              <span>{TYPE_LABELS[row.type] || row.type}</span>
+                              {hasReconciliation(row) ? (
+                                <span
+                                  className="bank-ledger-tag bank-ledger-tag--rd-link"
+                                  title={reconciliationDisplayNo(row) || '已关联研发对账'}
+                                >
+                                  已关联研发对账
+                                </span>
+                              ) : null}
+                            </div>
+                          </td>
                           <td className="bank-ledger-table__td bank-ledger-table__td--center">
                             {row.trade_date?.trim() || NA}
                           </td>
                           <td className="bank-ledger-table__td bank-ledger-table__td--multi">
-                            <div className="bank-ledger-table__primary">{buildCounterpartyPrimary(row)}</div>
-                            {cpSub ? <div className="bank-ledger-table__sub">{cpSub}</div> : null}
+                            <div className="bank-ledger-table__primary">{buildCounterpartyCompany(row)}</div>
+                            <div className="bank-ledger-table__sub">{cpHint}</div>
                           </td>
                           <td className="bank-ledger-table__td bank-ledger-table__td--right bank-ledger-table__td--multi">
-                            <div className="bank-ledger-table__amount-main">{amt.main}</div>
+                            <div className={`bank-ledger-table__amount-main${amtToneClass}`}>{amt.main}</div>
                             <div className="bank-ledger-table__sub">{amt.sub}</div>
                           </td>
                           <td className="bank-ledger-table__td bank-ledger-table__td--multi">
@@ -639,7 +693,7 @@ export default function BankTransactionsLedgerPage() {
                 <h3 className="bank-ledger-drawer__title">
                   {modal.mode === 'edit' ? '编辑银行流水' : '银行流水详情'}
                 </h3>
-                <p className="rec-drawer__title-sub">统一台账 · 流水导入 / 付款 / 回款</p>
+                <p className="rec-drawer__title-sub">统一台账 · 银行流水 / 付款 / 回款</p>
               </div>
               <button type="button" className="rec-btn rec-btn--ghost rec-btn--xs" onClick={closeModal}>
                 关闭
@@ -665,9 +719,9 @@ export default function BankTransactionsLedgerPage() {
                           value={editForm.type}
                           onChange={setField('type')}
                         >
-                          <option value="statement_import">流水导入</option>
-                          <option value="payment_register">付款登记</option>
-                          <option value="collection_register">回款登记</option>
+                          <option value="statement_import">{TYPE_LABELS.statement_import}</option>
+                          <option value="payment_register">{TYPE_LABELS.payment_register}</option>
+                          <option value="collection_register">{TYPE_LABELS.collection_register}</option>
                         </select>
                       </label>
                       <label className="rec-bank-payment__field">
