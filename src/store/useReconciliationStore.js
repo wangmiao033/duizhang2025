@@ -14,9 +14,12 @@ import { STATUS_OPTIONS } from '@/components/StatusManager.jsx'
 import {
   buildFullDataBackupPayload,
   buildFilteredExportPayload,
-  buildSelectedRecordsExportPayload,
   downloadJsonBlob
 } from '@/domain/export/exportAdapters.js'
+import {
+  buildSettlementWorkbookFromSelected,
+  writeSettlementWorkbookToFile
+} from '@/domain/export/settlementConfirmationExport.js'
 import {
   listReconciliationRecords,
   createReconciliationRecord,
@@ -584,23 +587,25 @@ export function useReconciliationStore(settings, showToast) {
 
   const handleExportSelected = useCallback(() => {
     if (selectedIds.length === 0) {
-      showToast('请先选择要导出的记录', 'error')
+      showToast('请先勾选要导出的研发对账记录', 'error')
       return
     }
-    const selectedRecords = records.filter((r) => selectedIds.some((i) => String(i) === String(r.id)))
-    const data = buildSelectedRecordsExportPayload({
-      selectedRecords,
-      partyA,
-      partyB,
-      settlementMonth,
-      selectedCount: selectedIds.length
-    })
-    downloadJsonBlob(
-      data,
-      `选中记录_${selectedIds.length}条_${new Date().toISOString().split('T')[0]}.json`
-    )
-    showToast(`成功导出 ${selectedIds.length} 条选中记录！`, 'success')
-  }, [selectedIds, records, partyA, partyB, settlementMonth, showToast])
+    const selectedRecords = selectedIds
+      .map((id) => records.find((r) => String(r.id) === String(id)))
+      .filter(Boolean)
+    if (selectedRecords.length === 0) {
+      showToast('未找到选中的记录', 'error')
+      return
+    }
+    try {
+      const { wb, fileName } = buildSettlementWorkbookFromSelected(selectedRecords)
+      writeSettlementWorkbookToFile(wb, fileName)
+      showToast(`已导出 ${selectedRecords.length} 条结算确认单（Excel）`, 'success')
+    } catch (e) {
+      console.error(e)
+      showToast('导出失败，请重试', 'error')
+    }
+  }, [selectedIds, records, showToast])
 
   const handleExportError = useCallback(
     (message = '导出失败，请稍后重试') => {

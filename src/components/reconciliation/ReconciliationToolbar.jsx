@@ -52,16 +52,18 @@ function ReconciliationToolbar({
             导出筛选 ({filteredRecords.length})
           </button>
         )}
-        {selectedIds.length > 0 && (
-          <button
-            type="button"
-            className="rec-btn rec-btn--secondary"
-            onClick={handleExportSelected}
-            title="导出选中记录"
-          >
-            导出选中 ({selectedIds.length})
-          </button>
-        )}
+        <button
+          type="button"
+          className="rec-btn rec-btn--secondary"
+          onClick={handleExportSelected}
+          title={
+            selectedIds.length > 0
+              ? '仅导出当前勾选的研发对账记录（Excel）'
+              : '请先勾选要导出的研发对账记录'
+          }
+        >
+          导出选中 ({selectedIds.length})
+        </button>
         {selectedIds.length > 0 && (
           <div className="rec-toolbar__batch">
             <span className="rec-toolbar__batch-label">批量</span>
