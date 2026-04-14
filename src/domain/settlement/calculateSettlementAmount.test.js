@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
   calculateSettlementAmount,
-  formatSettlementAmountString
+  formatSettlementAmountString,
+  totalReconciliationSettlementAmount
 } from '@/domain/settlement/calculateSettlementAmount.js'
 
 describe('calculateSettlementAmount', () => {
@@ -89,6 +90,41 @@ describe('calculateSettlementAmount', () => {
     const b = formatSettlementAmountString(r)
     expect(a).toBe(b)
     expect(parseFloat(a)).toBe(calculateSettlementAmount(r))
+  })
+
+  it('多游戏明细：总结算为各行 calculateSettlementAmount 之和', () => {
+    const rec = {
+      channelFeeRate: '2.5',
+      items: [
+        {
+          revenue: 50000,
+          discountRate: '1',
+          testFee: '0',
+          couponAmount: '0',
+          extraFee: '0',
+          shareRatio: '50'
+        },
+        {
+          revenue: 50000,
+          discountRate: '1',
+          testFee: '0',
+          couponAmount: '0',
+          extraFee: '0',
+          shareRatio: '50'
+        }
+      ]
+    }
+    const one = calculateSettlementAmount({
+      gameFlow: 50000,
+      testingFee: 0,
+      voucher: 0,
+      channelFeeRate: 2.5,
+      taxPoint: 0,
+      revenueShareRatio: 50,
+      discount: 1,
+      refund: 0
+    })
+    expect(totalReconciliationSettlementAmount(rec)).toBe(Math.round(one * 2 * 100) / 100)
   })
 
   it('导入后重算：字符串金额与数值计算一致', () => {

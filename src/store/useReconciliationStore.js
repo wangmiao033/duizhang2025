@@ -64,12 +64,32 @@ function normalizeLocalReconciliationRecords(savedRecords) {
   const fmt = getNumberFormatFromStorage()
   const out = []
   for (const r of savedRecords) {
-    out.push({
+    let row = {
       ...r,
       id: r.id != null ? String(r.id) : String(Date.now()),
       status: r.status || 'pending',
       settlementNumber: nextSettlementNumberForRecord(r, out, fmt)
-    })
+    }
+    if (!Array.isArray(row.items) || row.items.length === 0) {
+      row = {
+        ...row,
+        items: [
+          {
+            id: `local-${row.id}-0`,
+            gameName: row.game != null ? String(row.game) : '',
+            revenue: row.gameFlow != null ? String(row.gameFlow) : '0',
+            discountRate: row.discount != null ? String(row.discount) : '1',
+            couponAmount: row.voucher != null ? String(row.voucher) : '0',
+            testFee: row.testingFee != null ? String(row.testingFee) : '0',
+            extraFee: row.refund != null ? String(row.refund) : '0',
+            shareRatio: row.revenueShareRatio != null ? String(row.revenueShareRatio) : '15',
+            taxRate: row.taxPoint != null ? String(row.taxPoint) : '0',
+            sortOrder: 0
+          }
+        ]
+      }
+    }
+    out.push(row)
   }
   return out
 }

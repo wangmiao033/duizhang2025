@@ -11,6 +11,7 @@ import {
   makeExceptionId
 } from '@/lib/exceptions/exceptionTypes.ts'
 import { extractAmountCandidates, paymentRecordToAmountSearchBlob } from '@/lib/exceptions/paymentAmountParse.ts'
+import { totalReconciliationSettlementAmount } from '@/domain/settlement/calculateSettlementAmount.js'
 
 /** 与研发对账 StatusManager 一致；渠道记录复用同一套 status 值 */
 const ALLOWED_CHANNEL_STATUSES = new Set([
@@ -114,7 +115,6 @@ export function buildExceptionItems(input: BuildExceptionItemsInput): ExceptionI
     links,
     reconciliationRecords,
     channelRecords,
-    calculateSettlementAmount,
     statusMap: statusMapInput
   } = input
 
@@ -285,7 +285,7 @@ export function buildExceptionItems(input: BuildExceptionItemsInput): ExceptionI
         )
       )
     }
-    const calculated = calculateSettlementAmount(rec)
+    const calculated = totalReconciliationSettlementAmount(rec)
     const diff = Math.abs(stored - calculated)
     if (diff > 0.01) {
       items.push(

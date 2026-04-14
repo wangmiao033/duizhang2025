@@ -2,11 +2,43 @@ import React, { useState, useMemo } from 'react'
 import { StatusSelector } from './StatusManager.jsx'
 import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
 import { getReconciliationRecordId } from '@/lib/api/reconciliation.ts'
+import {
+  calculateSettlementAmount,
+  totalReconciliationSettlementAmount
+} from '@/domain/settlement/calculateSettlementAmount.js'
 import { displaySettlementNumber } from '@/utils/settlementNumber.js'
 import './DataTable.css'
 
 function rowSelected(selectedIds, record) {
   return selectedIds.some((sid) => String(sid) === String(record.id))
+}
+
+function rdSettlementPreview(form) {
+  if (Array.isArray(form.items) && form.items.length > 0) {
+    return totalReconciliationSettlementAmount(form)
+  }
+  return calculateSettlementAmount(form)
+}
+
+function syncRdInlineFormToSingleItem(form) {
+  if (!Array.isArray(form.items) || form.items.length !== 1) return form
+  const [row] = form.items
+  return {
+    ...form,
+    items: [
+      {
+        ...row,
+        gameName: form.game != null ? String(form.game) : row.gameName,
+        revenue: String(form.gameFlow ?? row.revenue ?? '0'),
+        couponAmount: String(form.voucher ?? row.couponAmount ?? '0'),
+        testFee: String(form.testingFee ?? row.testFee ?? '0'),
+        extraFee: String(form.refund ?? row.extraFee ?? '0'),
+        shareRatio: String(form.revenueShareRatio ?? row.shareRatio ?? '0'),
+        taxRate: String(form.taxPoint ?? row.taxRate ?? '0'),
+        discountRate: String(form.discount ?? row.discountRate ?? '1')
+      }
+    ]
+  }
 }
 
 function DataTable({ 
@@ -58,11 +90,11 @@ function DataTable({
   }
 
   const saveEdit = async () => {
-    const settlementAmount = calculateSettlementAmount(editForm)
-    // 使用四舍五入确保精度，与Excel保持一致
+    const prepared = syncRdInlineFormToSingleItem({ ...editForm })
+    const settlementAmount = rdSettlementPreview(prepared)
     const roundedAmount = Math.round(settlementAmount * 100) / 100
     const result = onUpdateRecord(editingId, {
-      ...editForm,
+      ...prepared,
       settlementAmount: roundedAmount.toFixed(2)
     })
     const ok = result && typeof result.then === 'function' ? await result : result
@@ -81,11 +113,11 @@ function DataTable({
     const handleKeyDown = async (e) => {
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault()
-        const settlementAmount = calculateSettlementAmount(editForm)
-        // 使用四舍五入确保精度，与Excel保持一致
+        const prepared = syncRdInlineFormToSingleItem({ ...editForm })
+        const settlementAmount = rdSettlementPreview(prepared)
         const roundedAmount = Math.round(settlementAmount * 100) / 100
         const result = onUpdateRecord(editingId, {
-          ...editForm,
+          ...prepared,
           settlementAmount: roundedAmount.toFixed(2)
         })
         const ok = result && typeof result.then === 'function' ? await result : result
@@ -104,7 +136,7 @@ function DataTable({
     
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [editingId, editForm, calculateSettlementAmount, onUpdateRecord, onUpdateSuccess])
+  }, [editingId, editForm, onUpdateRecord, onUpdateSuccess])
 
   const allSelected = records.length > 0 && selectedIds.length === records.length
   const someSelected = selectedIds.length > 0 && selectedIds.length < records.length
@@ -572,7 +604,7 @@ function DataTable({
                         />
                       </td>
                       <td className="amount-cell">
-                        ¥{(Math.round(calculateSettlementAmount(editForm) * 100) / 100).toFixed(2)}
+                        ¥{(Math.round(rdSettlementPreview(editForm) * 100) / 100).toFixed(2)}
                       </td>
                       {showRdBankPaymentColumns && (
                         <>

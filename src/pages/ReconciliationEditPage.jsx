@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
-import DataForm from '@/components/DataForm.jsx'
 import QuickFill from '@/components/QuickFill.jsx'
 import TemplatePresets from '@/components/TemplatePresets.jsx'
 import ReconciliationFormPageLayout from '@/components/reconciliation/ReconciliationFormPageLayout.jsx'
+import ReconciliationLineItemsForm from '@/components/reconciliation/ReconciliationLineItemsForm.jsx'
 import ReconciliationRdPaymentsDrawer from '@/components/reconciliation/ReconciliationRdPaymentsDrawer.jsx'
 import { showNotification } from '@/components/NotificationCenter.jsx'
 import { VIEWS } from '@/app/routes.js'
@@ -31,8 +31,8 @@ function ReconciliationEditPage() {
 
   const submitIntentRef = useRef('back')
   const [previewAmount, setPreviewAmount] = useState(0)
-  const [remoteRecord, setRemoteRecord] = useState(null)
-  const [remoteLoadState, setRemoteLoadState] = useState('idle')
+  const [detailRecord, setDetailRecord] = useState(null)
+  const [detailLoadState, setDetailLoadState] = useState('idle')
   const [rdPaymentsDrawer, setRdPaymentsDrawer] = useState({
     open: false,
     reconciliationId: '',
@@ -46,39 +46,34 @@ function ReconciliationEditPage() {
 
   useEffect(() => {
     if (reconEditRecordId == null || reconEditRecordId === '') {
-      setRemoteRecord(null)
-      setRemoteLoadState('idle')
-      return
-    }
-    if (recordFromList) {
-      setRemoteRecord(null)
-      setRemoteLoadState('idle')
+      setDetailRecord(null)
+      setDetailLoadState('idle')
       return
     }
     const sid = String(reconEditRecordId)
     let cancelled = false
-    setRemoteLoadState('loading')
-    setRemoteRecord(null)
+    setDetailLoadState('loading')
+    setDetailRecord(null)
     ;(async () => {
       try {
         const row = await getReconciliationRecord(sid)
         if (cancelled) return
-        setRemoteRecord(apiRowToFrontend(row))
-        setRemoteLoadState('idle')
+        setDetailRecord(apiRowToFrontend(row))
+        setDetailLoadState('ok')
       } catch (e) {
         console.error(e)
         if (!cancelled) {
-          setRemoteRecord(null)
-          setRemoteLoadState('error')
+          setDetailRecord(null)
+          setDetailLoadState('error')
         }
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [reconEditRecordId, recordFromList])
+  }, [reconEditRecordId])
 
-  const editRecord = recordFromList ?? remoteRecord
+  const editRecord = detailRecord ?? recordFromList
 
   const goList = () => setActiveView(VIEWS.RECON_RD)
 
@@ -117,7 +112,7 @@ function ReconciliationEditPage() {
     )
   }
 
-  if (remoteLoadState === 'loading' && !editRecord) {
+  if (detailLoadState === 'loading' && !editRecord) {
     return (
       <ReconciliationFormPageLayout
         toolsSlot={null}
@@ -149,7 +144,7 @@ function ReconciliationEditPage() {
         <div className="admin-workspace__card">
           <h3 className="admin-workspace__card-title">未找到记录</h3>
           <p className="admin-workspace__card-desc">
-            {remoteLoadState === 'error'
+            {detailLoadState === 'error'
               ? '无法从服务器加载该记录，请检查网络或主键是否正确。'
               : '列表中暂无该条数据，且未能从服务器拉取（请确认 id 与后端一致）。'}
             <br />
@@ -244,7 +239,7 @@ function ReconciliationEditPage() {
             onClick={() => {
               const id = getReconciliationRecordId(stableEditRecord)
               if (!id) return
-                           setRdPaymentsDrawer({
+              setRdPaymentsDrawer({
                 open: true,
                 reconciliationId: id,
                 statementNo: displaySettlementNumber(
@@ -260,7 +255,7 @@ function ReconciliationEditPage() {
           </button>
         </div>
       </div>
-      <DataForm
+      <ReconciliationLineItemsForm
         formId={FORM_ID}
         layout="createPage"
         mode="edit"

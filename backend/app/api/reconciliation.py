@@ -7,23 +7,26 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, or_, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.exc import IntegrityError, OperationalError, ProgrammingError
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
 from app.models.bank_payment import BankPaymentRecord
 from app.models.bank_transaction import BankTransaction
-from app.models.reconciliation import ReconciliationRecord
+from app.models.reconciliation import ReconciliationLineItem, ReconciliationRecord
 from app.services.bank_payment_status import compute_bank_payment_list_status
 from app.services.rd_bank_payment_aggregate import (
     RD_TYPE,
     aggregate_rd_payments_for_ids,
     fill_payable_for_row,
 )
+from app.services.rd_reconciliation_line import compute_rd_line_amounts
 from app.schemas.bank_transaction import BankTransactionRead
 from app.schemas.reconciliation import (
     ReconciliationCreate,
+    ReconciliationLineItemIn,
+    ReconciliationLineItemRead,
     ReconciliationListResponse,
     ReconciliationPaymentsResponse,
     ReconciliationRead,
@@ -37,6 +40,96 @@ _STATEMENT_NO_CORRUPT_RE = re.compile(r"NaN", re.IGNORECASE)
 
 def _statement_no_is_corrupt(raw: str) -> bool:
     return bool(raw and _STATEMENT_NO_CORRUPT_RE.search(raw))
+
+
+def _line_reads(row: ReconciliationRecord) -> list[ReconciliationLineItemRead]:
+    lis = sorted(row.line_items, key=lambda x: (x.sort_order, x.id))
+    return [ReconciliationLineItemRead.model_validate(x) for x in lis]
+
+
+def _replace_line_items(db: Session, rec: ReconciliationRecord, items_in: list[ReconciliationLineItemIn]) -> None:
+    db.execute(delete(ReconciliationLineItem).where(ReconciliationLineItem.reconciliation_id == rec.id))
+    db.flush()
+    ch = float(rec.channel_fee_rate or 0)
+    total_settlement = 0.0
+    total_revenue = 0.0
+    total_test = 0.0
+    total_voucher = 0.0
+    total_extra = 0.0
+    names: list[str] = []
+    for idx, raw in enumerate(items_in):
+        net_r, share, sett = compute_rd_line_amounts(
+            float(raw.revenue or 0),
+            float(raw.discount_rate if raw.discount_rate is not None else 1),
+            float(raw.test_fee or 0),
+            float(raw.coupon_amount or 0),
+            float(raw.extra_fee or 0),
+            ch,
+            float(raw.share_ratio or 0),
+        )
+        sort_o = int(raw.sort_order) if raw.sort_order is not None else idx
+        li = ReconciliationLineItem(
+            id=str(uuid4()),
+            reconciliation_id=rec.id,
+            game_name=raw.game_name,
+            revenue=float(raw.revenue or 0),
+            discount_rate=float(raw.discount_rate if raw.discount_rate is not None else 1),
+            net_revenue=net_r,
+            coupon_amount=float(raw.coupon_amount or 0),
+            test_fee=float(raw.test_fee or 0),
+            extra_fee=float(raw.extra_fee or 0),
+            share_ratio=float(raw.share_ratio or 0),
+            tax_rate=float(raw.tax_rate or 0),
+            share_amount=share,
+            settlement_amount=sett,
+            sort_order=sort_o,
+        )
+        db.add(li)
+        total_settlement += sett
+        total_revenue += float(raw.revenue or 0)
+        total_test += float(raw.test_fee or 0)
+        total_voucher += float(raw.coupon_amount or 0)
+        total_extra += float(raw.extra_fee or 0)
+        if raw.game_name and str(raw.game_name).strip():
+            names.append(str(raw.game_name).strip())
+    rec.game_flow = round(total_revenue, 2)
+    rec.test_cost = round(total_test, 2)
+    rec.voucher_cost = round(total_voucher, 2)
+    rec.refund_amount = round(total_extra, 2)
+    rec.settlement_amount = round(total_settlement, 2)
+    rec.game_name = "、".join(names)[:500] if names else None
+    first = items_in[0]
+    rec.discount_value = float(first.discount_rate if first.discount_rate is not None else 1)
+    rec.revenue_share_rate = float(first.share_ratio or 0)
+    rec.tax_rate = float(first.tax_rate or 0)
+
+
+def _enrich_reconciliation_read(db: Session, row: ReconciliationRecord) -> ReconciliationRead:
+    base_read = ReconciliationRead.model_validate(row)
+    line_reads = _line_reads(row)
+    try:
+        bp = db.execute(
+            select(BankPaymentRecord).where(BankPaymentRecord.reconciliation_id == row.id)
+        ).scalars().first()
+    except (OperationalError, ProgrammingError):
+        bp = None
+    st = compute_bank_payment_list_status(float(row.settlement_amount or 0), bp)
+    try:
+        agg_map = aggregate_rd_payments_for_ids(db, [row.id])
+    except (OperationalError, ProgrammingError):
+        agg_map = {}
+    pay = fill_payable_for_row(agg_map.get(row.id), row.settlement_amount)
+    return base_read.model_copy(
+        update={
+            "items": line_reads,
+            "bank_payment_list_status": st,
+            "paid_amount": float(pay.paid_amount),
+            "unpaid_amount": float(pay.unpaid_amount),
+            "payment_status": pay.payment_status,
+            "payment_count": pay.payment_count,
+            "latest_payment_date": pay.latest_payment_date,
+        }
+    )
 
 
 def _apply_filters(
@@ -123,6 +216,7 @@ def list_reconciliation(
         items.append(
             base_read.model_copy(
                 update={
+                    "items": [],
                     "bank_payment_list_status": st,
                     "paid_amount": float(pay.paid_amount),
                     "unpaid_amount": float(pay.unpaid_amount),
@@ -159,29 +253,7 @@ def get_reconciliation(record_id: str, db: Session = Depends(get_db)) -> Reconci
     row = db.get(ReconciliationRecord, record_id)
     if row is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"error": "not_found", "id": record_id})
-    base_read = ReconciliationRead.model_validate(row)
-    try:
-        bp = db.execute(
-            select(BankPaymentRecord).where(BankPaymentRecord.reconciliation_id == record_id)
-        ).scalars().first()
-    except (OperationalError, ProgrammingError):
-        bp = None
-    st = compute_bank_payment_list_status(float(row.settlement_amount or 0), bp)
-    try:
-        agg_map = aggregate_rd_payments_for_ids(db, [record_id])
-    except (OperationalError, ProgrammingError):
-        agg_map = {}
-    pay = fill_payable_for_row(agg_map.get(record_id), row.settlement_amount)
-    return base_read.model_copy(
-        update={
-            "bank_payment_list_status": st,
-            "paid_amount": float(pay.paid_amount),
-            "unpaid_amount": float(pay.unpaid_amount),
-            "payment_status": pay.payment_status,
-            "payment_count": pay.payment_count,
-            "latest_payment_date": pay.latest_payment_date,
-        }
-    )
+    return _enrich_reconciliation_read(db, row)
 
 
 @router.post("", response_model=ReconciliationRead, status_code=status.HTTP_201_CREATED)
@@ -209,6 +281,9 @@ def create_reconciliation(payload: ReconciliationCreate, db: Session = Depends(g
         remark=payload.remark,
     )
     db.add(row)
+    db.flush()
+    if payload.items is not None and len(payload.items) > 0:
+        _replace_line_items(db, row, payload.items)
     try:
         db.commit()
     except IntegrityError:
@@ -218,7 +293,7 @@ def create_reconciliation(payload: ReconciliationCreate, db: Session = Depends(g
             detail={"error": "statement_no_conflict", "statement_no": statement_no},
         ) from None
     db.refresh(row)
-    return ReconciliationRead.model_validate(row)
+    return _enrich_reconciliation_read(db, row)
 
 
 @router.put("/{record_id}", response_model=ReconciliationRead)
@@ -229,9 +304,16 @@ def update_reconciliation(
     if row is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"error": "not_found", "id": record_id})
     data = payload.model_dump(exclude_unset=True)
+    items_payload = data.pop("items", None)
     for key, value in data.items():
         setattr(row, key, value)
     row.updated_at = datetime.now(timezone.utc)
+    if items_payload is not None:
+        if len(items_payload) == 0:
+            db.execute(delete(ReconciliationLineItem).where(ReconciliationLineItem.reconciliation_id == row.id))
+        else:
+            parsed = [ReconciliationLineItemIn.model_validate(x) for x in items_payload]
+            _replace_line_items(db, row, parsed)
     try:
         db.commit()
     except IntegrityError:
@@ -241,7 +323,7 @@ def update_reconciliation(
             detail={"error": "statement_no_conflict"},
         ) from None
     db.refresh(row)
-    return ReconciliationRead.model_validate(row)
+    return _enrich_reconciliation_read(db, row)
 
 
 @router.delete("/{record_id}", status_code=status.HTTP_204_NO_CONTENT)

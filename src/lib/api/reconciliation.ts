@@ -12,6 +12,24 @@ import {
 } from '@/lib/api/client.ts'
 import type { BankTransactionRow } from '@/lib/api/bankTransaction.ts'
 
+export type ApiReconciliationLineItemRow = {
+  id: string
+  reconciliation_id: string
+  game_name: string | null
+  revenue: number
+  discount_rate: number
+  net_revenue: number
+  coupon_amount: number
+  test_fee: number
+  extra_fee: number
+  share_ratio: number
+  tax_rate: number
+  share_amount: number
+  settlement_amount: number
+  sort_order: number
+  created_at: string
+}
+
 export type ApiReconciliationRow = {
   id: string
   statement_no: string
@@ -31,6 +49,8 @@ export type ApiReconciliationRow = {
   remark: string | null
   created_at: string
   updated_at: string
+  /** GET单条时返回；列表接口为空数组 */
+  items?: ApiReconciliationLineItemRow[]
   /** 列表用：未登记 / 待打款 / 已提交 / 已付款 / 金额异常 / 打款失败 */
   bank_payment_list_status?: string | null
   /** 银行付款登记（bank_transactions）关联聚合，由后端计算 */
@@ -108,6 +128,18 @@ export type ReconciliationListResponse = {
   total: number
 }
 
+export type ReconciliationLineItemPayload = {
+  game_name: string | null
+  revenue: number
+  discount_rate: number
+  coupon_amount: number
+  test_fee: number
+  extra_fee: number
+  share_ratio: number
+  tax_rate: number
+  sort_order: number
+}
+
 export type ReconciliationCreatePayload = {
   statement_no?: string | null
   settlement_month?: string | null
@@ -124,6 +156,7 @@ export type ReconciliationCreatePayload = {
   settlement_amount: number
   status?: string | null
   remark?: string | null
+  items?: ReconciliationLineItemPayload[]
 }
 
 export type ReconciliationUpdatePayload = Partial<ReconciliationCreatePayload>
@@ -242,9 +275,46 @@ export function getReconciliationRecordId(
   return String(v)
 }
 
+function apiLineToFrontend(line: ApiReconciliationLineItemRow) {
+  return {
+    id: line.id,
+    gameName: line.game_name != null ? String(line.game_name) : '',
+    revenue: String(line.revenue ?? 0),
+    discountRate: String(line.discount_rate ?? 1),
+    couponAmount: String(line.coupon_amount ?? 0),
+    testFee: String(line.test_fee ?? 0),
+    extraFee: String(line.extra_fee ?? 0),
+    shareRatio: String(line.share_ratio ?? 0),
+    taxRate: String(line.tax_rate ?? 0),
+    sortOrder: line.sort_order ?? 0
+  }
+}
+
+function legacyItemsFromApiRow(row: ApiReconciliationRow) {
+  return [
+    {
+      id: `legacy-${row.id}`,
+      gameName: row.game_name != null ? String(row.game_name) : '',
+      revenue: String(row.game_flow ?? 0),
+      discountRate: String(row.discount_value ?? 1),
+      couponAmount: String(row.voucher_cost ?? 0),
+      testFee: String(row.test_cost ?? 0),
+      extraFee: String(row.refund_amount ?? 0),
+      shareRatio: String(row.revenue_share_rate ?? 0),
+      taxRate: String(row.tax_rate ?? 0),
+      sortOrder: 0
+    }
+  ]
+}
+
 /** 后端行 -> 前端列表/表单使用的记录结构（字段名与 DataForm / store 一致） */
 export function apiRowToFrontend(row: ApiReconciliationRow): Record<string, unknown> {
   const idStr = row.id != null && String(row.id).trim() !== '' ? String(row.id) : ''
+  const rawItems = row.items
+  const items =
+    Array.isArray(rawItems) && rawItems.length > 0
+      ? rawItems.map(apiLineToFrontend)
+      : legacyItemsFromApiRow(row)
   return {
     id: idStr,
     settlementMonth: row.settlement_month ?? '',
@@ -263,6 +333,7 @@ export function apiRowToFrontend(row: ApiReconciliationRow): Record<string, unkn
       row.settlement_amount != null ? Number(row.settlement_amount).toFixed(2) : '0.00',
     status: row.status || 'pending',
     memo: row.remark != null ? String(row.remark) : '',
+    items,
     paidAmount:
       row.paid_amount != null && Number.isFinite(Number(row.paid_amount))
         ? Number(row.paid_amount).toFixed(2)
@@ -287,6 +358,24 @@ export function frontendRecordToApiPayload(
 ): ReconciliationCreatePayload {
   const includeNo = options?.includeStatementNo !== false
   const settlementNumber = (record.settlementNumber as string) || ''
+  const recItems = record.items as Array<Record<string, unknown>> | undefined
+  const items: ReconciliationLineItemPayload[] | undefined =
+    Array.isArray(recItems) && recItems.length > 0
+      ? recItems.map((line, idx) => ({
+          game_name:
+            line.gameName != null && String(line.gameName).trim() !== ''
+              ? String(line.gameName).trim()
+              : null,
+          revenue: parseFloat(String(line.revenue ?? 0)),
+          discount_rate: parseFloat(String(line.discountRate ?? 1)),
+          coupon_amount: parseFloat(String(line.couponAmount ?? 0)),
+          test_fee: parseFloat(String(line.testFee ?? 0)),
+          extra_fee: parseFloat(String(line.extraFee ?? 0)),
+          share_ratio: parseFloat(String(line.shareRatio ?? 0)),
+          tax_rate: parseFloat(String(line.taxRate ?? 0)),
+          sort_order: Number(line.sortOrder ?? idx)
+        }))
+      : undefined
   return {
     ...(includeNo ? { statement_no: settlementNumber || null } : {}),
     settlement_month: (record.settlementMonth as string) || null,
@@ -302,6 +391,7 @@ export function frontendRecordToApiPayload(
     refund_amount: parseFloat(String(record.refund ?? 0)),
     settlement_amount: parseFloat(String(record.settlementAmount ?? 0)),
     status: (record.status as string) || 'pending',
-    remark: record.memo != null && record.memo !== '' ? String(record.memo) : null
+    remark: record.memo != null && record.memo !== '' ? String(record.memo) : null,
+    ...(items !== undefined ? { items } : {})
   }
 }

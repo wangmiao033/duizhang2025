@@ -183,10 +183,19 @@ export function validateBusinessRules(record, index, calculateSettlementAmount) 
   const issues = []
   const recordId = record.id || index
 
-  const gameFlow = parseFloat(record.gameFlow || 0)
-  const testingFee = parseFloat(record.testingFee || 0)
-  const voucher = parseFloat(record.voucher || 0)
-  const refund = parseFloat(record.refund || 0)
+  const hasItems = Array.isArray(record.items) && record.items.length > 0
+  const gameFlow = hasItems
+    ? record.items.reduce((s, it) => s + parseFloat(it.revenue || 0), 0)
+    : parseFloat(record.gameFlow || 0)
+  const testingFee = hasItems
+    ? record.items.reduce((s, it) => s + parseFloat(it.testFee || 0), 0)
+    : parseFloat(record.testingFee || 0)
+  const voucher = hasItems
+    ? record.items.reduce((s, it) => s + parseFloat(it.couponAmount || 0), 0)
+    : parseFloat(record.voucher || 0)
+  const refund = hasItems
+    ? record.items.reduce((s, it) => s + parseFloat(it.extraFee || 0), 0)
+    : parseFloat(record.refund || 0)
   const settlementAmount = parseFloat(record.settlementAmount || 0)
 
   // 检查费用合理性
@@ -256,7 +265,25 @@ export function validateBusinessRules(record, index, calculateSettlementAmount) 
 
   // 检查结算金额计算一致性
   if (calculateSettlementAmount) {
-    const calculatedAmount = calculateSettlementAmount(record)
+    const calculatedAmount = hasItems
+      ? (() => {
+          const cf = record.channelFeeRate
+          let sum = 0
+          for (const line of record.items) {
+            sum += calculateSettlementAmount({
+              gameFlow: line.revenue,
+              testingFee: line.testFee,
+              voucher: line.couponAmount,
+              channelFeeRate: cf,
+              revenueShareRatio: line.shareRatio,
+              refund: line.extraFee,
+              discount: line.discountRate,
+              taxPoint: line.taxRate
+            })
+          }
+          return Math.round(sum * 100) / 100
+        })()
+      : calculateSettlementAmount(record)
     const difference = Math.abs(settlementAmount - calculatedAmount)
     const tolerance = 0.01 // 允许0.01的误差
 

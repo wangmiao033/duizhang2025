@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import DataForm from '@/components/DataForm.jsx'
+import ReconciliationLineItemsForm from '@/components/reconciliation/ReconciliationLineItemsForm.jsx'
 import QuickFill from '@/components/QuickFill.jsx'
 import TemplatePresets from '@/components/TemplatePresets.jsx'
 import { showNotification } from '@/components/NotificationCenter.jsx'
@@ -67,7 +67,7 @@ function ReconciliationDrawerForm({
           <TemplatePresets onApplyTemplate={handleApplyTemplate} />
         </div>
         <div className="rec-drawer__body">
-          <DataForm
+          <ReconciliationLineItemsForm
             formId={FORM_ID}
             layout="drawer"
             mode={mode}

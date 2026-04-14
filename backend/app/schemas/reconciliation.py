@@ -9,6 +9,40 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.schemas.bank_transaction import BankTransactionRead
 
 
+class ReconciliationLineItemIn(BaseModel):
+    """写入明细（服务端重算 net_revenue / share_amount / settlement_amount）。"""
+
+    game_name: str | None = None
+    revenue: float = 0
+    discount_rate: float = 1
+    coupon_amount: float = 0
+    test_fee: float = 0
+    extra_fee: float = 0
+    share_ratio: float = 0
+    tax_rate: float = 0
+    sort_order: int = 0
+
+
+class ReconciliationLineItemRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    reconciliation_id: str
+    game_name: str | None
+    revenue: float
+    discount_rate: float
+    net_revenue: float
+    coupon_amount: float
+    test_fee: float
+    extra_fee: float
+    share_ratio: float
+    tax_rate: float
+    share_amount: float
+    settlement_amount: float
+    sort_order: int
+    created_at: datetime
+
+
 class ReconciliationCreate(BaseModel):
     statement_no: str | None = Field(
         default=None,
@@ -28,6 +62,7 @@ class ReconciliationCreate(BaseModel):
     settlement_amount: float = 0
     status: str | None = "pending"
     remark: str | None = None
+    items: list[ReconciliationLineItemIn] | None = None
 
 
 class ReconciliationUpdate(BaseModel):
@@ -46,6 +81,7 @@ class ReconciliationUpdate(BaseModel):
     settlement_amount: float | None = None
     status: str | None = None
     remark: str | None = None
+    items: list[ReconciliationLineItemIn] | None = None
 
 
 class ReconciliationRead(BaseModel):
@@ -75,6 +111,7 @@ class ReconciliationRead(BaseModel):
     payment_status: str = "未付款"
     payment_count: int = 0
     latest_payment_date: str | None = None
+    items: list[ReconciliationLineItemRead] = Field(default_factory=list)
 
 
 class ReconciliationListResponse(BaseModel):

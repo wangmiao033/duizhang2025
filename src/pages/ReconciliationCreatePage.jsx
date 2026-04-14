@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
-import DataForm from '@/components/DataForm.jsx'
+import ReconciliationLineItemsForm from '@/components/reconciliation/ReconciliationLineItemsForm.jsx'
 import QuickFill from '@/components/QuickFill.jsx'
 import TemplatePresets from '@/components/TemplatePresets.jsx'
 import ReconciliationFormPageLayout from '@/components/reconciliation/ReconciliationFormPageLayout.jsx'
@@ -82,7 +82,7 @@ function ReconciliationCreatePage() {
         </>
       }
     >
-      <DataForm
+      <ReconciliationLineItemsForm
         formId={FORM_ID}
         layout="createPage"
         mode="add"

@@ -5,6 +5,10 @@
 
 import * as XLSX from 'xlsx'
 import dayjs from 'dayjs'
+import {
+  calculateSettlementAmount,
+  rdLineItemToSettlementPayload
+} from '@/domain/settlement/calculateSettlementAmount.js'
 import { isCorruptSettlementNumber } from '@/utils/settlementNumber.js'
 
 /** 阿拉伯数字转中文大写金额（与历史 BillExport 口径一致） */
@@ -43,12 +47,46 @@ function pctDisplay(val) {
   return `${n}%`
 }
 
+/** 多游戏明细：每个 line 导出一行（充值金额列用折后流水，与渠道「折算」思路一致） */
+function expandRdRecordsForSettlementExport(records) {
+  const list = Array.isArray(records) ? records : []
+  const out = []
+  for (const r of list) {
+    const items = r.items
+    if (Array.isArray(items) && items.length > 0) {
+      for (const line of items) {
+        const dRaw = parseFloat(line.discountRate)
+        const d = Number.isFinite(dRaw) ? dRaw : 1
+        const rev = parseFloat(line.revenue || 0)
+        const net = (Number.isFinite(rev) ? rev : 0) * d
+        const payload = rdLineItemToSettlementPayload(line, r.channelFeeRate)
+        out.push({
+          settlementMonth: r.settlementMonth,
+          game: line.gameName,
+          gameFlow: net,
+          voucher: line.couponAmount,
+          refund: line.extraFee,
+          testingFee: line.testFee,
+          revenueShareRatio: line.shareRatio,
+          channelFeeRate: r.channelFeeRate,
+          taxPoint: line.taxRate,
+          settlementAmount: calculateSettlementAmount(payload)
+        })
+      }
+    } else {
+      out.push(r)
+    }
+  }
+  return out
+}
+
 /**
  * 生成单个 sheet 的二维数组（可含多行明细 + 合计 + 支付金额 + 盖章区）
  * @param {Record<string, unknown>[]} records 本 sheet 内的研发对账行（至少 0 条，一般为 1 或多条）
  */
 export function buildSettlementSheetAoa(records) {
   const safe = Array.isArray(records) ? records : []
+  const expanded = expandRdRecordsForSettlementExport(safe)
   const today = dayjs().format('YYYY年MM月DD日')
   const wsData = []
 
@@ -72,7 +110,7 @@ export function buildSettlementSheetAoa(records) {
   ]
   wsData.push(headers)
 
-  safe.forEach((record) => {
+  expanded.forEach((record) => {
     const rechargeRaw = record.gameFlow
     const rechargeCell =
       rechargeRaw === null || rechargeRaw === undefined || rechargeRaw === ''
@@ -105,7 +143,7 @@ export function buildSettlementSheetAoa(records) {
   })
 
   const sum2 = (getter) =>
-    safe.reduce((s, r) => {
+    expanded.reduce((s, r) => {
       const v = getter(r)
       const n = Number(v)
       return s + (Number.isFinite(n) ? n : 0)
