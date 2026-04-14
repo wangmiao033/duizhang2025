@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 import shutil
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -18,7 +17,6 @@ from app.core.bank_transaction_uploads import ensure_bank_transaction_upload_roo
 from app.core.deps import get_db
 from app.models.bank_transaction import BankTransaction
 from app.schemas.bank_transaction import (
-    BankTransactionAttachmentUploadResponse,
     BankTransactionCreate,
     BankTransactionListResponse,
     BankTransactionRead,
@@ -26,30 +24,12 @@ from app.schemas.bank_transaction import (
 )
 
 router = APIRouter()
-# 先于 CRUD 注册（见 main.py），避免未部署上传路由时 POST …/upload-attachment 落到 GET /{transaction_id} 导致 405
-attachment_router = APIRouter()
 
 _ALLOWED_TYPES = frozenset({"statement_import", "payment_register", "collection_register"})
 
-_MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024
-_UPLOAD_CONTENT_TYPES: dict[str, str] = {
-    "image/jpeg": ".jpg",
-    "image/png": ".png",
-    "image/gif": ".gif",
-    "image/webp": ".webp",
-    "application/pdf": ".pdf",
-}
-
-# 与 main.py 中 StaticFiles(directory=…/uploads) 一致：可经 /uploads/bank_attachments/… 访问
-_BACKEND_ROOT = Path(__file__).resolve().parent.parent.parent
-BANK_ATTACHMENTS_UPLOAD_DIR = _BACKEND_ROOT / "uploads" / "bank_attachments"
-BANK_ATTACHMENTS_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-
-
-def _safe_upload_original_name(name: str) -> str:
-    base = Path(name or "file").name
-    base = re.sub(r"[^\w.\-()\u4e00-\u9fff]+", "_", base)
-    return base[:180] if base else "file"
+# 与 main.py 中 StaticFiles(directory="uploads") 一致；请在 backend 目录下启动 uvicorn，使路径落在 backend/uploads/…
+UPLOAD_DIR = Path("uploads/bank_attachments")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _resolve_bank_tx_upload_file(file_id: str) -> Path:
@@ -147,6 +127,30 @@ def list_bank_transactions(
     return BankTransactionListResponse(items=[_row_to_read(r) for r in rows], total=total)
 
 
+@router.post("/upload-attachment", status_code=status.HTTP_201_CREATED)
+async def upload_bank_transaction_attachment(file: UploadFile = File(...)) -> dict[str, str]:
+    """multipart字段名 file；返回 url 写入 bank_transactions.attachment_url。须先于 GET /{transaction_id} 声明以免 POST被误判405。"""
+    orig = Path(file.filename or "file").name
+    if not orig or orig in (".", ".."):
+        orig = "file"
+    filename = f"{uuid4().hex}_{orig}"
+    file_path = UPLOAD_DIR / filename
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    with open(file_path, "wb") as out:
+        shutil.copyfileobj(file.file, out)
+    return {"url": f"/uploads/bank_attachments/{filename}"}
+
+
+@router.get("/attachments/{file_id}/file")
+def download_bank_transaction_attachment(file_id: str) -> FileResponse:
+    path = _resolve_bank_tx_upload_file(file_id)
+    return FileResponse(
+        path,
+        filename=path.name,
+        content_disposition_type="inline",
+    )
+
+
 @router.get("/{transaction_id}", response_model=BankTransactionRead)
 def get_bank_transaction(transaction_id: str, db: Session = Depends(get_db)) -> BankTransactionRead:
     row = db.get(BankTransaction, transaction_id)
@@ -200,60 +204,3 @@ def delete_bank_transaction(transaction_id: str, db: Session = Depends(get_db)) 
         raise HTTPException(status_code=404, detail={"error": "not_found", "id": transaction_id})
     db.delete(row)
     db.commit()
-
-
-@attachment_router.post(
-    "/upload-attachment",
-    response_model=BankTransactionAttachmentUploadResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-async def upload_bank_transaction_attachment(
-    file: UploadFile = File(...),
-) -> BankTransactionAttachmentUploadResponse:
-    """付款确认单等：上传回单至 uploads/bank_attachments，返回可写入 attachment_url 的静态 URL。"""
-    content_type = (file.content_type or "").split(";")[0].strip().lower()
-    if content_type not in _UPLOAD_CONTENT_TYPES:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "error": "unsupported_file_type",
-                "message": "仅支持图片（JPEG/PNG/GIF/WebP）与 PDF",
-            },
-        )
-    ext = _UPLOAD_CONTENT_TYPES[content_type]
-    stored = f"{uuid4().hex}{ext}"
-    dest_path = BANK_ATTACHMENTS_UPLOAD_DIR / stored
-    BANK_ATTACHMENTS_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    try:
-        with open(dest_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-    except Exception as e:
-        dest_path.unlink(missing_ok=True)
-        raise HTTPException(status_code=500, detail=str(e)) from e
-
-    size = dest_path.stat().st_size
-    if size > _MAX_ATTACHMENT_BYTES:
-        dest_path.unlink(missing_ok=True)
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail={"error": "file_too_large", "max_bytes": _MAX_ATTACHMENT_BYTES},
-        )
-
-    orig_name = _safe_upload_original_name(file.filename or f"attachment{ext}")
-    public_url = f"/uploads/bank_attachments/{stored}"
-    return BankTransactionAttachmentUploadResponse(
-        url=public_url,
-        filename=orig_name,
-        content_type=content_type,
-        size=size,
-    )
-
-
-@attachment_router.get("/attachments/{file_id}/file")
-def download_bank_transaction_attachment(file_id: str) -> FileResponse:
-    path = _resolve_bank_tx_upload_file(file_id)
-    return FileResponse(
-        path,
-        filename=path.name,
-        content_disposition_type="inline",
-    )

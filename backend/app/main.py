@@ -18,7 +18,6 @@ from app.api.invoice import router as invoice_router
 from app.api.exception_status import router as exception_status_router
 from app.api.invoice_payment_link import router as invoice_payment_link_router
 from app.api.payment import router as payment_router
-from app.api.bank_transaction import attachment_router as bank_transaction_attachment_router
 from app.api.bank_transaction import router as bank_transaction_router
 from app.api.reconciliation import router as reconciliation_router
 
@@ -83,24 +82,13 @@ app.include_router(
     tags=["exception-statuses"],
 )
 app.include_router(
-    bank_transaction_attachment_router,
-    prefix="/api/bank-transactions",
-    tags=["bank-transactions"],
-)
-app.include_router(
     bank_transaction_router,
     prefix="/api/bank-transactions",
     tags=["bank-transactions"],
 )
 
-_BACKEND_ROOT = Path(__file__).resolve().parent.parent
-_UPLOADS_DIR = _BACKEND_ROOT / "uploads"
-_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
-app.mount(
-    "/uploads",
-    StaticFiles(directory=str(_UPLOADS_DIR)),
-    name="uploads",
-)
+Path("uploads").mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 
 @app.exception_handler(SQLAlchemyError)
