@@ -37,13 +37,21 @@ import {
   apiChannelRowToFrontend,
   frontendChannelRecordToPayload
 } from '@/lib/api/channel.ts'
+import { buildChannelBillFromSingleGameForm, recordToFormData } from '@/domain/channel/channelBillingForm.js'
 
 function normalizeLocalChannelRecords(saved) {
-  return (saved || []).map((r) => ({
-    ...r,
-    id: r.id != null ? String(r.id) : String(Date.now()),
-    status: r.status || 'pending'
-  }))
+  return (saved || []).map((r) => {
+    const id = r.id != null ? String(r.id) : String(Date.now())
+    const status = r.status || 'pending'
+    if (Array.isArray(r.items) && r.items.length > 0) {
+      return { ...r, id, status }
+    }
+    return {
+      ...buildChannelBillFromSingleGameForm(recordToFormData({ ...r, id })),
+      id,
+      status
+    }
+  })
 }
 
 function normalizeLocalReconciliationRecords(savedRecords) {

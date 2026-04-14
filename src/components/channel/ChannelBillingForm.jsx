@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
-  initialForm,
+  initialHeaderForm,
+  initialLineItem,
   calculateBillingAmount,
   calculateShareAmount,
   calculateSettlement,
-  buildRecordFromForm,
-  recordToFormData
+  buildFullChannelRecord,
+  recordToHeaderForm,
+  recordToLineForms
 } from '@/domain/channel/channelBillingForm.js'
 import '@/components/ChannelBilling.css'
 
@@ -36,8 +38,33 @@ function formatMoney(amount) {
   return `¥${Number(amount).toFixed(2)}`
 }
 
+function updateLineField(lines, index, field, value) {
+  const next = lines.map((row, i) => (i === index ? { ...row, [field]: value } : { ...row }))
+  const row = next[index]
+  if (field === 'settlementAmount') {
+    return next
+  }
+  if (
+    [
+      'flow',
+      'voucherCost',
+      'noWorryCost',
+      'refundCost',
+      'testCost',
+      'welfareCost',
+      'shareRate',
+      'taxRate',
+      'gatewayCost'
+    ].includes(field)
+  ) {
+    const settlement = calculateSettlement(row)
+    next[index] = { ...row, settlementAmount: settlement.toFixed(2) }
+  }
+  return next
+}
+
 /**
- * 渠道对账完整表单（新增/编辑页共用，不复制计算公式，逻辑来自 domain/channelBillingForm）
+ * 渠道对账：公共信息 + 多行游戏明细（每行沿用 domain内单游戏计算公式）
  */
 function ChannelBillingForm({
   formId,
@@ -52,67 +79,96 @@ function ChannelBillingForm({
   onError,
   className = ''
 }) {
-  const [formData, setFormData] = useState(initialForm)
+  const [header, setHeader] = useState(initialHeaderForm)
+  const [lines, setLines] = useState([initialLineItem()])
+
+  const totals = useMemo(() => {
+    return lines.reduce(
+      (acc, row) => {
+        const flow = parseFloat(row.flow || 0)
+        const voucher = parseFloat(row.voucherCost || 0)
+        const refund = parseFloat(row.refundCost || 0)
+        const settlement = parseFloat(row.settlementAmount || 0)
+        return {
+          flow: acc.flow + flow,
+          voucher: acc.voucher + voucher,
+          refund: acc.refund + refund,
+          settlement: acc.settlement + (Number.isFinite(settlement) ? settlement : 0)
+        }
+      },
+      { flow: 0, voucher: 0, refund: 0, settlement: 0 }
+    )
+  }, [lines])
+
+  const previewSettlement = useMemo(() => totals.settlement, [totals.settlement])
 
   useEffect(() => {
-    onPreviewChange?.(calculateSettlement(formData))
-  }, [formData, onPreviewChange])
+    onPreviewChange?.(previewSettlement)
+  }, [previewSettlement, onPreviewChange])
 
   useEffect(() => {
     if (mode === 'edit' && sourceRecord) {
-      setFormData(recordToFormData(sourceRecord))
+      setHeader(recordToHeaderForm(sourceRecord))
+      const lf = recordToLineForms(sourceRecord)
+      setLines(lf.length ? lf : [initialLineItem()])
     }
     if (mode === 'add') {
-      setFormData({ ...initialForm })
+      setHeader(initialHeaderForm)
+      setLines([initialLineItem()])
     }
   }, [mode, sourceRecord?.id])
 
-  const handleInputChange = (field, value) => {
-    const newFormData = { ...formData, [field]: value }
+  const handleHeaderChange = (field, value) => {
+    setHeader((h) => ({ ...h, [field]: value }))
+  }
 
-    if (
-      [
-        'flow',
-        'voucherCost',
-        'noWorryCost',
-        'refundCost',
-        'testCost',
-        'welfareCost',
-        'shareRate',
-        'taxRate',
-        'gatewayCost'
-      ].includes(field)
-    ) {
-      const settlement = calculateSettlement(newFormData)
-      newFormData.settlementAmount = settlement.toFixed(2)
-    }
+  const handleLineChange = (index, field, value) => {
+    setLines((prev) => updateLineField(prev, index, field, value))
+  }
 
-    setFormData(newFormData)
+  const addLine = () => {
+    setLines((prev) => [...prev, initialLineItem()])
+  }
+
+  const removeLine = (index) => {
+    setLines((prev) => {
+      if (prev.length <= 1) return prev
+      return prev.filter((_, i) => i !== index)
+    })
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!formData.channelName || !formData.gameName) {
-      const msg = '请填写必填项：渠道名称、游戏名称'
-      if (onError) onError(msg)
-      else window.alert(msg)
+    if (!header.channelName?.trim()) {
+      const msg = '请填写渠道/公司简称'
+      onError?.(msg) ?? window.alert(msg)
       return
     }
 
-    const record = buildRecordFromForm(formData)
+    for (let i = 0; i < lines.length; i += 1) {
+      const row = lines[i]
+      if (!row.gameName?.trim()) {
+        const msg = `第 ${i + 1} 行：请填写游戏名称`
+        onError?.(msg) ?? window.alert(msg)
+        return
+      }
+    }
+
+    const record = buildFullChannelRecord(header, lines)
     const intent = submitIntentRef?.current ?? 'back'
 
     try {
       if (mode === 'edit' && recordId != null) {
-        const res = onUpdateRecord?.(recordId, record)
+        const res = onUpdateRecord?.(recordId, { ...record, id: recordId })
         if (res && typeof res.then === 'function') await res
         onAfterSubmit?.('back')
       } else {
         const res = onAddRecord?.(record)
         if (res && typeof res.then === 'function') await res
         if (intent === 'continue') {
-          setFormData({ ...initialForm })
+          setHeader(initialHeaderForm)
+          setLines([initialLineItem()])
         }
         onAfterSubmit?.(intent)
       }
@@ -127,15 +183,15 @@ function ChannelBillingForm({
 
   return (
     <form id={formId} onSubmit={handleSubmit} className={`channel-form channel-form--page ${className}`}>
-      <div className="form-section-title">基础信息 · 渠道与游戏</div>
+      <div className="form-section-title">1）公共信息</div>
       <div className="form-row">
         <div className="form-group full-width">
           <label>渠道/公司简称 *</label>
           <input
             type="text"
             list={datalistId}
-            value={formData.channelName}
-            onChange={(e) => handleInputChange('channelName', e.target.value)}
+            value={header.channelName}
+            onChange={(e) => handleHeaderChange('channelName', e.target.value)}
             placeholder="如：广州触点互联网科技有限公司"
             required
             className="admin-input"
@@ -149,182 +205,223 @@ function ChannelBillingForm({
       </div>
       <div className="form-row">
         <div className="form-group full-width">
-          <label>游戏名称 *</label>
+          <label>合作方</label>
           <input
             type="text"
-            value={formData.gameName}
-            onChange={(e) => handleInputChange('gameName', e.target.value)}
-            placeholder="如：一起来修仙(0.05折)"
-            required
-            className="admin-input"
-          />
-        </div>
-      </div>
-
-      <div className="form-section-title">渠道/游戏/月份 · 结算周期</div>
-      <div className="form-row">
-        <div className="form-group">
-          <label>结算开始日期</label>
-          <input
-            type="date"
-            value={formData.startDate}
-            onChange={(e) => handleInputChange('startDate', e.target.value)}
-            className="admin-input"
-          />
-        </div>
-        <div className="form-group">
-          <label>结算结束日期</label>
-          <input
-            type="date"
-            value={formData.endDate}
-            onChange={(e) => handleInputChange('endDate', e.target.value)}
-            className="admin-input"
-          />
-        </div>
-      </div>
-
-      <div className="form-section-title">金额与分成参数</div>
-      <div className="form-row">
-        <div className="form-group">
-          <label>后台流水</label>
-          <input
-            type="number"
-            step="0.01"
-            value={formData.flow}
-            onChange={(e) => handleInputChange('flow', e.target.value)}
-            className="admin-input"
-          />
-        </div>
-        <div className="form-group">
-          <label>代金券</label>
-          <input
-            type="number"
-            step="0.01"
-            value={formData.voucherCost}
-            onChange={(e) => handleInputChange('voucherCost', e.target.value)}
+            value={header.partnerName}
+            onChange={(e) => handleHeaderChange('partnerName', e.target.value)}
+            placeholder="可选"
             className="admin-input"
           />
         </div>
       </div>
       <div className="form-row three-col">
         <div className="form-group">
-          <label>无忧试</label>
+          <label>结算周期（月份）</label>
           <input
-            type="number"
-            step="0.01"
-            value={formData.noWorryCost}
-            onChange={(e) => handleInputChange('noWorryCost', e.target.value)}
+            type="month"
+            value={header.settlementMonth}
+            onChange={(e) => handleHeaderChange('settlementMonth', e.target.value)}
             className="admin-input"
           />
         </div>
         <div className="form-group">
-          <label>玩家退款</label>
+          <label>账期开始</label>
           <input
-            type="number"
-            step="0.01"
-            value={formData.refundCost}
-            onChange={(e) => handleInputChange('refundCost', e.target.value)}
+            type="date"
+            value={header.startDate}
+            onChange={(e) => handleHeaderChange('startDate', e.target.value)}
             className="admin-input"
           />
         </div>
         <div className="form-group">
-          <label>测试费</label>
+          <label>账期结束</label>
           <input
-            type="number"
-            step="0.01"
-            value={formData.testCost}
-            onChange={(e) => handleInputChange('testCost', e.target.value)}
-            className="admin-input"
-          />
-        </div>
-      </div>
-      <div className="form-row">
-        <div className="form-group">
-          <label>福利币</label>
-          <input
-            type="number"
-            step="0.01"
-            value={formData.welfareCost}
-            onChange={(e) => handleInputChange('welfareCost', e.target.value)}
-            className="admin-input"
-          />
-        </div>
-        <div className="form-group">
-          <label>计费金额（自动）</label>
-          <input
-            type="text"
-            value={formatMoney(calculateBillingAmount(formData))}
-            readOnly
-            className="admin-input readonly-input"
-          />
-        </div>
-      </div>
-
-      <div className="form-section-title">分成与税费</div>
-      <div className="form-row three-col">
-        <div className="form-group">
-          <label>分成比例(%)</label>
-          <input
-            type="number"
-            step="0.01"
-            value={formData.shareRate}
-            onChange={(e) => handleInputChange('shareRate', e.target.value)}
-            className="admin-input"
-          />
-        </div>
-        <div className="form-group">
-          <label>分成金额（自动）</label>
-          <input
-            type="text"
-            value={formatMoney(calculateShareAmount(formData))}
-            readOnly
-            className="admin-input readonly-input"
-          />
-        </div>
-        <div className="form-group">
-          <label>税率(%)</label>
-          <input
-            type="number"
-            step="0.01"
-            value={formData.taxRate}
-            onChange={(e) => handleInputChange('taxRate', e.target.value)}
-            className="admin-input"
-          />
-        </div>
-      </div>
-      <div className="form-row">
-        <div className="form-group">
-          <label>支付通道费</label>
-          <input
-            type="number"
-            step="0.01"
-            value={formData.gatewayCost}
-            onChange={(e) => handleInputChange('gatewayCost', e.target.value)}
+            type="date"
+            value={header.endDate}
+            onChange={(e) => handleHeaderChange('endDate', e.target.value)}
             className="admin-input"
           />
         </div>
       </div>
 
-      <div className="form-section-title">结果预览 · 结算</div>
-      <div className="form-row">
-        <div className="form-group settlement-group full-width">
-          <label>结算金额</label>
+      <div className="form-section-title">2）游戏明细（每行独立按原公式计算结算金额）</div>
+      <div className="channel-line-items-wrap">
+        <table className="channel-line-items-table">
+          <thead>
+            <tr>
+              <th>游戏名称</th>
+              <th>后台流水</th>
+              <th>代金券</th>
+              <th>无忧试</th>
+              <th>玩家退款</th>
+              <th>测试费</th>
+              <th>福利币</th>
+              <th>分成%</th>
+              <th>税率%</th>
+              <th>通道费</th>
+              <th>计费额</th>
+              <th>分成额</th>
+              <th>结算额</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lines.map((row, index) => (
+              <tr key={row.id || `line-${index}`}>
+                <td>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={row.gameName}
+                    onChange={(e) => handleLineChange(index, 'gameName', e.target.value)}
+                    placeholder="必填"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="admin-input"
+                    value={row.flow}
+                    onChange={(e) => handleLineChange(index, 'flow', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="admin-input"
+                    value={row.voucherCost}
+                    onChange={(e) => handleLineChange(index, 'voucherCost', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="admin-input"
+                    value={row.noWorryCost}
+                    onChange={(e) => handleLineChange(index, 'noWorryCost', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="admin-input"
+                    value={row.refundCost}
+                    onChange={(e) => handleLineChange(index, 'refundCost', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="admin-input"
+                    value={row.testCost}
+                    onChange={(e) => handleLineChange(index, 'testCost', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="admin-input"
+                    value={row.welfareCost}
+                    onChange={(e) => handleLineChange(index, 'welfareCost', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="admin-input"
+                    value={row.shareRate}
+                    onChange={(e) => handleLineChange(index, 'shareRate', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="admin-input"
+                    value={row.taxRate}
+                    onChange={(e) => handleLineChange(index, 'taxRate', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="admin-input"
+                    value={row.gatewayCost}
+                    onChange={(e) => handleLineChange(index, 'gatewayCost', e.target.value)}
+                  />
+                </td>
+                <td className="channel-line-num">{formatMoney(calculateBillingAmount(row))}</td>
+                <td className="channel-line-num">{formatMoney(calculateShareAmount(row))}</td>
+                <td>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="admin-input"
+                    value={row.settlementAmount}
+                    onChange={(e) => handleLineChange(index, 'settlementAmount', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    className="rec-btn rec-btn--ghost rec-btn--small"
+                    onClick={() => removeLine(index)}
+                    disabled={lines.length <= 1}
+                  >
+                    删除
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <button type="button" className="rec-btn rec-btn--secondary channel-line-add" onClick={addLine}>
+          + 新增一行游戏
+        </button>
+      </div>
+
+      <div className="form-section-title">3）汇总</div>
+      <div className="form-row four-col channel-totals-row">
+        <div className="form-group">
+          <label>总后台流水</label>
+          <input type="text" readOnly className="admin-input readonly-input" value={totals.flow.toFixed(2)} />
+        </div>
+        <div className="form-group">
+          <label>总代金券</label>
+          <input type="text" readOnly className="admin-input readonly-input" value={totals.voucher.toFixed(2)} />
+        </div>
+        <div className="form-group">
+          <label>总退款</label>
+          <input type="text" readOnly className="admin-input readonly-input" value={totals.refund.toFixed(2)} />
+        </div>
+        <div className="form-group">
+          <label>总结算金额</label>
           <input
-            type="number"
-            step="0.01"
-            value={formData.settlementAmount}
-            onChange={(e) => handleInputChange('settlementAmount', e.target.value)}
-            className="admin-input settlement-input"
+            type="text"
+            readOnly
+            className="admin-input readonly-input settlement-input"
+            value={totals.settlement.toFixed(2)}
           />
         </div>
       </div>
+
+      <div className="form-section-title">备注与其它</div>
       <div className="form-row">
         <div className="form-group full-width">
           <label>备注</label>
           <input
             type="text"
-            value={formData.remark}
-            onChange={(e) => handleInputChange('remark', e.target.value)}
+            value={header.remark}
+            onChange={(e) => handleHeaderChange('remark', e.target.value)}
             className="admin-input"
           />
         </div>

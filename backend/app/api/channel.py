@@ -1,4 +1,4 @@
-"""渠道对账 CRUD API。"""
+"""渠道对账 CRUD API：主表 + 明细行。"""
 
 from __future__ import annotations
 
@@ -6,12 +6,15 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, or_, select
-from sqlalchemy.orm import Session
+from sqlalchemy import delete, exists, func, or_, select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import get_db
-from app.models.channel import ChannelRecord
+from app.models.channel import ChannelRecord, ChannelRecordLineItem
 from app.schemas.channel import (
+    ChannelLineItemCreate,
+    ChannelLineItemRead,
     ChannelRecordCreate,
     ChannelRecordListResponse,
     ChannelRecordRead,
@@ -19,6 +22,87 @@ from app.schemas.channel import (
 )
 
 router = APIRouter()
+
+
+def _sync_denormalized_totals(row: ChannelRecord, db: Session) -> None:
+    """将明细汇总写回主表，便于筛选与旧逻辑读取。"""
+    items = (
+        db.execute(
+            select(ChannelRecordLineItem)
+            .where(ChannelRecordLineItem.channel_record_id == row.id)
+            .order_by(ChannelRecordLineItem.sort_order)
+        )
+        .scalars()
+        .all()
+    )
+    if not items:
+        return
+    row.billing_flow = float(sum(float(i.billing_flow or 0) for i in items))
+    row.voucher_cost = float(sum(float(i.voucher_cost or 0) for i in items))
+    row.no_worry_cost = float(sum(float(i.no_worry_cost or 0) for i in items))
+    row.refund_cost = float(sum(float(i.refund_cost or 0) for i in items))
+    row.test_cost = float(sum(float(i.test_cost or 0) for i in items))
+    row.welfare_cost = float(sum(float(i.welfare_cost or 0) for i in items))
+    row.billing_amount = float(sum(float(i.billing_amount or 0) for i in items))
+    row.share_amount = float(sum(float(i.share_amount or 0) for i in items))
+    row.gateway_cost = float(sum(float(i.gateway_cost or 0) for i in items))
+    row.settlement_amount = float(sum(float(i.settlement_amount or 0) for i in items))
+    row.tax_rate = float(items[0].tax_rate or 0)
+    row.share_rate = float(items[0].share_rate or 0)
+    names = [i.game_name for i in items if i.game_name]
+    row.game_name = "、".join(names)[:2000] if names else None
+
+
+def _legacy_items_from_row(row: ChannelRecord) -> list[ChannelLineItemRead]:
+    if not (row.game_name or row.billing_flow):
+        return []
+    return [
+        ChannelLineItemRead(
+            id=f"legacy-{row.id}",
+            channel_record_id=row.id,
+            sort_order=0,
+            game_name=row.game_name,
+            billing_flow=float(row.billing_flow or 0),
+            voucher_cost=float(row.voucher_cost or 0),
+            no_worry_cost=float(row.no_worry_cost or 0),
+            refund_cost=float(row.refund_cost or 0),
+            test_cost=float(row.test_cost or 0),
+            welfare_cost=float(row.welfare_cost or 0),
+            share_rate=float(row.share_rate or 0),
+            billing_amount=float(row.billing_amount or 0),
+            share_amount=float(row.share_amount or 0),
+            tax_rate=float(row.tax_rate or 0),
+            gateway_cost=float(row.gateway_cost or 0),
+            settlement_amount=float(row.settlement_amount or 0),
+            created_at=row.created_at,
+            updated_at=row.updated_at,
+        )
+    ]
+
+
+def _to_read(row: ChannelRecord) -> ChannelRecordRead:
+    li = list(row.line_items or [])
+    if li:
+        item_reads = [
+            ChannelLineItemRead.model_validate(x) for x in sorted(li, key=lambda x: x.sort_order)
+        ]
+    else:
+        item_reads = _legacy_items_from_row(row)
+    base = ChannelRecordRead.model_validate(row)
+    return base.model_copy(update={"items": item_reads})
+
+
+def _replace_line_items(db: Session, parent_id: str, items: list[ChannelLineItemCreate]) -> None:
+    db.execute(delete(ChannelRecordLineItem).where(ChannelRecordLineItem.channel_record_id == parent_id))
+    for idx, it in enumerate(items):
+        db.add(
+            ChannelRecordLineItem(
+                id=str(uuid4()),
+                channel_record_id=parent_id,
+                sort_order=idx,
+                **it.model_dump(),
+            )
+        )
 
 
 def _apply_filters(
@@ -32,6 +116,12 @@ def _apply_filters(
 ):
     if search and search.strip():
         term = f"%{search.strip()}%"
+        item_game = exists(
+            select(ChannelRecordLineItem.id).where(
+                ChannelRecordLineItem.channel_record_id == ChannelRecord.id,
+                ChannelRecordLineItem.game_name.ilike(term),
+            )
+        )
         stmt = stmt.where(
             or_(
                 ChannelRecord.channel_name.ilike(term),
@@ -39,6 +129,7 @@ def _apply_filters(
                 ChannelRecord.settlement_month.ilike(term),
                 ChannelRecord.remark.ilike(term),
                 ChannelRecord.start_date.ilike(term),
+                item_game,
             )
         )
     if settlement_month and settlement_month.strip():
@@ -46,7 +137,15 @@ def _apply_filters(
     if channel_name and channel_name.strip():
         stmt = stmt.where(ChannelRecord.channel_name.ilike(f"%{channel_name.strip()}%"))
     if game_name and game_name.strip():
-        stmt = stmt.where(ChannelRecord.game_name.ilike(f"%{game_name.strip()}%"))
+        t = f"%{game_name.strip()}%"
+        stmt = stmt.where(
+            exists(
+                select(ChannelRecordLineItem.id).where(
+                    ChannelRecordLineItem.channel_record_id == ChannelRecord.id,
+                    ChannelRecordLineItem.game_name.ilike(t),
+                )
+            )
+        )
     if status and status.strip():
         stmt = stmt.where(ChannelRecord.status == status.strip())
     return stmt
@@ -63,7 +162,7 @@ def list_channel_records(
     limit: int = Query(200, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ) -> ChannelRecordListResponse:
-    base = select(ChannelRecord)
+    base = select(ChannelRecord).options(selectinload(ChannelRecord.line_items))
     base = _apply_filters(
         base,
         search=search,
@@ -87,33 +186,50 @@ def list_channel_records(
         .scalars()
         .all()
     )
-    return ChannelRecordListResponse(
-        items=[ChannelRecordRead.model_validate(r) for r in rows],
-        total=total,
-    )
+    return ChannelRecordListResponse(items=[_to_read(r) for r in rows], total=total)
 
 
 @router.get("/{record_id}", response_model=ChannelRecordRead)
 def get_channel_record(record_id: str, db: Session = Depends(get_db)) -> ChannelRecordRead:
-    row = db.get(ChannelRecord, record_id)
+    row = db.execute(
+        select(ChannelRecord)
+        .options(selectinload(ChannelRecord.line_items))
+        .where(ChannelRecord.id == record_id)
+    ).scalar_one_or_none()
     if row is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"error": "not_found", "id": record_id},
         )
-    return ChannelRecordRead.model_validate(row)
+    return _to_read(row)
 
 
 @router.post("", response_model=ChannelRecordRead, status_code=status.HTTP_201_CREATED)
 def create_channel_record(
     payload: ChannelRecordCreate, db: Session = Depends(get_db)
 ) -> ChannelRecordRead:
-    data = payload.model_dump()
-    row = ChannelRecord(id=str(uuid4()), **data)
+    if not payload.items:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"error": "items_required", "message": "至少录入一行游戏明细"},
+        )
+    header = payload.model_dump(exclude={"items"})
+    row = ChannelRecord(id=str(uuid4()), **header)
     db.add(row)
-    db.commit()
-    db.refresh(row)
-    return ChannelRecordRead.model_validate(row)
+    db.flush()
+    _replace_line_items(db, row.id, payload.items)
+    _sync_denormalized_totals(row, db)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={"error": "conflict"}) from None
+    row = db.execute(
+        select(ChannelRecord)
+        .options(selectinload(ChannelRecord.line_items))
+        .where(ChannelRecord.id == row.id)
+    ).scalar_one()
+    return _to_read(row)
 
 
 @router.put("/{record_id}", response_model=ChannelRecordRead)
@@ -126,12 +242,30 @@ def update_channel_record(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"error": "not_found", "id": record_id},
         )
-    for key, value in payload.model_dump(exclude_unset=True).items():
+    data = payload.model_dump(exclude_unset=True)
+    items_payload = data.pop("items", None)
+    for key, value in data.items():
         setattr(row, key, value)
     row.updated_at = datetime.now(timezone.utc)
-    db.commit()
-    db.refresh(row)
-    return ChannelRecordRead.model_validate(row)
+    if items_payload is not None:
+        if not items_payload:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail={"error": "items_required", "message": "至少保留一行游戏明细"},
+            )
+        _replace_line_items(db, record_id, [ChannelLineItemCreate(**x) for x in items_payload])
+        _sync_denormalized_totals(row, db)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={"error": "conflict"}) from None
+    row = db.execute(
+        select(ChannelRecord)
+        .options(selectinload(ChannelRecord.line_items))
+        .where(ChannelRecord.id == record_id)
+    ).scalar_one()
+    return _to_read(row)
 
 
 @router.delete("/{record_id}", status_code=status.HTTP_204_NO_CONTENT)

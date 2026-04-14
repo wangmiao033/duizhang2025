@@ -8,7 +8,15 @@ import '@/components/reconciliation/reconciliation-admin.css'
 import { useAppState } from '@/app/AppStateContext.jsx'
 import ChannelLightDrawer from '@/components/channel/ChannelLightDrawer.jsx'
 import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
-import { initialForm, buildRecordFromForm } from '@/domain/channel/channelBillingForm.js'
+import {
+  initialForm,
+  buildChannelBillFromSingleGameForm
+} from '@/domain/channel/channelBillingForm.js'
+import {
+  getChannelGamesDisplay,
+  getChannelLineItems,
+  getChannelTotals
+} from '@/domain/channel/channelAggregates.js'
 import { getChannelRecordId } from '@/lib/api/channel.ts'
 import { VIEWS } from '@/app/routes.js'
 import { consumeChannelFocus } from '@/lib/exceptions/navFocus.ts'
@@ -110,7 +118,9 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
   const gameOptions = useMemo(() => {
     const set = new Set()
     channelRecords.forEach((r) => {
-      if (r.gameName) set.add(r.gameName)
+      getChannelLineItems(r).forEach((line) => {
+        if (line.gameName) set.add(String(line.gameName))
+      })
     })
     return Array.from(set).sort()
   }, [channelRecords])
@@ -131,20 +141,27 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
       list = list.filter((r) => (r.channelName || '') === channelFilter)
     }
     if (gameFilter) {
-      list = list.filter((r) => (r.gameName || '') === gameFilter)
+      list = list.filter((r) =>
+        getChannelLineItems(r).some((line) => (line.gameName || '') === gameFilter)
+      )
     }
     list = list.filter((r) => recordMatchesStatusFilter(r, statusFilter))
 
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
-      list = list.filter(
-        (record) =>
-          String(getChannelRecordId(record) || '')
-            .toLowerCase()
-            .includes(term) ||
-          (record.channelName || '').toLowerCase().includes(term) ||
-          (record.gameName || '').toLowerCase().includes(term)
-      )
+      list = list.filter((record) => {
+        const blob = [
+          getChannelRecordId(record),
+          record.channelName,
+          record.partnerName,
+          record.gameName,
+          ...getChannelLineItems(record).map((l) => l.gameName)
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+        return blob.includes(term)
+      })
     }
 
     return list
@@ -160,13 +177,23 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
 
   const statistics = useMemo(() => {
     return filteredRecords.reduce(
-      (acc, record) => ({
-        totalFlow: acc.totalFlow + (parseFloat(record.flow) || 0),
-        totalSettlement: acc.totalSettlement + (parseFloat(record.settlementAmount) || 0),
-        totalServerCost: acc.totalServerCost + (parseFloat(record.serverCost) || 0),
-        totalVoucherCost: acc.totalVoucherCost + (parseFloat(record.voucherCost) || 0)
-      }),
-      { totalFlow: 0, totalSettlement: 0, totalServerCost: 0, totalVoucherCost: 0 }
+      (acc, record) => {
+        const t = getChannelTotals(record)
+        return {
+          totalFlow: acc.totalFlow + t.flow,
+          totalSettlement: acc.totalSettlement + t.settlementAmount,
+          totalServerCost: acc.totalServerCost + (parseFloat(record.serverCost) || 0),
+          totalVoucherCost: acc.totalVoucherCost + t.voucherCost,
+          totalRefundCost: acc.totalRefundCost + t.refundCost
+        }
+      },
+      {
+        totalFlow: 0,
+        totalSettlement: 0,
+        totalServerCost: 0,
+        totalVoucherCost: 0,
+        totalRefundCost: 0
+      }
     )
   }, [filteredRecords])
 
@@ -192,17 +219,23 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
         }
       }
       grouped[channelName].records.push(record)
-      grouped[channelName].totalFlow += parseFloat(record.flow) || 0
-      grouped[channelName].totalSettlement += parseFloat(record.settlementAmount) || 0
-      grouped[channelName].totalVoucherCost += parseFloat(record.voucherCost) || 0
+      const t = getChannelTotals(record)
+      grouped[channelName].totalFlow += t.flow
+      grouped[channelName].totalSettlement += t.settlementAmount
+      grouped[channelName].totalVoucherCost += t.voucherCost
+      const lines = getChannelLineItems(record)
       grouped[channelName].totalNoWorryCost =
-        (grouped[channelName].totalNoWorryCost || 0) + (parseFloat(record.noWorryCost) || 0)
+        (grouped[channelName].totalNoWorryCost || 0) +
+        lines.reduce((s, l) => s + (parseFloat(l.noWorryCost) || 0), 0)
       grouped[channelName].totalRefundCost =
-        (grouped[channelName].totalRefundCost || 0) + (parseFloat(record.refundCost) || 0)
-      grouped[channelName].totalTestCost += parseFloat(record.testCost) || 0
+        (grouped[channelName].totalRefundCost || 0) + t.refundCost
+      grouped[channelName].totalTestCost += lines.reduce((s, l) => s + (parseFloat(l.testCost) || 0), 0)
       grouped[channelName].totalWelfareCost =
-        (grouped[channelName].totalWelfareCost || 0) + (parseFloat(record.welfareCost) || 0)
-      grouped[channelName].games.add(record.gameName)
+        (grouped[channelName].totalWelfareCost || 0) +
+        lines.reduce((s, l) => s + (parseFloat(l.welfareCost) || 0), 0)
+      lines.forEach((line) => {
+        if (line.gameName) grouped[channelName].games.add(line.gameName)
+      })
     })
 
     return Object.values(grouped)
@@ -265,23 +298,36 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
       showToast('没有可导出的记录', 'info')
       return
     }
-    const rows = filteredRecords.map((r) => ({
-      渠道: r.channelName,
-      游戏: r.gameName,
-      结算开始: r.startDate,
-      结算结束: r.endDate,
-      后台流水: r.flow,
-      代金券: r.voucherCost,
-      无忧试: r.noWorryCost,
-      玩家退款: r.refundCost,
-      测试费: r.testCost,
-      福利币: r.welfareCost,
-      分成比例: r.shareRate,
-      税率: r.taxRate,
-      通道费: r.gatewayCost,
-      结算金额: r.settlementAmount,
-      备注: r.remark
-    }))
+    const rows = []
+    filteredRecords.forEach((r) => {
+      const lines = getChannelLineItems(r)
+      const base = {
+        渠道: r.channelName,
+        合作方: r.partnerName,
+        结算开始: r.startDate,
+        结算结束: r.endDate,
+        结算月份: r.settlementMonth,
+        备注: r.remark
+      }
+      lines.forEach((line) => {
+        rows.push({
+          ...base,
+          游戏: line.gameName,
+          后台流水: line.flow,
+          代金券: line.voucherCost,
+          无忧试: line.noWorryCost,
+          玩家退款: line.refundCost,
+          测试费: line.testCost,
+          福利币: line.welfareCost,
+          分成比例: line.shareRate,
+          税率: line.taxRate,
+          通道费: line.gatewayCost,
+          计费金额: line.billingAmount,
+          分成金额: line.shareAmount,
+          结算金额: line.settlementAmount
+        })
+      })
+    })
     const ws = XLSX.utils.json_to_sheet(rows)
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, '渠道对账')
@@ -295,12 +341,17 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
       showToast('请先勾选记录', 'info')
       return
     }
-    const data = rows.map((r) => ({
-      渠道: r.channelName,
-      游戏: r.gameName,
-      后台流水: r.flow,
-      结算金额: r.settlementAmount
-    }))
+    const data = []
+    rows.forEach((r) => {
+      getChannelLineItems(r).forEach((line) => {
+        data.push({
+          渠道: r.channelName,
+          游戏: line.gameName,
+          后台流水: line.flow,
+          结算金额: line.settlementAmount
+        })
+      })
+    })
     const ws = XLSX.utils.json_to_sheet(data)
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, '选中')
@@ -360,7 +411,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
         json.forEach((row) => {
           const fd = mapExcelRowToForm(row)
           if (!fd.channelName || !fd.gameName) return
-          batch.push(buildRecordFromForm(fd))
+          batch.push(buildChannelBillFromSingleGameForm(fd))
         })
         if (batch.length > 0) {
           if (onAddRecordsBatch) {
@@ -643,59 +694,72 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                             </tr>
                           </thead>
                           <tbody>
-                            {channel.records.map((record) => {
+                            {channel.records.flatMap((record) => {
                               const rid = getChannelRecordId(record) || record.id
-                              const flow = parseFloat(record.flow) || 0
-                              const voucher = parseFloat(record.voucherCost) || 0
-                              const noWorry = parseFloat(record.noWorryCost) || 0
-                              const refund = parseFloat(record.refundCost) || 0
-                              const test = parseFloat(record.testCost) || 0
-                              const welfare = parseFloat(record.welfareCost) || 0
-                              const billingAmount = flow - voucher - noWorry - refund - test - welfare
-                              const shareRate = parseFloat(record.shareRate || record.cfChannelRate || 30)
-                              const shareAmount = billingAmount * shareRate / 100
-                              const settlement = parseFloat(record.settlementAmount) || shareAmount
-
-                              return (
-                                <tr key={rid}>
-                                  <td>
-                                    <input
-                                      type="checkbox"
-                                      checked={rowSelected(rid)}
-                                      onChange={() => toggleSelect(rid)}
-                                      aria-label="选择行"
-                                    />
-                                  </td>
-                                  <td className="game-name-cell">{record.gameName}</td>
-                                  <td>{formatMoney(flow)}</td>
-                                  <td>{voucher}</td>
-                                  <td>{test}</td>
-                                  <td>{formatMoney(billingAmount)}</td>
-                                  <td>{shareRate}%</td>
-                                  <td>{formatMoney(shareAmount)}</td>
-                                  <td>{record.taxRate || 5}%</td>
-                                  <td className="settlement">{formatMoney(settlement)}</td>
-                                  <td className="actions">
-                                    <button
-                                      type="button"
-                                      className="edit-btn"
-                                      onClick={() => setLightDrawerRecord(record)}
-                                    >
-                                      查看
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="edit-btn"
-                                      onClick={() => openChannelReconciliationEdit(rid)}
-                                    >
-                                      编辑
-                                    </button>
-                                    <button type="button" className="delete-btn" onClick={() => handleDelete(rid)}>
-                                      删除
-                                    </button>
-                                  </td>
-                                </tr>
-                              )
+                              const lines = getChannelLineItems(record)
+                              return lines.map((line, lineIdx) => {
+                                const flow = parseFloat(line.flow) || 0
+                                const voucher = parseFloat(line.voucherCost) || 0
+                                const noWorry = parseFloat(line.noWorryCost) || 0
+                                const refund = parseFloat(line.refundCost) || 0
+                                const test = parseFloat(line.testCost) || 0
+                                const welfare = parseFloat(line.welfareCost) || 0
+                                const billingAmount = flow - voucher - noWorry - refund - test - welfare
+                                const shareRate = parseFloat(line.shareRate ||30)
+                                const shareAmount = billingAmount * (shareRate / 100)
+                                const settlement = parseFloat(line.settlementAmount) || shareAmount
+                                const rowKey = `${rid}-${lineIdx}`
+                                return (
+                                  <tr key={rowKey}>
+                                    <td>
+                                      {lineIdx === 0 ? (
+                                        <input
+                                          type="checkbox"
+                                          checked={rowSelected(rid)}
+                                          onChange={() => toggleSelect(rid)}
+                                          aria-label="选择行"
+                                        />
+                                      ) : null}
+                                    </td>
+                                    <td className="game-name-cell">{line.gameName}</td>
+                                    <td>{formatMoney(flow)}</td>
+                                    <td>{voucher}</td>
+                                    <td>{test}</td>
+                                    <td>{formatMoney(billingAmount)}</td>
+                                    <td>{shareRate}%</td>
+                                    <td>{formatMoney(shareAmount)}</td>
+                                    <td>{line.taxRate ?? 5}%</td>
+                                    <td className="settlement">{formatMoney(settlement)}</td>
+                                    <td className="actions">
+                                      {lineIdx === 0 ? (
+                                        <>
+                                          <button
+                                            type="button"
+                                            className="edit-btn"
+                                            onClick={() => setLightDrawerRecord(record)}
+                                          >
+                                            查看
+                                          </button>
+                                          <button
+                                            type="button"
+                                            className="edit-btn"
+                                            onClick={() => openChannelReconciliationEdit(rid)}
+                                          >
+                                            编辑
+                                          </button>
+                                          <button
+                                            type="button"
+                                            className="delete-btn"
+                                            onClick={() => handleDelete(rid)}
+                                          >
+                                            删除
+                                          </button>
+                                        </>
+                                      ) : null}
+                                    </td>
+                                  </tr>
+                                )
+                              })
                             })}
                           </tbody>
                           <tfoot>
@@ -791,11 +855,11 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                             aria-label="选择行"
                           />
                         </td>
-                        <td className="game-name" title={record.gameName}>
-                          {record.gameName}
+                        <td className="game-name" title={getChannelGamesDisplay(record)}>
+                          {getChannelGamesDisplay(record)}
                         </td>
                         <td className="channel-name">{record.channelName}</td>
-                        <td>{formatMoney(parseFloat(record.flow) || 0)}</td>
+                        <td>{formatMoney(getChannelTotals(record).flow)}</td>
                         <td>{record.discountType}</td>
                         <td>{record.channelFeeRate}%</td>
                         <td>{record.devShareRate}%</td>
@@ -805,8 +869,10 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                           </span>
                         </td>
                         <td>{record.serverCost || '-'}</td>
-                        <td>{record.voucherCost || '-'}</td>
-                        <td className="settlement">{formatMoney(parseFloat(record.settlementAmount) || 0)}</td>
+                        <td>{getChannelTotals(record).voucherCost || '-'}</td>
+                        <td className="settlement">
+                          {formatMoney(getChannelTotals(record).settlementAmount)}
+                        </td>
                         <td className="actions">
                           <button
                             type="button"

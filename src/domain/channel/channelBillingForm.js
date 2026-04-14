@@ -1,23 +1,45 @@
 /**
- * 渠道对账表单：金额链路与 buildRecordFromForm（与 ChannelBilling 历史逻辑一致，仅集中导出）
+ * 渠道对账表单：单行计算（calculate*）与多行汇总（buildFullChannelRecord）
  */
 
-export const initialForm = {
+import { getChannelLineItems } from '@/domain/channel/channelAggregates.js'
+
+export const initialHeaderForm = {
   channelName: '',
-  gameName: '',
+  partnerName: '',
+  settlementMonth: '',
   startDate: '',
   endDate: '',
-  flow: '',
-  voucherCost: '',
-  noWorryCost: '',
-  refundCost: '',
-  testCost: '',
-  welfareCost: '',
-  shareRate: '30',
-  taxRate: '5',
-  gatewayCost: '',
-  settlementAmount: '',
-  remark: ''
+  remark: '',
+  status: 'pending',
+  serverCost: '',
+  discountType: '',
+  channelFeeRate: '',
+  devShareRate: '',
+  profitRate: ''
+}
+
+export function initialLineItem() {
+  return {
+    id: '',
+    gameName: '',
+    flow: '',
+    voucherCost: '',
+    noWorryCost: '',
+    refundCost: '',
+    testCost: '',
+    welfareCost: '',
+    shareRate: '30',
+    taxRate: '5',
+    gatewayCost: '',
+    settlementAmount: ''
+  }
+}
+
+/** Excel 单游戏行映射仍使用扁平 initialForm */
+export const initialForm = {
+  ...initialHeaderForm,
+  ...initialLineItem()
 }
 
 export function calculateBillingAmount(data) {
@@ -44,42 +66,150 @@ export function calculateSettlement(data) {
   return shareAmount - gatewayCost - taxAmount
 }
 
-export function buildRecordFromForm(fd) {
+function resolveSettlementAmount(fd) {
+  const auto = calculateSettlement(fd)
+  const raw = fd.settlementAmount
+  if (raw === '' || raw === undefined || raw === null) return Math.round(auto * 100) / 100
+  const parsed = parseFloat(raw)
+  if (!Number.isFinite(parsed)) return Math.round(auto * 100) / 100
+  return Math.round(parsed * 100) / 100
+}
+
+/** 单行游戏明细（数值化 + 计费/分成/结算），公式与历史单游戏一致 */
+export function buildLineRecordFromForm(fd) {
   const billingAmount = calculateBillingAmount(fd)
   const shareAmount = calculateShareAmount(fd)
+  const settlementAmount = resolveSettlementAmount(fd)
   return {
-    ...fd,
+    gameName: fd.gameName != null ? String(fd.gameName) : '',
     flow: parseFloat(fd.flow || 0),
     voucherCost: parseFloat(fd.voucherCost || 0),
     noWorryCost: parseFloat(fd.noWorryCost || 0),
     refundCost: parseFloat(fd.refundCost || 0),
     testCost: parseFloat(fd.testCost || 0),
     welfareCost: parseFloat(fd.welfareCost || 0),
-    billingAmount,
+    billingAmount: Math.round(billingAmount * 100) / 100,
     shareRate: parseFloat(fd.shareRate || 0),
-    shareAmount,
+    shareAmount: Math.round(shareAmount * 100) / 100,
     taxRate: parseFloat(fd.taxRate || 0),
     gatewayCost: parseFloat(fd.gatewayCost || 0),
-    settlementAmount: parseFloat(fd.settlementAmount || 0)
+    settlementAmount
   }
 }
 
-export function recordToFormData(record) {
+function parseOptionalNum(v) {
+  if (v === '' || v === undefined || v === null) return null
+  const n = parseFloat(String(v))
+  return Number.isFinite(n) ? n : null
+}
+
+/** 整单：公共字段 + items[] + 主表汇总字段（sum） */
+export function buildFullChannelRecord(headerForm, lineFormList) {
+  const items = lineFormList.map((row) => buildLineRecordFromForm(row))
+  const sum = (getter) => items.reduce((s, it) => s + (getter(it) || 0), 0)
+  return {
+    channelName: headerForm.channelName,
+    partnerName: headerForm.partnerName || '',
+    settlementMonth: headerForm.settlementMonth || '',
+    startDate: headerForm.startDate || '',
+    endDate: headerForm.endDate || '',
+    remark: headerForm.remark || '',
+    status: headerForm.status || 'pending',
+    serverCost: parseOptionalNum(headerForm.serverCost),
+    discountType: headerForm.discountType || null,
+    channelFeeRate: parseOptionalNum(headerForm.channelFeeRate),
+    devShareRate: parseOptionalNum(headerForm.devShareRate),
+    profitRate: parseOptionalNum(headerForm.profitRate),
+    items,
+    gameName: items.map((i) => i.gameName).filter(Boolean).join('、'),
+    flow: sum((i) => i.flow),
+    voucherCost: sum((i) => i.voucherCost),
+    noWorryCost: sum((i) => i.noWorryCost),
+    refundCost: sum((i) => i.refundCost),
+    testCost: sum((i) => i.testCost),
+    welfareCost: sum((i) => i.welfareCost),
+    billingAmount: sum((i) => i.billingAmount),
+    shareAmount: sum((i) => i.shareAmount),
+    taxRate: items.length ? items[0].taxRate : 0,
+    shareRate: items.length ? items[0].shareRate : 0,
+    gatewayCost: sum((i) => i.gatewayCost),
+    settlementAmount: sum((i) => i.settlementAmount)
+  }
+}
+
+/** Excel / 单游戏导入：一单一行游戏 */
+export function buildChannelBillFromSingleGameForm(fd) {
+  return buildFullChannelRecord(
+    {
+      channelName: fd.channelName,
+      partnerName: fd.partnerName || '',
+      settlementMonth: fd.settlementMonth || '',
+      startDate: fd.startDate || '',
+      endDate: fd.endDate || '',
+      remark: fd.remark || '',
+      status: 'pending',
+      serverCost: '',
+      discountType: '',
+      channelFeeRate: '',
+      devShareRate: '',
+      profitRate: ''
+    },
+    [fd]
+  )
+}
+
+/** @deprecated 单游戏；请用 buildChannelBillFromSingleGameForm或 buildLineRecordFromForm */
+export function buildRecordFromForm(fd) {
+  const line = buildLineRecordFromForm(fd)
+  return {
+    ...fd,
+    ...line,
+    channelName: fd.channelName,
+    startDate: fd.startDate,
+    endDate: fd.endDate,
+    remark: fd.remark
+  }
+}
+
+export function recordToHeaderForm(record) {
   return {
     channelName: record.channelName || '',
-    gameName: record.gameName || '',
+    partnerName: record.partnerName || '',
+    settlementMonth: record.settlementMonth || '',
     startDate: record.startDate || '',
     endDate: record.endDate || '',
-    flow: String(record.flow ?? ''),
-    voucherCost: String(record.voucherCost ?? ''),
-    noWorryCost: String(record.noWorryCost ?? ''),
-    refundCost: String(record.refundCost ?? ''),
-    testCost: String(record.testCost ?? ''),
-    welfareCost: String(record.welfareCost ?? ''),
-    shareRate: String(record.shareRate ?? '30'),
-    taxRate: String(record.taxRate ?? '5'),
-    gatewayCost: String(record.gatewayCost ?? ''),
-    settlementAmount: String(record.settlementAmount ?? ''),
-    remark: record.remark || ''
+    remark: record.remark || '',
+    status: record.status || 'pending',
+    serverCost: record.serverCost != null && record.serverCost !== '' ? String(record.serverCost) : '',
+    discountType: record.discountType != null ? String(record.discountType) : '',
+    channelFeeRate:
+      record.channelFeeRate != null && record.channelFeeRate !== '' ? String(record.channelFeeRate) : '',
+    devShareRate: record.devShareRate != null && record.devShareRate !== '' ? String(record.devShareRate) : '',
+    profitRate: record.profitRate != null && record.profitRate !== '' ? String(record.profitRate) : ''
   }
+}
+
+export function recordToLineForms(record) {
+  return getChannelLineItems(record).map((line) => ({
+    id: line.id != null ? String(line.id) : '',
+    gameName: line.gameName || '',
+    flow: String(line.flow ?? ''),
+    voucherCost: String(line.voucherCost ?? ''),
+    noWorryCost: String(line.noWorryCost ?? ''),
+    refundCost: String(line.refundCost ?? ''),
+    testCost: String(line.testCost ?? ''),
+    welfareCost: String(line.welfareCost ?? ''),
+    shareRate: String(line.shareRate ?? '30'),
+    taxRate: String(line.taxRate ?? '5'),
+    gatewayCost: String(line.gatewayCost ?? ''),
+    settlementAmount: String(line.settlementAmount ?? '')
+  }))
+}
+
+/** 兼容旧代码：首行与表头合并为扁平表单 */
+export function recordToFormData(record) {
+  const h = recordToHeaderForm(record)
+  const lines = recordToLineForms(record)
+  const first = lines[0] || initialLineItem()
+  return { ...h, ...first }
 }

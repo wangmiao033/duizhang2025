@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { StatusSelector } from '@/components/StatusManager.jsx'
 import { getChannelRecordId } from '@/lib/api/channel.ts'
+import { getChannelGamesDisplay, getChannelTotals } from '@/domain/channel/channelAggregates.js'
 
 /**
  * 渠道对账轻量侧栏：摘要、状态、备注；完整编辑跳转独立页。
@@ -41,8 +42,9 @@ function ChannelLightDrawer({
     void onUpdateRecord?.(recordId, { ...record, remark: next })
   }
 
-  const flow = parseFloat(record.flow) || 0
-  const settlement = parseFloat(record.settlementAmount) || 0
+  const totals = getChannelTotals(record)
+  const flow = totals.flow
+  const settlement = totals.settlementAmount
 
   return (
     <>
@@ -66,7 +68,7 @@ function ChannelLightDrawer({
             <dt>渠道</dt>
             <dd>{record.channelName || '—'}</dd>
             <dt>游戏</dt>
-            <dd>{record.gameName || '—'}</dd>
+            <dd>{getChannelGamesDisplay(record) || '—'}</dd>
             <dt>结算区间</dt>
             <dd>
               {record.startDate || '—'} ~ {record.endDate || '—'}

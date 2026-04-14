@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react'
+import { expandChannelRecordByGameLines } from '@/domain/channel/channelAggregates.js'
 import './ProjectProfit.css'
 
 function ProjectProfit({ records, channelRecords = [] }) {
@@ -42,8 +43,9 @@ function ProjectProfit({ records, channelRecords = [] }) {
       }
     })
 
-    // 处理渠道对账（收入）
-    channelRecords.forEach(record => {
+    // 处理渠道对账（收入）：多游戏一单拆成多行虚拟记录按游戏归类
+    const channelRows = channelRecords.flatMap((r) => expandChannelRecordByGameLines(r))
+    channelRows.forEach((record) => {
       const gameName = record.gameName || '未命名项目'
       
       if (!grouped[gameName]) {
@@ -63,7 +65,7 @@ function ProjectProfit({ records, channelRecords = [] }) {
       }
 
       grouped[gameName].channelRecords.push(record)
-      grouped[gameName].totalChannelSettlement += parseFloat(record.settlementAmount || 0)
+      grouped[gameName].totalChannelSettlement += parseFloat(record.settlementAmount ?? 0)
       
       if (record.channelName) {
         grouped[gameName].channels.add(record.channelName)

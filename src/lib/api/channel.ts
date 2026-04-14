@@ -1,12 +1,34 @@
 /**
- * 渠道对账 REST API
+ * 渠道对账 REST API（主表 + 明细 items）
  */
 
 import { apiDelete, apiGet, apiPost, apiPut } from '@/lib/api/client.ts'
 
+export type ApiChannelLineItem = {
+  id: string
+  channel_record_id: string
+  sort_order: number
+  game_name: string | null
+  billing_flow: number
+  voucher_cost: number
+  no_worry_cost: number
+  refund_cost: number
+  test_cost: number
+  welfare_cost: number
+  share_rate: number
+  billing_amount: number
+  share_amount: number
+  tax_rate: number
+  gateway_cost: number
+  settlement_amount: number
+  created_at: string
+  updated_at: string
+}
+
 export type ApiChannelRow = {
   id: string
   channel_name: string | null
+  partner_name: string | null
   game_name: string | null
   settlement_month: string | null
   start_date: string | null
@@ -32,6 +54,7 @@ export type ApiChannelRow = {
   profit_rate: number | null
   created_at: string
   updated_at: string
+  items?: ApiChannelLineItem[]
 }
 
 export type ChannelListResponse = {
@@ -39,12 +62,8 @@ export type ChannelListResponse = {
   total: number
 }
 
-export type ChannelRecordPayload = {
-  channel_name?: string | null
+export type ChannelLinePayload = {
   game_name?: string | null
-  settlement_month?: string | null
-  start_date?: string | null
-  end_date?: string | null
   billing_flow: number
   voucher_cost: number
   no_worry_cost: number
@@ -57,16 +76,27 @@ export type ChannelRecordPayload = {
   tax_rate: number
   gateway_cost: number
   settlement_amount: number
-  status?: string | null
+}
+
+export type ChannelRecordPayload = {
+  channel_name?: string | null
+  partner_name?: string | null
+  settlement_month?: string | null
+  start_date?: string | null
+  end_date?: string | null
   remark?: string | null
+  status?: string | null
   server_cost?: number | null
   discount_type?: string | null
   channel_fee_rate?: number | null
   dev_share_rate?: number | null
   profit_rate?: number | null
+  items: ChannelLinePayload[]
 }
 
-export type ChannelRecordUpdatePayload = Partial<ChannelRecordPayload>
+export type ChannelRecordUpdatePayload = Partial<Omit<ChannelRecordPayload, 'items'>> & {
+  items?: ChannelLinePayload[]
+}
 
 const PATH = '/api/channel-records'
 
@@ -99,10 +129,7 @@ export function createChannelRecord(payload: ChannelRecordPayload): Promise<ApiC
   return apiPost<ApiChannelRow>(PATH, payload)
 }
 
-export function updateChannelRecord(
-  id: string,
-  payload: ChannelRecordUpdatePayload
-): Promise<ApiChannelRow> {
+export function updateChannelRecord(id: string, payload: ChannelRecordUpdatePayload): Promise<ApiChannelRow> {
   return apiPut<ApiChannelRow>(`${PATH}/${encodeURIComponent(id)}`, payload)
 }
 
@@ -116,11 +143,52 @@ function numOrNull(v: unknown): number | null {
   return Number.isFinite(n) ? n : null
 }
 
-/** API 行 -> 前端 ChannelBilling 使用的记录（camelCase，与 channelBillingForm / buildRecordFromForm 一致） */
+function apiLineToFrontend(row: ApiChannelLineItem): Record<string, unknown> {
+  return {
+    id: row.id != null ? String(row.id) : '',
+    channelRecordId: row.channel_record_id,
+    sortOrder: row.sort_order,
+    gameName: row.game_name ?? '',
+    flow: row.billing_flow,
+    voucherCost: row.voucher_cost,
+    noWorryCost: row.no_worry_cost,
+    refundCost: row.refund_cost,
+    testCost: row.test_cost,
+    welfareCost: row.welfare_cost,
+    shareRate: row.share_rate,
+    billingAmount: row.billing_amount,
+    shareAmount: row.share_amount,
+    taxRate: row.tax_rate,
+    gatewayCost: row.gateway_cost,
+    settlementAmount: row.settlement_amount
+  }
+}
+
+function frontendLineToPayload(line: Record<string, unknown>): ChannelLinePayload {
+  return {
+    game_name: (line.gameName as string) || null,
+    billing_flow: parseFloat(String(line.flow ?? 0)),
+    voucher_cost: parseFloat(String(line.voucherCost ?? 0)),
+    no_worry_cost: parseFloat(String(line.noWorryCost ?? 0)),
+    refund_cost: parseFloat(String(line.refundCost ?? 0)),
+    test_cost: parseFloat(String(line.testCost ?? 0)),
+    welfare_cost: parseFloat(String(line.welfareCost ?? 0)),
+    share_rate: parseFloat(String(line.shareRate ?? 0)),
+    billing_amount: parseFloat(String(line.billingAmount ?? 0)),
+    share_amount: parseFloat(String(line.shareAmount ?? 0)),
+    tax_rate: parseFloat(String(line.taxRate ?? 0)),
+    gateway_cost: parseFloat(String(line.gatewayCost ?? 0)),
+    settlement_amount: parseFloat(String(line.settlementAmount ?? 0))
+  }
+}
+
+/** API 行 -> 前端列表/表单（含 items） */
 export function apiChannelRowToFrontend(row: ApiChannelRow): Record<string, unknown> {
+  const items = (row.items ?? []).map(apiLineToFrontend)
   return {
     id: row.id != null ? String(row.id) : '',
     channelName: row.channel_name ?? '',
+    partnerName: row.partner_name ?? '',
     gameName: row.game_name ?? '',
     settlementMonth: row.settlement_month ?? '',
     startDate: row.start_date ?? '',
@@ -143,37 +211,29 @@ export function apiChannelRowToFrontend(row: ApiChannelRow): Record<string, unkn
     discountType: row.discount_type ?? '',
     channelFeeRate: row.channel_fee_rate,
     devShareRate: row.dev_share_rate,
-    profitRate: row.profit_rate
+    profitRate: row.profit_rate,
+    items
   }
 }
 
-/** 前端记录（buildRecordFromForm 或列表行）-> API 写入体 */
+/** 前端整单 -> API 写入体（新建须含 items） */
 export function frontendChannelRecordToPayload(record: Record<string, unknown>): ChannelRecordPayload {
+  const rawItems = record.items as Record<string, unknown>[] | undefined
+  const items = Array.isArray(rawItems) ? rawItems.map(frontendLineToPayload) : []
   return {
     channel_name: (record.channelName as string) || null,
-    game_name: (record.gameName as string) || null,
+    partner_name: (record.partnerName as string) || null,
     settlement_month: (record.settlementMonth as string) || null,
     start_date: (record.startDate as string) || null,
     end_date: (record.endDate as string) || null,
-    billing_flow: parseFloat(String(record.flow ?? 0)),
-    voucher_cost: parseFloat(String(record.voucherCost ?? 0)),
-    no_worry_cost: parseFloat(String(record.noWorryCost ?? 0)),
-    refund_cost: parseFloat(String(record.refundCost ?? 0)),
-    test_cost: parseFloat(String(record.testCost ?? 0)),
-    welfare_cost: parseFloat(String(record.welfareCost ?? 0)),
-    share_rate: parseFloat(String(record.shareRate ?? 0)),
-    billing_amount: parseFloat(String(record.billingAmount ?? 0)),
-    share_amount: parseFloat(String(record.shareAmount ?? 0)),
-    tax_rate: parseFloat(String(record.taxRate ?? 0)),
-    gateway_cost: parseFloat(String(record.gatewayCost ?? 0)),
-    settlement_amount: parseFloat(String(record.settlementAmount ?? 0)),
-    status: (record.status as string) || 'pending',
     remark: record.remark != null && String(record.remark).trim() !== '' ? String(record.remark) : null,
+    status: (record.status as string) || 'pending',
     server_cost: numOrNull(record.serverCost),
     discount_type: (record.discountType as string) || null,
     channel_fee_rate: numOrNull(record.channelFeeRate),
     dev_share_rate: numOrNull(record.devShareRate),
-    profit_rate: numOrNull(record.profitRate)
+    profit_rate: numOrNull(record.profitRate),
+    items
   }
 }
 

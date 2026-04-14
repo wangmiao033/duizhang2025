@@ -21,6 +21,19 @@ const ALLOWED_CHANNEL_STATUSES = new Set([
   'verified'
 ])
 
+function channelRecordDisplayLabel(ch: Record<string, unknown>, fallbackId: string): string {
+  const items = ch.items as { gameName?: string }[] | undefined
+  const games =
+    Array.isArray(items) && items.length > 0
+      ? items
+          .map((x) => (x.gameName != null ? String(x.gameName).trim() : ''))
+          .filter(Boolean)
+          .join('、')
+      : String(ch.gameName || '').trim()
+  const parts = [ch.channelName, games].filter((x) => typeof x === 'string' && x.length > 0)
+  return parts.join(' / ') || fallbackId
+}
+
 function pickClosestCandidate(candidates: number[], hint: number): number | null {
   if (!candidates.length) return null
   return candidates.reduce((best, a) =>
@@ -239,7 +252,7 @@ export function buildExceptionItems(input: BuildExceptionItemsInput): ExceptionI
           EXCEPTION_TYPES.CHANNEL_STATUS_INVALID,
           'warning',
           '渠道对账状态异常',
-          `记录「${[ch.channelName, ch.gameName].filter(Boolean).join(' / ') || cid}」状态为空或不在允许范围（${[...ALLOWED_CHANNEL_STATUSES].join('、')}）。当前：${s || '（空）'}`,
+          `记录「${channelRecordDisplayLabel(ch, cid)}」状态为空或不在允许范围（${[...ALLOWED_CHANNEL_STATUSES].join('、')}）。当前：${s || '（空）'}`,
           'channel',
           cid,
           now,

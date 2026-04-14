@@ -1,18 +1,18 @@
-"""渠道对账 API 模型。"""
+"""渠道对账 API 模型：主表 + 明细 items。"""
 
 from __future__ import annotations
 
 from datetime import datetime
 
+from typing import Annotated
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class ChannelRecordCreate(BaseModel):
-    channel_name: str | None = None
+class ChannelLineItemCreate(BaseModel):
+    """单行游戏明细；金额字段与 ORM 一致（支付通道费为 gateway_cost 绝对金额）。"""
+
     game_name: str | None = None
-    settlement_month: str | None = None
-    start_date: str | None = None
-    end_date: str | None = None
     billing_flow: float = 0
     voucher_cost: float = 0
     no_worry_cost: float = 0
@@ -25,40 +25,61 @@ class ChannelRecordCreate(BaseModel):
     tax_rate: float = 0
     gateway_cost: float = 0
     settlement_amount: float = 0
-    status: str | None = "pending"
+
+
+class ChannelLineItemRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    channel_record_id: str
+    sort_order: int
+    game_name: str | None
+    billing_flow: float
+    voucher_cost: float
+    no_worry_cost: float
+    refund_cost: float
+    test_cost: float
+    welfare_cost: float
+    share_rate: float
+    billing_amount: float
+    share_amount: float
+    tax_rate: float
+    gateway_cost: float
+    settlement_amount: float
+    created_at: datetime
+    updated_at: datetime
+
+
+class ChannelRecordCreate(BaseModel):
+    channel_name: str | None = None
+    partner_name: str | None = None
+    settlement_month: str | None = None
+    start_date: str | None = None
+    end_date: str | None = None
     remark: str | None = None
+    status: str | None = "pending"
     server_cost: float | None = None
     discount_type: str | None = None
     channel_fee_rate: float | None = None
     dev_share_rate: float | None = None
     profit_rate: float | None = None
+    items: Annotated[list[ChannelLineItemCreate], Field(min_length=1)]
 
 
 class ChannelRecordUpdate(BaseModel):
     channel_name: str | None = None
-    game_name: str | None = None
+    partner_name: str | None = None
     settlement_month: str | None = None
     start_date: str | None = None
     end_date: str | None = None
-    billing_flow: float | None = None
-    voucher_cost: float | None = None
-    no_worry_cost: float | None = None
-    refund_cost: float | None = None
-    test_cost: float | None = None
-    welfare_cost: float | None = None
-    share_rate: float | None = None
-    billing_amount: float | None = None
-    share_amount: float | None = None
-    tax_rate: float | None = None
-    gateway_cost: float | None = None
-    settlement_amount: float | None = None
-    status: str | None = None
     remark: str | None = None
+    status: str | None = None
     server_cost: float | None = None
     discount_type: str | None = None
     channel_fee_rate: float | None = None
     dev_share_rate: float | None = None
     profit_rate: float | None = None
+    items: list[ChannelLineItemCreate] | None = None
 
 
 class ChannelRecordRead(BaseModel):
@@ -66,6 +87,7 @@ class ChannelRecordRead(BaseModel):
 
     id: str
     channel_name: str | None
+    partner_name: str | None
     game_name: str | None
     settlement_month: str | None
     start_date: str | None
@@ -91,6 +113,7 @@ class ChannelRecordRead(BaseModel):
     profit_rate: float | None
     created_at: datetime
     updated_at: datetime
+    items: list[ChannelLineItemRead] = Field(default_factory=list)
 
 
 class ChannelRecordListResponse(BaseModel):
