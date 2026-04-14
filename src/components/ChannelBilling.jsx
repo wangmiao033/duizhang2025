@@ -29,6 +29,10 @@ import {
 } from '@/domain/channel/channelAggregates.js'
 import { getChannelRecordId } from '@/lib/api/channel.ts'
 import { VIEWS } from '@/app/routes.js'
+import {
+  buildChannelSettlementWorkbook,
+  writeChannelSettlementToFile
+} from '@/domain/export/channelSettlementExport.js'
 import { consumeChannelFocus } from '@/lib/exceptions/navFocus.ts'
 import './ChannelBilling.css'
 
@@ -424,6 +428,25 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
     showToast('已导出选中记录', 'success')
   }
 
+  const exportChannelSettlementSheets = () => {
+    const source =
+      selectedIds.length > 0
+        ? filteredRecords.filter((r) => rowSelected(String(getChannelRecordId(r) || r.id)))
+        : filteredRecords
+    if (source.length === 0) {
+      showToast(selectedIds.length > 0 ? '请先勾选要导出的记录' : '没有可导出的记录', 'info')
+      return
+    }
+    try {
+      const { wb, fileName } = buildChannelSettlementWorkbook(source)
+      writeChannelSettlementToFile(wb, fileName)
+      showToast('已导出渠道结算单', 'success')
+    } catch (e) {
+      console.error(e)
+      showToast('导出结算单失败', 'error')
+    }
+  }
+
   const normalizeKey = (k) => String(k || '').trim().toLowerCase()
 
   const mapExcelRowToForm = (row) => {
@@ -626,12 +649,15 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
               Excel导入
             </button>
             <input ref={importRef} type="file" accept=".xlsx,.xls" className="channel-rd__file" onChange={handleImportFile} />
+            <button type="button" className="rec-btn rec-btn--secondary" onClick={exportChannelSettlementSheets}>
+              导出结算单
+            </button>
             <button type="button" className="rec-btn rec-btn--secondary" onClick={exportFilteredXlsx}>
-              导出
+              导出数据
             </button>
             {selectedIds.length > 0 && (
               <button type="button" className="rec-btn rec-btn--secondary" onClick={exportSelectedXlsx}>
-                导出选中 ({selectedIds.length})
+                导出数据（选中 {selectedIds.length}）
               </button>
             )}
           </div>
