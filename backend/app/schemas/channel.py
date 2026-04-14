@@ -9,6 +9,14 @@ from typing import Annotated
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class ChannelReceiptCreate(BaseModel):
+    amount: float = Field(gt=0, description="收款金额，须大于 0")
+    receipt_date: str | None = None
+    bank_account: str | None = None
+    remark: str | None = None
+    attachment_url: str | None = None
+
+
 class ChannelLineItemCreate(BaseModel):
     """单行游戏明细；金额字段与 ORM 一致（支付通道费为 gateway_cost 绝对金额）。"""
 
@@ -104,6 +112,8 @@ class ChannelRecordRead(BaseModel):
     tax_rate: float
     gateway_cost: float
     settlement_amount: float
+    received_amount: float = 0
+    receipt_status: str = "unpaid"
     status: str | None
     remark: str | None
     server_cost: float | None

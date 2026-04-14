@@ -32,6 +32,8 @@ class ChannelRecord(Base):
     tax_rate: Mapped[float] = mapped_column(Numeric(10, 4), nullable=False, default=0)
     gateway_cost: Mapped[float] = mapped_column(Numeric(18, 2), nullable=False, default=0)
     settlement_amount: Mapped[float] = mapped_column(Numeric(18, 2), nullable=False, default=0)
+    received_amount: Mapped[float] = mapped_column(Numeric(18, 2), nullable=False, default=0)
+    receipt_status: Mapped[str] = mapped_column(String(32), nullable=False, default="unpaid")
     status: Mapped[str | None] = mapped_column(String, nullable=True, default="pending")
     remark: Mapped[str | None] = mapped_column(Text, nullable=True)
     server_cost: Mapped[float | None] = mapped_column(Numeric(18, 2), nullable=True)
@@ -54,6 +56,11 @@ class ChannelRecord(Base):
         back_populates="parent",
         cascade="all, delete-orphan",
         order_by="ChannelRecordLineItem.sort_order",
+    )
+    receipts: Mapped[list["ChannelReceipt"]] = relationship(
+        "ChannelReceipt",
+        back_populates="channel_record",
+        cascade="all, delete-orphan",
     )
 
 
@@ -89,3 +96,24 @@ class ChannelRecordLineItem(Base):
     )
 
     parent: Mapped[ChannelRecord] = relationship("ChannelRecord", back_populates="line_items")
+
+
+class ChannelReceipt(Base):
+    """渠道对账单笔收款明细。"""
+
+    __tablename__ = "channel_receipts"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    channel_record_id: Mapped[str] = mapped_column(
+        String, ForeignKey("channel_records.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    amount: Mapped[float] = mapped_column(Numeric(18, 2), nullable=False, default=0)
+    receipt_date: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    bank_account: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    remark: Mapped[str | None] = mapped_column(Text, nullable=True)
+    attachment_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    channel_record: Mapped[ChannelRecord] = relationship("ChannelRecord", back_populates="receipts")

@@ -2,7 +2,7 @@
  * 渠道对账 REST API（主表 + 明细 items）
  */
 
-import { apiDelete, apiGet, apiPost, apiPut } from '@/lib/api/client.ts'
+import { apiDelete, apiGet, apiPost, apiPostMultipart, apiPut } from '@/lib/api/client.ts'
 
 export type ApiChannelLineItem = {
   id: string
@@ -45,6 +45,8 @@ export type ApiChannelRow = {
   tax_rate: number
   gateway_cost: number
   settlement_amount: number
+  received_amount: number
+  receipt_status: string
   status: string | null
   remark: string | null
   server_cost: number | null
@@ -137,6 +139,25 @@ export function deleteChannelRecord(id: string): Promise<void> {
   return apiDelete(`${PATH}/${encodeURIComponent(id)}`)
 }
 
+export type ChannelReceiptPayload = {
+  amount: number
+  receipt_date?: string | null
+  bank_account?: string | null
+  remark?: string | null
+  attachment_url?: string | null
+}
+
+/** 上传收款回单附件，返回相对路径 URL */
+export function uploadChannelReceiptAttachment(file: File): Promise<{ url: string }> {
+  const fd = new FormData()
+  fd.append('file', file)
+  return apiPostMultipart<{ url: string }>(`${PATH}/receipt-attachment`, fd)
+}
+
+export function createChannelReceipt(recordId: string, body: ChannelReceiptPayload): Promise<ApiChannelRow> {
+  return apiPost<ApiChannelRow>(`${PATH}/${encodeURIComponent(recordId)}/receipts`, body)
+}
+
 function numOrNull(v: unknown): number | null {
   if (v === undefined || v === null || v === '') return null
   const n = typeof v === 'number' ? v : parseFloat(String(v))
@@ -205,6 +226,8 @@ export function apiChannelRowToFrontend(row: ApiChannelRow): Record<string, unkn
     taxRate: row.tax_rate,
     gatewayCost: row.gateway_cost,
     settlementAmount: row.settlement_amount,
+    receivedAmount: row.received_amount ?? 0,
+    receiptStatus: row.receipt_status ?? 'unpaid',
     status: row.status || 'pending',
     remark: row.remark != null ? String(row.remark) : '',
     serverCost: row.server_cost,

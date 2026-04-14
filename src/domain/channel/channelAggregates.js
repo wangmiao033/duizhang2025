@@ -94,3 +94,36 @@ export function getChannelGamesDisplay(record) {
   if (names.length <= 2) return names.join('、')
   return `${names[0]} 等${names.length}个游戏`
 }
+
+/** 主表已收金额（多笔收款汇总） */
+export function getChannelReceivedAmount(record) {
+  const v = record?.receivedAmount
+  return v != null ? parseFloat(String(v)) || 0 : 0
+}
+
+/** 未收 = 应收（结算合计）- 已收 */
+export function getChannelUnpaidAmount(record) {
+  return getChannelTotals(record).settlementAmount - getChannelReceivedAmount(record)
+}
+
+export function receiptStatusTagLabel(status) {
+  switch (String(status || 'unpaid')) {
+    case 'paid':
+      return '已收'
+    case 'partial':
+      return '部分收'
+    default:
+      return '未收'
+  }
+}
+
+export function receiptStatusTagClass(status) {
+  switch (String(status || 'unpaid')) {
+    case 'paid':
+      return 'channel-receipt-tag channel-receipt-tag--paid'
+    case 'partial':
+      return 'channel-receipt-tag channel-receipt-tag--partial'
+    default:
+      return 'channel-receipt-tag channel-receipt-tag--unpaid'
+  }
+}

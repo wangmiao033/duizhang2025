@@ -32,6 +32,7 @@ import {
 import {
   listChannelRecords,
   createChannelRecord,
+  createChannelReceipt,
   updateChannelRecord,
   deleteChannelRecord,
   apiChannelRowToFrontend,
@@ -43,13 +44,17 @@ function normalizeLocalChannelRecords(saved) {
   return (saved || []).map((r) => {
     const id = r.id != null ? String(r.id) : String(Date.now())
     const status = r.status || 'pending'
+    const receivedAmount = r.receivedAmount != null ? parseFloat(String(r.receivedAmount)) || 0 : 0
+    const receiptStatus = r.receiptStatus || 'unpaid'
     if (Array.isArray(r.items) && r.items.length > 0) {
-      return { ...r, id, status }
+      return { ...r, id, status, receivedAmount, receiptStatus }
     }
     return {
       ...buildChannelBillFromSingleGameForm(recordToFormData({ ...r, id })),
       id,
-      status
+      status,
+      receivedAmount,
+      receiptStatus
     }
   })
 }
@@ -634,7 +639,12 @@ export function useReconciliationStore(settings, showToast) {
 
   const onChannelAddRecord = useCallback(
     async (record) => {
-      const merged = { ...record, status: record.status || 'pending' }
+      const merged = {
+        ...record,
+        status: record.status || 'pending',
+        receivedAmount: record.receivedAmount ?? 0,
+        receiptStatus: record.receiptStatus || 'unpaid'
+      }
       if (channelApiEnabled) {
         try {
           const created = await createChannelRecord(frontendChannelRecordToPayload(merged))
@@ -648,7 +658,12 @@ export function useReconciliationStore(settings, showToast) {
           throw e
         }
       }
-      const newRecord = { ...merged, id: String(Date.now()) }
+      const newRecord = {
+        ...merged,
+        id: String(Date.now()),
+        receivedAmount: merged.receivedAmount ?? 0,
+        receiptStatus: merged.receiptStatus || 'unpaid'
+      }
       setChannelRecords((prev) => [...prev, newRecord])
       showToast('渠道记录添加成功', 'success')
     },
@@ -661,7 +676,12 @@ export function useReconciliationStore(settings, showToast) {
       if (channelApiEnabled) {
         try {
           for (const r of batch) {
-            const merged = { ...r, status: r.status || 'pending' }
+            const merged = {
+              ...r,
+              status: r.status || 'pending',
+              receivedAmount: r.receivedAmount ?? 0,
+              receiptStatus: r.receiptStatus || 'unpaid'
+            }
             await createChannelRecord(frontendChannelRecordToPayload(merged))
           }
           await refetchChannelFromApi()
@@ -684,7 +704,13 @@ export function useReconciliationStore(settings, showToast) {
   const onChannelUpdateRecord = useCallback(
     async (id, record) => {
       const sid = String(id)
-      const merged = { ...record, id: sid, status: record.status || 'pending' }
+      const merged = {
+        ...record,
+        id: sid,
+        status: record.status || 'pending',
+        receivedAmount: record.receivedAmount ?? 0,
+        receiptStatus: record.receiptStatus || 'unpaid'
+      }
       if (channelApiEnabled) {
         try {
           await updateChannelRecord(sid, frontendChannelRecordToPayload(merged))
@@ -721,6 +747,26 @@ export function useReconciliationStore(settings, showToast) {
       showToast('渠道记录已删除', 'success')
     },
     [showToast, channelApiEnabled, refetchChannelFromApi]
+  )
+
+  const onChannelRegisterReceipt = useCallback(
+    async (recordId, payload) => {
+      if (!channelApiEnabled) {
+        showToast('离线模式下无法登记收款，请先恢复渠道 API', 'error')
+        return false
+      }
+      try {
+        await createChannelReceipt(String(recordId), payload)
+        await refetchChannelFromApi()
+        showToast('收款登记成功', 'success')
+        return true
+      } catch (e) {
+        console.error(e)
+        showToast('收款登记失败，请检查网络或金额', 'error')
+        return false
+      }
+    },
+    [channelApiEnabled, refetchChannelFromApi, showToast]
   )
 
   const restoreFullData = useCallback(
@@ -785,6 +831,8 @@ export function useReconciliationStore(settings, showToast) {
     onChannelAddRecordsBatch,
     onChannelUpdateRecord,
     onChannelDeleteRecord,
+    onChannelRegisterReceipt,
+    refetchChannelFromApi,
     restoreFullData,
     cycleType,
     setCycleType,

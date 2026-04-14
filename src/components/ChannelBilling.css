@@ -1232,6 +1232,97 @@
   margin-top: 4px;
 }
 
+/* 渠道收款状态 Tag */
+.channel-receipt-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.channel-receipt-tag--unpaid {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.channel-receipt-tag--partial {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.channel-receipt-tag--paid {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.channel-rd__receipt {
+  white-space: nowrap;
+}
+
+.channel-rd__btn-receipt {
+  margin-right: 4px;
+}
+
+.channel-receipt-drawer .channel-receipt-section {
+  margin-bottom: 20px;
+}
+
+.channel-receipt-section__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted-text, #6b7280);
+  margin-bottom: 10px;
+  text-transform: none;
+}
+
+.channel-receipt-form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.channel-receipt-form-grid .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.channel-receipt-form-grid .form-group.full-width {
+  width: 100%;
+}
+
+.channel-receipt-bank-custom {
+  margin-top: 8px;
+}
+
+.channel-receipt-file {
+  font-size: 13px;
+}
+
+.channel-receipt-file-name {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.channel-receipt-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+}
+
+.channel-receipt-offline {
+  padding: 10px 12px;
+  background: #fef3c7;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

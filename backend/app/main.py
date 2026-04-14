@@ -104,7 +104,7 @@ async def handle_sqlalchemy_error(request: Request, exc: SQLAlchemyError) -> JSO
             "error": "database_error",
             "message": (
                 "数据库查询失败。请核对 Neon：表是否存在、列是否与 ORM 一致；"
-                "执行 backend/sql/002、003、004、006、007、008、009、010、011 建表，必要时执行 neon_repair_missing_columns.sql；"
+                "执行 backend/sql/002…014建表与迁移，必要时执行 neon_repair_missing_columns.sql；"
                 "并用 neon_verify_columns.sql 检查列清单。"
             ),
         },

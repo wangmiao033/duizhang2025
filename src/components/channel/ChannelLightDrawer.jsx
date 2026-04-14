@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { StatusSelector } from '@/components/StatusManager.jsx'
 import { getChannelRecordId } from '@/lib/api/channel.ts'
-import { getChannelGamesDisplay, getChannelTotals } from '@/domain/channel/channelAggregates.js'
+import {
+  getChannelGamesDisplay,
+  getChannelTotals,
+  getChannelReceivedAmount,
+  getChannelUnpaidAmount,
+  receiptStatusTagLabel
+} from '@/domain/channel/channelAggregates.js'
 
 /**
  * 渠道对账轻量侧栏：摘要、状态、备注；完整编辑跳转独立页。
@@ -77,11 +83,17 @@ function ChannelLightDrawer({
             <dd>¥{flow.toFixed(2)}</dd>
             <dt>结算金额</dt>
             <dd className="rec-light-dl__emph">¥{settlement.toFixed(2)}</dd>
+            <dt>已收金额</dt>
+            <dd>¥{getChannelReceivedAmount(record).toFixed(2)}</dd>
+            <dt>未收金额</dt>
+            <dd>¥{getChannelUnpaidAmount(record).toFixed(2)}</dd>
+            <dt>收款状态</dt>
+            <dd>{receiptStatusTagLabel(record.receiptStatus)}</dd>
           </dl>
 
           <div className="rec-light-field">
             <span className="rec-light-field__label">状态</span>
-                       <StatusSelector
+            <StatusSelector
               currentStatus={record.status || 'pending'}
               onStatusChange={(s) => void onUpdateRecord?.(recordId, { ...record, status: s })}
             />

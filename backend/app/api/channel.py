@@ -2,19 +2,22 @@
 
 from __future__ import annotations
 
+import shutil
 from datetime import datetime, timezone
+from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy import delete, exists, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.deps import get_db
-from app.models.channel import ChannelRecord, ChannelRecordLineItem
+from app.models.channel import ChannelReceipt, ChannelRecord, ChannelRecordLineItem
 from app.schemas.channel import (
     ChannelLineItemCreate,
     ChannelLineItemRead,
+    ChannelReceiptCreate,
     ChannelRecordCreate,
     ChannelRecordListResponse,
     ChannelRecordRead,
@@ -22,6 +25,28 @@ from app.schemas.channel import (
 )
 
 router = APIRouter()
+
+UPLOAD_DIR = Path("uploads/channel_receipts")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _recompute_receipt_rollup(db: Session, row: ChannelRecord) -> None:
+    """按 channel_receipts 汇总已收金额，并更新 receipt_status（相对结算应收 settlement_amount）。"""
+    total_raw = db.execute(
+        select(func.coalesce(func.sum(ChannelReceipt.amount), 0)).where(
+            ChannelReceipt.channel_record_id == row.id
+        )
+    ).scalar_one()
+    row.received_amount = float(total_raw or 0)
+    receivable = float(row.settlement_amount or 0)
+    recv = row.received_amount
+    # 已收 >= 应收 → 已收（含应收为 0 且已收为 0）；已收 <= 0 → 未收；其余部分收
+    if recv + 1e-9 >= receivable:
+        row.receipt_status = "paid"
+    elif recv <= 0:
+        row.receipt_status = "unpaid"
+    else:
+        row.receipt_status = "partial"
 
 
 def _sync_denormalized_totals(row: ChannelRecord, db: Session) -> None:
@@ -189,6 +214,19 @@ def list_channel_records(
     return ChannelRecordListResponse(items=[_to_read(r) for r in rows], total=total)
 
 
+@router.post("/receipt-attachment", status_code=status.HTTP_201_CREATED)
+async def upload_channel_receipt_attachment(file: UploadFile = File(...)) -> dict[str, str]:
+    """银行回单等附件；multipart 字段名 file。返回相对 URL 写入 channel_receipts.attachment_url。"""
+    orig = Path(file.filename or "file").name
+    if not orig or orig in (".", ".."):
+        orig = "file"
+    filename = f"{uuid4().hex}_{orig}"
+    file_path = UPLOAD_DIR / filename
+    with open(file_path, "wb") as out:
+        shutil.copyfileobj(file.file, out)
+    return {"url": f"/uploads/channel_receipts/{filename}"}
+
+
 @router.get("/{record_id}", response_model=ChannelRecordRead)
 def get_channel_record(record_id: str, db: Session = Depends(get_db)) -> ChannelRecordRead:
     row = db.execute(
@@ -201,6 +239,51 @@ def get_channel_record(record_id: str, db: Session = Depends(get_db)) -> Channel
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"error": "not_found", "id": record_id},
         )
+    return _to_read(row)
+
+
+@router.post(
+    "/{record_id}/receipts",
+    response_model=ChannelRecordRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_channel_receipt(
+    record_id: str,
+    payload: ChannelReceiptCreate,
+    db: Session = Depends(get_db),
+) -> ChannelRecordRead:
+    row = db.get(ChannelRecord, record_id)
+    if row is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": "not_found", "id": record_id},
+        )
+    data = payload.model_dump()
+    if not data.get("receipt_date") or not str(data["receipt_date"]).strip():
+        data["receipt_date"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    rec = ChannelReceipt(
+        id=str(uuid4()),
+        channel_record_id=record_id,
+        amount=data["amount"],
+        receipt_date=data.get("receipt_date"),
+        bank_account=data.get("bank_account"),
+        remark=data.get("remark"),
+        attachment_url=data.get("attachment_url"),
+    )
+    db.add(rec)
+    row.updated_at = datetime.now(timezone.utc)
+    db.flush()
+    _recompute_receipt_rollup(db, row)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={"error": "conflict"}) from None
+    row = db.execute(
+        select(ChannelRecord)
+        .options(selectinload(ChannelRecord.line_items))
+        .where(ChannelRecord.id == record_id)
+    ).scalar_one()
     return _to_read(row)
 
 
@@ -219,6 +302,7 @@ def create_channel_record(
     db.flush()
     _replace_line_items(db, row.id, payload.items)
     _sync_denormalized_totals(row, db)
+    _recompute_receipt_rollup(db, row)
     try:
         db.commit()
     except IntegrityError:
@@ -255,6 +339,7 @@ def update_channel_record(
             )
         _replace_line_items(db, record_id, [ChannelLineItemCreate(**x) for x in items_payload])
         _sync_denormalized_totals(row, db)
+    _recompute_receipt_rollup(db, row)
     try:
         db.commit()
     except IntegrityError:
