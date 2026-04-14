@@ -85,7 +85,7 @@ export const SIDEBAR_GROUPS = [
       { view: VIEWS.BANK_TRANSACTIONS_LEDGER, label: '银行流水表' },
       { view: VIEWS.BANK_STATEMENT_IMPORT, label: '银行流水导入' },
       { view: VIEWS.BANK_COLLECTION_REGISTER, label: '银行回款登记' },
-      { view: VIEWS.BANK_PAYMENT_REGISTER, label: '银行付款登记' }
+      { view: VIEWS.BANK_PAYMENT_REGISTER, label: '研发对账付款确认' }
     ]
   },
   {
@@ -182,7 +182,7 @@ const VIEW_TITLES = {
   [VIEWS.SETTINGS_REMINDERS]: '提醒事项',
   [VIEWS.BANK_TRANSACTIONS_LEDGER]: '银行流水表',
   [VIEWS.BANK_STATEMENT_IMPORT]: '银行流水导入',
-  [VIEWS.BANK_PAYMENT_REGISTER]: '银行付款登记',
+  [VIEWS.BANK_PAYMENT_REGISTER]: '研发对账付款确认',
   [VIEWS.BANK_COLLECTION_REGISTER]: '银行回款登记'
 }
 
@@ -227,7 +227,7 @@ const VIEW_DESCRIPTIONS = {
   [VIEWS.SETTINGS_REMINDERS]: '提醒与待办配置',
   [VIEWS.BANK_TRANSACTIONS_LEDGER]: '流水导入、付款登记、回款登记的统一台账与筛选',
   [VIEWS.BANK_STATEMENT_IMPORT]: '录入或粘贴单条流水，保存后写入服务端统一台账',
-  [VIEWS.BANK_PAYMENT_REGISTER]: '付款信息登记，支持工行回单解析，保存后写入服务端',
+  [VIEWS.BANK_PAYMENT_REGISTER]: '关联研发对账、确认付款信息并上传回单，提交后写入付款登记台账',
   [VIEWS.BANK_COLLECTION_REGISTER]: '登记渠道/项目回款，保存后写入服务端统一台账'
 }
 

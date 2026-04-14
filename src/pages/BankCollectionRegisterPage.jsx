@@ -65,7 +65,7 @@ function BankCollectionRegisterPage() {
         return
       }
       if (looksLikePaymentSlipFields(fields)) {
-        showToast('当前内容更像银行付款单，已在回款页跳过自动填充，请改用「银行付款登记」', 'info')
+        showToast('当前内容更像银行付款单，已在回款页跳过自动填充，请改用「研发对账付款确认」', 'info')
         return
       }
       setForm((prev) => {

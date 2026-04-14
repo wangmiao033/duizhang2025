@@ -558,6 +558,106 @@
   grid-column: 1 / -1;
 }
 
+.rec-bank-rd-link--compact {
+  margin-bottom: 0;
+  padding: 12px 14px;
+}
+
+.rec-payment-confirm {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.rec-payment-confirm__card {
+  padding: 18px 20px 22px;
+}
+
+.rec-payment-confirm__page-title {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.rec-payment-confirm__lead {
+  margin-top: 0 !important;
+  margin-bottom: 16px !important;
+  font-size: var(--font-size-small, 13px);
+}
+
+.rec-payment-confirm__section {
+  margin-bottom: 18px;
+}
+
+.rec-payment-confirm__section:last-of-type {
+  margin-bottom: 0;
+}
+
+.rec-payment-confirm__section-title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--admin-text-secondary, #475569);
+}
+
+.rec-payment-confirm__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rec-payment-confirm__upload-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.rec-payment-confirm__file-label {
+  position: relative;
+  cursor: pointer;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 12px;
+  overflow: hidden;
+}
+
+.rec-payment-confirm__file-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.rec-payment-confirm__file-name {
+  font-size: var(--font-size-small, 13px);
+  color: var(--admin-text-sub, #64748b);
+}
+
+.rec-payment-confirm__file-hint {
+  font-size: var(--font-size-small, 13px);
+  color: var(--admin-text-muted, #94a3b8);
+}
+
+.rec-payment-confirm__payer-hint {
+  margin: 12px 0 0;
+  font-size: var(--font-size-small, 13px);
+  color: var(--admin-text-sub, #64748b);
+}
+
+.rec-payment-confirm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--admin-border, #e2e8f0);
+}
+
 .reconciliation-rd .export-filtered-btn,
 .reconciliation-rd .export-selected-btn {
   /*旧类名若仍被使用，与 rec-btn 统一 */

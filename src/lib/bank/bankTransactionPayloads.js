@@ -10,58 +10,65 @@ function joinRaw(...parts) {
   return parts.filter((p) => p != null && String(p).trim() !== '').join('\n---\n')
 }
 
-function paymentExtraRemark(form) {
-  const lines = []
-  if (form.authorization_status?.trim()) lines.push(`授权状态：${form.authorization_status.trim()}`)
-  if (form.remittance_method?.trim()) lines.push(`汇款方式：${form.remittance_method.trim()}`)
-  if (form.instruction_channel?.trim()) lines.push(`指令受理渠道：${form.instruction_channel.trim()}`)
-  if (form.submitter_user_id?.trim()) lines.push(`支付提交人ID：${form.submitter_user_id.trim()}`)
-  if (form.first_approver_user_id?.trim()) lines.push(`第一授权人ID：${form.first_approver_user_id.trim()}`)
-  if (form.first_approval_at?.trim()) lines.push(`一次批复时间：${form.first_approval_at.trim()}`)
-  if (form.bank_feedback?.trim()) lines.push(`银行反馈：${form.bank_feedback.trim()}`)
-  if (form.is_scheduled) lines.push('预约执行：是')
-  if (form.is_personal_payee) lines.push('向个人账户汇款：是')
-  return lines.length ? lines.join('\n') : ''
-}
-
 /**
- * @param {Record<string, unknown>} form BankPaymentRegisterPage 表单
- * @param {string} pasteText 粘贴区原文（工行回单等）
- * @param {{ reconciliation_id?: string | null, reconciliation_type?: string | null, reconciliation_no?: string | null, linked_amount?: number | null } | null} [rdLink] 关联研发对账
+ * 研发对账付款确认单 → bank_transactions（payment_register）
+ * @param {object} confirm
+ * @param {string|number|null} confirm.remittanceAmount 汇款金额
+ * @param {string|null} confirm.remittancePurpose 汇款用途
+ * @param {string|null} confirm.paymentDate 汇款日期 YYYY-MM-DD
+ * @param {string|null} confirm.payeeCompany 收款单位
+ * @param {string|null} [confirm.remark] 备注（可选）
+ * @param {string|null} [confirm.attachmentUrl] 回单附件 URL 或 API 路径
+ * @param {string|null} [confirm.pasteText] 可选粘贴回单原文 → raw_text
+ * @param {string|null} [confirm.payerName] 付款单位（默认本公司抬头）
+ * @param {{ reconciliation_id: string, reconciliation_type?: string | null, reconciliation_no?: string | null, linked_amount: number | null } | null} rdLink
  */
-export function buildPaymentRegisterPayload(form, pasteText, rdLink) {
-  const icbc = parseIcbcReceiptText(pasteText || '')
-  const instructionNo =
-    icbc.recognized && icbc.fields?.instructionNo ? String(icbc.fields.instructionNo).trim() : ''
-
-  const amt = num(form.remittance_amount)
-  const baseRemark = form.payment_remark != null ? String(form.payment_remark).trim() : ''
-  const extra = paymentExtraRemark(form)
-  const remark = [baseRemark, extra].filter(Boolean).join('\n\n')
+export function buildRdPaymentConfirmPayload(confirm, rdLink) {
+  const amt = num(confirm.remittanceAmount)
+  const purpose =
+    confirm.remittancePurpose != null ? String(confirm.remittancePurpose).trim() : ''
+  const payee = confirm.payeeCompany != null ? String(confirm.payeeCompany).trim() : ''
+  const payer =
+    confirm.payerName != null && String(confirm.payerName).trim() !== ''
+      ? String(confirm.payerName).trim()
+      : null
+  const remark =
+    confirm.remark != null && String(confirm.remark).trim() !== ''
+      ? String(confirm.remark).trim()
+      : null
+  const att =
+    confirm.attachmentUrl != null && String(confirm.attachmentUrl).trim() !== ''
+      ? String(confirm.attachmentUrl).trim()
+      : null
+  const raw =
+    confirm.pasteText != null && String(confirm.pasteText).trim() !== ''
+      ? String(confirm.pasteText).trim()
+      : null
 
   const base = {
     type: 'payment_register',
-    trade_date: form.payment_date ? String(form.payment_date) : null,
-    bank_account: form.remitter_account ? String(form.remitter_account).trim() : null,
-    payer_name: form.remitter_company ? String(form.remitter_company).trim() : null,
-    payer_account: form.remitter_account ? String(form.remitter_account).trim() : null,
-    payer_bank_name: form.remitter_bank_name ? String(form.remitter_bank_name).trim() : null,
-    payee_name: form.payee_company ? String(form.payee_company).trim() : null,
-    payee_account: form.payee_account ? String(form.payee_account).trim() : null,
-    payee_bank_name: form.payee_bank_name ? String(form.payee_bank_name).trim() : null,
+    trade_date: confirm.paymentDate ? String(confirm.paymentDate).trim() : null,
+    bank_account: null,
+    payer_name: payer,
+    payer_account: null,
+    payer_bank_name: null,
+    payee_name: payee || null,
+    payee_account: null,
+    payee_bank_name: null,
     amount: amt,
     income_amount: null,
     expense_amount: amt,
     currency: 'CNY',
-    transaction_no: form.transaction_serial ? String(form.transaction_serial).trim() : null,
-    instruction_no: instructionNo || null,
-    summary: form.remittance_purpose ? String(form.remittance_purpose).trim() : null,
-    purpose: form.remittance_purpose ? String(form.remittance_purpose).trim() : null,
-    remark: remark || null,
-    status: form.transfer_status ? String(form.transfer_status) : null,
-    raw_text: pasteText ? String(pasteText) : null,
-    attachment_url: null
+    transaction_no: null,
+    instruction_no: null,
+    summary: purpose || null,
+    purpose: purpose || null,
+    remark,
+    status: 'paid',
+    raw_text: raw,
+    attachment_url: att
   }
+
   const rid = rdLink?.reconciliation_id != null ? String(rdLink.reconciliation_id).trim() : ''
   if (rid) {
     base.reconciliation_id = rid
