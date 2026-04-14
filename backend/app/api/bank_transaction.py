@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import shutil
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
@@ -38,6 +39,11 @@ _UPLOAD_CONTENT_TYPES: dict[str, str] = {
     "image/webp": ".webp",
     "application/pdf": ".pdf",
 }
+
+# 与 main.py 中 StaticFiles(directory=…/uploads) 一致：可经 /uploads/bank_attachments/… 访问
+_BACKEND_ROOT = Path(__file__).resolve().parent.parent.parent
+BANK_ATTACHMENTS_UPLOAD_DIR = _BACKEND_ROOT / "uploads" / "bank_attachments"
+BANK_ATTACHMENTS_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _safe_upload_original_name(name: str) -> str:
@@ -204,7 +210,7 @@ def delete_bank_transaction(transaction_id: str, db: Session = Depends(get_db)) 
 async def upload_bank_transaction_attachment(
     file: UploadFile = File(...),
 ) -> BankTransactionAttachmentUploadResponse:
-    """付款确认单等：上传回单至本地目录，返回可写入 attachment_url 的下载路径。"""
+    """付款确认单等：上传回单至 uploads/bank_attachments，返回可写入 attachment_url 的静态 URL。"""
     content_type = (file.content_type or "").split(";")[0].strip().lower()
     if content_type not in _UPLOAD_CONTENT_TYPES:
         raise HTTPException(
@@ -215,24 +221,31 @@ async def upload_bank_transaction_attachment(
             },
         )
     ext = _UPLOAD_CONTENT_TYPES[content_type]
-    body = await file.read()
-    if len(body) > _MAX_ATTACHMENT_BYTES:
+    stored = f"{uuid4().hex}{ext}"
+    dest_path = BANK_ATTACHMENTS_UPLOAD_DIR / stored
+    BANK_ATTACHMENTS_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        with open(dest_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        dest_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+    size = dest_path.stat().st_size
+    if size > _MAX_ATTACHMENT_BYTES:
+        dest_path.unlink(missing_ok=True)
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail={"error": "file_too_large", "max_bytes": _MAX_ATTACHMENT_BYTES},
         )
 
-    file_id = str(uuid4())
-    root = ensure_bank_transaction_upload_root()
-    dest_path = root / f"{file_id}{ext}"
-    dest_path.write_bytes(body)
     orig_name = _safe_upload_original_name(file.filename or f"attachment{ext}")
-    download_url = f"/api/bank-transactions/attachments/{file_id}/file"
+    public_url = f"/uploads/bank_attachments/{stored}"
     return BankTransactionAttachmentUploadResponse(
-        url=download_url,
+        url=public_url,
         filename=orig_name,
         content_type=content_type,
-        size=len(body),
+        size=size,
     )
 
 

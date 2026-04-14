@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import logging
 import os
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.channel import router as channel_router
@@ -89,6 +91,15 @@ app.include_router(
     bank_transaction_router,
     prefix="/api/bank-transactions",
     tags=["bank-transactions"],
+)
+
+_BACKEND_ROOT = Path(__file__).resolve().parent.parent
+_UPLOADS_DIR = _BACKEND_ROOT / "uploads"
+_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+app.mount(
+    "/uploads",
+    StaticFiles(directory=str(_UPLOADS_DIR)),
+    name="uploads",
 )
 
 
