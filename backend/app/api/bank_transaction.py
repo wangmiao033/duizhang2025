@@ -2,17 +2,22 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime, timezone
 from decimal import Decimal
-from uuid import uuid4
+from pathlib import Path
+from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi.responses import FileResponse
 from sqlalchemy import func, or_, select, cast, Numeric
 from sqlalchemy.orm import Session
 
+from app.core.bank_transaction_uploads import ensure_bank_transaction_upload_root
 from app.core.deps import get_db
 from app.models.bank_transaction import BankTransaction
 from app.schemas.bank_transaction import (
+    BankTransactionAttachmentUploadResponse,
     BankTransactionCreate,
     BankTransactionListResponse,
     BankTransactionRead,
@@ -22,6 +27,41 @@ from app.schemas.bank_transaction import (
 router = APIRouter()
 
 _ALLOWED_TYPES = frozenset({"statement_import", "payment_register", "collection_register"})
+
+_MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024
+_UPLOAD_CONTENT_TYPES: dict[str, str] = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/gif": ".gif",
+    "image/webp": ".webp",
+    "application/pdf": ".pdf",
+}
+
+
+def _safe_upload_original_name(name: str) -> str:
+    base = Path(name or "file").name
+    base = re.sub(r"[^\w.\-()\u4e00-\u9fff]+", "_", base)
+    return base[:180] if base else "file"
+
+
+def _resolve_bank_tx_upload_file(file_id: str) -> Path:
+    try:
+        UUID(file_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": "invalid_file_id"},
+        ) from e
+    root = ensure_bank_transaction_upload_root().resolve()
+    matches = list(root.glob(f"{file_id}.*"))
+    if len(matches) != 1:
+        raise HTTPException(status_code=404, detail={"error": "not_found", "id": file_id})
+    path = matches[0].resolve()
+    try:
+        path.relative_to(root)
+    except ValueError:
+        raise HTTPException(status_code=400, detail={"error": "invalid_path"}) from None
+    return path
 
 
 def _row_to_read(row: BankTransaction) -> BankTransactionRead:
@@ -97,6 +137,51 @@ def list_bank_transactions(
         .all()
     )
     return BankTransactionListResponse(items=[_row_to_read(r) for r in rows], total=total)
+
+
+@router.post(
+    "/upload-attachment",
+    response_model=BankTransactionAttachmentUploadResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_bank_transaction_attachment(
+    file: UploadFile = File(...),
+) -> BankTransactionAttachmentUploadResponse:
+    """付款确认单等：上传回单至本地目录，返回可写入 attachment_url 的下载路径。"""
+    content_type = (file.content_type or "").split(";")[0].strip().lower()
+    if content_type not in _UPLOAD_CONTENT_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "unsupported_file_type",
+                "message": "仅支持图片（JPEG/PNG/GIF/WebP）与 PDF",
+            },
+        )
+    ext = _UPLOAD_CONTENT_TYPES[content_type]
+    body = await file.read()
+    if len(body) > _MAX_ATTACHMENT_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail={"error": "file_too_large", "max_bytes": _MAX_ATTACHMENT_BYTES},
+        )
+
+    file_id = str(uuid4())
+    root = ensure_bank_transaction_upload_root()
+    dest_path = root / f"{file_id}{ext}"
+    dest_path.write_bytes(body)
+    orig_name = _safe_upload_original_name(file.filename or f"attachment{ext}")
+    download_url = f"/api/bank-transactions/attachments/{file_id}/file"
+    return BankTransactionAttachmentUploadResponse(file_url=download_url, file_name=orig_name)
+
+
+@router.get("/attachments/{file_id}/file")
+def download_bank_transaction_attachment(file_id: str) -> FileResponse:
+    path = _resolve_bank_tx_upload_file(file_id)
+    return FileResponse(
+        path,
+        filename=path.name,
+        content_disposition_type="inline",
+    )
 
 
 @router.get("/{transaction_id}", response_model=BankTransactionRead)

@@ -2,7 +2,7 @@
  * 银行流水统一台账 API
  */
 
-import { apiDelete, apiGet, apiPost, apiPut } from '@/lib/api/client.ts'
+import { apiDelete, apiGet, apiPost, apiPostMultipart, apiPut } from '@/lib/api/client.ts'
 
 export type BankTransactionType =
   | 'statement_import'
@@ -102,4 +102,17 @@ export async function updateBankTransaction(
 
 export async function deleteBankTransaction(id: string): Promise<void> {
   return apiDelete(`${PATH}/${encodeURIComponent(id)}`)
+}
+
+/** 付款确认单等：上传回单，返回写入 attachment_url 的路径（相对站点根，与 API 同源拼接） */
+export async function uploadBankTransactionAttachment(file: File): Promise<{
+  file_url: string
+  file_name: string
+}> {
+  const fd = new FormData()
+  fd.append('file', file)
+  return apiPostMultipart<{ file_url: string; file_name: string }>(
+    `${PATH}/upload-attachment`,
+    fd
+  )
 }

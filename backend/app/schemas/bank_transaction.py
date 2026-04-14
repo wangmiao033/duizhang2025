@@ -103,3 +103,10 @@ class BankTransactionRead(BaseModel):
 class BankTransactionListResponse(BaseModel):
     items: list[BankTransactionRead]
     total: int
+
+
+class BankTransactionAttachmentUploadResponse(BaseModel):
+    """付款确认等场景上传回单后返回，写入 bank_transactions.attachment_url。"""
+
+    file_url: str
+    file_name: str

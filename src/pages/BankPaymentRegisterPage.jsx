@@ -2,9 +2,12 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
 import PageContainer from '@/components/layout/PageContainer.jsx'
 import { ApiError } from '@/lib/api/client.ts'
-import { createBankTransaction } from '@/lib/api/bankTransaction.ts'
+import {
+  createBankTransaction,
+  uploadBankTransactionAttachment
+} from '@/lib/api/bankTransaction.ts'
 import { buildRdPaymentConfirmPayload } from '@/lib/bank/bankTransactionPayloads.js'
-import { apiRowToFrontend, getReconciliationRecord, uploadBankPaymentAttachment } from '@/lib/api/reconciliation.ts'
+import { apiRowToFrontend, getReconciliationRecord } from '@/lib/api/reconciliation.ts'
 import '@/components/reconciliation/reconciliation-admin.css'
 
 const INITIAL_RD = {
@@ -159,14 +162,9 @@ function BankPaymentRegisterPage() {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
-    const rid = rdLink.reconciliationId?.trim()
-    if (!rid) {
-      showToast('请先选择研发对账单，再上传回单', 'info')
-      return
-    }
     setUploading(true)
     try {
-      const att = await uploadBankPaymentAttachment(rid, file)
+      const att = await uploadBankTransactionAttachment(file)
       setAttachmentUrl(att.file_url || '')
       setAttachmentName(att.file_name || file.name)
       showToast('回单已上传', 'success')
@@ -400,16 +398,14 @@ function BankPaymentRegisterPage() {
                         type="file"
                         accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
                         className="rec-payment-confirm__file-input"
-                        disabled={uploading || !rdLink.reconciliationId}
+                        disabled={uploading}
                         onChange={handleAttachment}
                       />
                     </label>
                     {attachmentName ? (
                       <span className="rec-payment-confirm__file-name">已选：{attachmentName}</span>
                     ) : (
-                      <span className="rec-payment-confirm__file-hint">
-                        {!rdLink.reconciliationId ? '请先选择对账单' : '未选择文件'}
-                      </span>
+                      <span className="rec-payment-confirm__file-hint">未选择文件</span>
                     )}
                   </div>
                 </label>
