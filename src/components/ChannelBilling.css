@@ -1257,6 +1257,182 @@
   color: #15803d;
 }
 
+.channel-receipt-tag--cleared {
+  background: #dcfce7;
+  color: #166534;
+  font-weight: 600;
+}
+
+.game-stats--channel-summary {
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.channel-rd__record-toolbar {
+  padding: 12px 14px;
+  background: var(--table-header-bg, #f9fafb);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.channel-rd__record-toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.channel-rd__record-toolbar-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.channel-rd__record-toolbar-meta {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.channel-rd__record-toolbar-title {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary, #111827);
+}
+
+.channel-rd__record-toolbar-progress {
+  max-width: 420px;
+}
+
+.channel-rd__record-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.channel-receipt-progress {
+  min-width: 200px;
+}
+
+.channel-receipt-progress__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.channel-receipt-progress__ratio {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary, #111827);
+}
+
+.channel-receipt-progress__bar {
+  height: 8px;
+  border-radius: 4px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.channel-receipt-progress__fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  transition: width 0.2s ease;
+}
+
+.channel-receipt-progress__fill--full {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.channel-receipt-progress__pct {
+  font-size: 12px;
+  color: var(--muted-text, #6b7280);
+  margin-top: 4px;
+}
+
+.channel-receipt-progress--compact .channel-receipt-progress__ratio {
+  font-size: 12px;
+}
+
+.channel-receipt-progress--compact .channel-receipt-progress__bar {
+  height: 6px;
+}
+
+.channel-rd__receipt-col {
+  min-width: 200px;
+  max-width: 280px;
+  vertical-align: middle;
+}
+
+.channel-receipt-settled-note {
+  padding: 10px 12px;
+  background: #dcfce7;
+  border-radius: 8px;
+  color: #166534;
+  margin-bottom: 12px;
+}
+
+.channel-receipt-form-grid.is-disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.channel-receipt-list-drawer__sub {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted-text, #6b7280);
+  margin-top: 4px;
+}
+
+.channel-receipt-list-table-wrap {
+  overflow-x: auto;
+}
+
+.channel-receipt-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.channel-receipt-list-table th,
+.channel-receipt-list-table td {
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.channel-receipt-list-table th.num,
+.channel-receipt-list-table td.num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.channel-receipt-list-table .cell-wrap {
+  max-width: 160px;
+  word-break: break-word;
+}
+
+.channel-receipt-list-table .actions-col {
+  white-space: nowrap;
+}
+
+.channel-receipt-list-link {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.channel-receipt-list-del {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
 .channel-rd__receipt {
   white-space: nowrap;
 }

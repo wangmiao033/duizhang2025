@@ -33,6 +33,7 @@ import {
   listChannelRecords,
   createChannelRecord,
   createChannelReceipt,
+  deleteChannelReceipt,
   updateChannelRecord,
   deleteChannelRecord,
   apiChannelRowToFrontend,
@@ -769,6 +770,25 @@ export function useReconciliationStore(settings, showToast) {
     [channelApiEnabled, refetchChannelFromApi, showToast]
   )
 
+  const onChannelDeleteReceipt = useCallback(
+    async (recordId, receiptId) => {
+      if (!channelApiEnabled) {
+        showToast('离线模式下无法删除收款记录', 'error')
+        return false
+      }
+      try {
+        await deleteChannelReceipt(String(recordId), String(receiptId))
+        await refetchChannelFromApi()
+        return true
+      } catch (e) {
+        console.error(e)
+        showToast('删除收款记录失败', 'error')
+        return false
+      }
+    },
+    [channelApiEnabled, refetchChannelFromApi, showToast]
+  )
+
   const restoreFullData = useCallback(
     (data) => {
       if (data.records) setRecords(data.records)
@@ -832,6 +852,7 @@ export function useReconciliationStore(settings, showToast) {
     onChannelUpdateRecord,
     onChannelDeleteRecord,
     onChannelRegisterReceipt,
+    onChannelDeleteReceipt,
     refetchChannelFromApi,
     restoreFullData,
     cycleType,

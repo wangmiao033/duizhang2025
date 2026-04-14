@@ -18,6 +18,8 @@ from app.schemas.channel import (
     ChannelLineItemCreate,
     ChannelLineItemRead,
     ChannelReceiptCreate,
+    ChannelReceiptListResponse,
+    ChannelReceiptRead,
     ChannelRecordCreate,
     ChannelRecordListResponse,
     ChannelRecordRead,
@@ -225,6 +227,47 @@ async def upload_channel_receipt_attachment(file: UploadFile = File(...)) -> dic
     with open(file_path, "wb") as out:
         shutil.copyfileobj(file.file, out)
     return {"url": f"/uploads/channel_receipts/{filename}"}
+
+
+@router.get("/{record_id}/receipts", response_model=ChannelReceiptListResponse)
+def list_channel_receipts(record_id: str, db: Session = Depends(get_db)) -> ChannelReceiptListResponse:
+    parent = db.get(ChannelRecord, record_id)
+    if parent is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": "not_found", "id": record_id},
+        )
+    rows = (
+        db.execute(
+            select(ChannelReceipt)
+            .where(ChannelReceipt.channel_record_id == record_id)
+            .order_by(ChannelReceipt.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
+    return ChannelReceiptListResponse(items=[ChannelReceiptRead.model_validate(r) for r in rows])
+
+
+@router.delete("/{record_id}/receipts/{receipt_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_channel_receipt(record_id: str, receipt_id: str, db: Session = Depends(get_db)) -> None:
+    parent = db.get(ChannelRecord, record_id)
+    if parent is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": "not_found", "id": record_id},
+        )
+    rec = db.get(ChannelReceipt, receipt_id)
+    if rec is None or rec.channel_record_id != record_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": "receipt_not_found", "id": receipt_id},
+        )
+    db.delete(rec)
+    parent.updated_at = datetime.now(timezone.utc)
+    db.flush()
+    _recompute_receipt_rollup(db, parent)
+    db.commit()
 
 
 @router.get("/{record_id}", response_model=ChannelRecordRead)

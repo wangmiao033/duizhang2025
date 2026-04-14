@@ -3,7 +3,8 @@ import { getChannelRecordId, uploadChannelReceiptAttachment } from '@/lib/api/ch
 import {
   getChannelTotals,
   getChannelReceivedAmount,
-  getChannelUnpaidAmount
+  getChannelUnpaidAmount,
+  isChannelReceiptSettled
 } from '@/domain/channel/channelAggregates.js'
 
 function formatMoney(amount) {
@@ -32,6 +33,7 @@ function buildBankPresetOptions(partyA, partyB) {
 function ChannelReceiptDrawer({
   open,
   record,
+  quickFull = false,
   partyA,
   partyB,
   channelApiEnabled,
@@ -51,13 +53,19 @@ function ChannelReceiptDrawer({
 
   useEffect(() => {
     if (!open || !record) return
-    setAmount('')
-    setReceiptDate(new Date().toISOString().slice(0, 10))
+    const today = new Date().toISOString().slice(0, 10)
+    const unpaid = getChannelUnpaidAmount(record)
+    if (quickFull && unpaid > 1e-6) {
+      setAmount(unpaid.toFixed(2))
+    } else {
+      setAmount('')
+    }
+    setReceiptDate(today)
     setBankSelect(bankPresets.length ? bankPresets[0].value : '__custom__')
     setBankCustom('')
     setRemark('')
     setFile(null)
-  }, [open, record?.id, bankPresets])
+  }, [open, record, record?.id, quickFull, bankPresets])
 
   useEffect(() => {
     if (!open) return
@@ -75,6 +83,7 @@ function ChannelReceiptDrawer({
   const receivable = totals.settlementAmount
   const received = getChannelReceivedAmount(record)
   const unpaid = getChannelUnpaidAmount(record)
+  const settled = isChannelReceiptSettled(record)
 
   const resolveBankAccount = () => {
     if (bankSelect === '__custom__') return bankCustom.trim() || null
@@ -95,6 +104,10 @@ function ChannelReceiptDrawer({
     }
     if (!channelApiEnabled) {
       showToast?.('当前为离线模式，无法登记收款', 'error')
+      return
+    }
+    if (settled) {
+      showToast?.('该对账已结清', 'error')
       return
     }
     setSubmitting(true)
@@ -141,6 +154,9 @@ function ChannelReceiptDrawer({
           {!channelApiEnabled ? (
             <p className="channel-receipt-offline muted">离线模式下无法登记收款，请恢复渠道 API 连接。</p>
           ) : null}
+          {channelApiEnabled && settled ? (
+            <p className="channel-receipt-settled-note">该对账已结清，无需继续登记收款。</p>
+          ) : null}
 
           <div className="channel-receipt-section">
             <div className="channel-receipt-section__title">对账信息</div>
@@ -163,7 +179,7 @@ function ChannelReceiptDrawer({
 
           <form className="channel-receipt-section" onSubmit={handleSubmit}>
             <div className="channel-receipt-section__title">收款录入</div>
-            <div className="channel-receipt-form-grid">
+            <div className={`channel-receipt-form-grid ${settled ? 'is-disabled' : ''}`}>
               <div className="form-group">
                 <label htmlFor="channel-receipt-amount">收款金额 *</label>
                 <input
@@ -176,6 +192,7 @@ function ChannelReceiptDrawer({
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="元"
                   required
+                  disabled={settled}
                 />
               </div>
               <div className="form-group">
@@ -186,6 +203,7 @@ function ChannelReceiptDrawer({
                   className="admin-input"
                   value={receiptDate}
                   onChange={(e) => setReceiptDate(e.target.value)}
+                  disabled={settled}
                 />
               </div>
               <div className="form-group full-width">
@@ -195,6 +213,7 @@ function ChannelReceiptDrawer({
                   className="admin-input"
                   value={bankSelect}
                   onChange={(e) => setBankSelect(e.target.value)}
+                  disabled={settled}
                 >
                   {bankPresets.length === 0 ? (
                     <option value="__custom__">手动填写账户</option>
@@ -216,6 +235,7 @@ function ChannelReceiptDrawer({
                     value={bankCustom}
                     onChange={(e) => setBankCustom(e.target.value)}
                     placeholder="开户行 / 账号"
+                    disabled={settled}
                   />
                 ) : null}
               </div>
@@ -228,6 +248,7 @@ function ChannelReceiptDrawer({
                   value={remark}
                   onChange={(e) => setRemark(e.target.value)}
                   placeholder="选填"
+                  disabled={settled}
                 />
               </div>
               <div className="form-group full-width">
@@ -238,6 +259,7 @@ function ChannelReceiptDrawer({
                   className="channel-receipt-file"
                   accept="image/*,.pdf,.png,.jpg,.jpeg,.webp"
                   onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  disabled={settled}
                 />
                 {file ? <span className="muted channel-receipt-file-name">{file.name}</span> : null}
               </div>
@@ -249,7 +271,7 @@ function ChannelReceiptDrawer({
               <button
                 type="submit"
                 className="rec-btn rec-btn--primary"
-                disabled={submitting || !channelApiEnabled}
+                disabled={submitting || !channelApiEnabled || settled}
               >
                 {submitting ? '提交中…' : '确认收款'}
               </button>

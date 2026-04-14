@@ -127,3 +127,18 @@ export function receiptStatusTagClass(status) {
       return 'channel-receipt-tag channel-receipt-tag--unpaid'
   }
 }
+
+/** 已收占应收比例0–100（应收≤0 且已收≥0 视为 100%） */
+export function receiptProgressPercent(received, receivable) {
+  const r = parseFloat(String(received)) || 0
+  const a = parseFloat(String(receivable)) || 0
+  if (a <= 0) return r >= 0 ? 100 : 0
+  return Math.min(100, Math.round((r / a) * 100))
+}
+
+/** 已收满应收（与后端 receipt_status=paid 一致） */
+export function isChannelReceiptSettled(record) {
+  const a = getChannelTotals(record).settlementAmount
+  const r = getChannelReceivedAmount(record)
+  return r + 1e-9 >= a
+}

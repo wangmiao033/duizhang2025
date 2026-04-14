@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react'
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import * as XLSX from 'xlsx'
 import AdminWorkspace from '@/components/admin/AdminWorkspace.jsx'
 import AdminFilterBar from '@/components/admin/AdminFilterBar.jsx'
@@ -8,6 +8,8 @@ import '@/components/reconciliation/reconciliation-admin.css'
 import { useAppState } from '@/app/AppStateContext.jsx'
 import ChannelLightDrawer from '@/components/channel/ChannelLightDrawer.jsx'
 import ChannelReceiptDrawer from '@/components/channel/ChannelReceiptDrawer.jsx'
+import ChannelReceiptListDrawer from '@/components/channel/ChannelReceiptListDrawer.jsx'
+import ChannelReceiptProgressBlock from '@/components/channel/ChannelReceiptProgressBlock.jsx'
 import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
 import {
   initialForm,
@@ -20,7 +22,8 @@ import {
   getChannelReceivedAmount,
   getChannelUnpaidAmount,
   receiptStatusTagLabel,
-  receiptStatusTagClass
+  isChannelReceiptSettled,
+  receiptProgressPercent
 } from '@/domain/channel/channelAggregates.js'
 import { getChannelRecordId } from '@/lib/api/channel.ts'
 import { VIEWS } from '@/app/routes.js'
@@ -82,6 +85,11 @@ function recordMatchesPeriod(record, period) {
   return true
 }
 
+function formatYuanExact(n) {
+  const x = Number(n) || 0
+  return `¥${x.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
 function recordMatchesStatusFilter(record, statusFilter) {
   if (statusFilter === 'all') return true
   const hasBoth = Boolean(record.startDate && record.endDate)
@@ -92,7 +100,7 @@ function recordMatchesStatusFilter(record, statusFilter) {
 
 function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpdateRecord, onDeleteRecord }) {
   const { showToast, setActiveView, openChannelReconciliationEdit, recon, settings } = useAppState()
-  const { channelApiEnabled, onChannelRegisterReceipt } = recon
+  const { channelApiEnabled, onChannelRegisterReceipt, onChannelDeleteReceipt } = recon
   const { partyA, partyB } = settings
   const importRef = useRef(null)
 
@@ -100,6 +108,8 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
   const [viewMode, setViewMode] = useState('byGame')
   const [lightDrawerRecord, setLightDrawerRecord] = useState(null)
   const [receiptDrawerRecord, setReceiptDrawerRecord] = useState(null)
+  const [receiptDrawerQuickFull, setReceiptDrawerQuickFull] = useState(false)
+  const [receiptListDrawerRecord, setReceiptListDrawerRecord] = useState(null)
 
   const [periodFilter, setPeriodFilter] = useState('all')
   const [filterMonth, setFilterMonth] = useState('')
@@ -109,6 +119,21 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
   const [searchTerm, setSearchTerm] = useState('')
 
   const [selectedIds, setSelectedIds] = useState([])
+
+  const openReceiptRegister = useCallback((record) => {
+    setReceiptDrawerQuickFull(false)
+    setReceiptDrawerRecord(record)
+  }, [])
+
+  const openReceiptQuickFull = useCallback((record) => {
+    setReceiptDrawerQuickFull(true)
+    setReceiptDrawerRecord(record)
+  }, [])
+
+  const closeReceiptDrawer = useCallback(() => {
+    setReceiptDrawerRecord(null)
+    setReceiptDrawerQuickFull(false)
+  }, [])
 
   useEffect(() => {
     const id = consumeChannelFocus()
@@ -209,6 +234,15 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
       }
     )
   }, [filteredRecords])
+
+  const listFooterReceiptProgress = useMemo(
+    () => ({
+      pct: receiptProgressPercent(statistics.totalReceived, statistics.totalSettlement),
+      received: statistics.totalReceived,
+      receivable: statistics.totalSettlement
+    }),
+    [statistics.totalReceived, statistics.totalSettlement]
+  )
 
   const uniqueChannelCount = useMemo(() => {
     return new Set(filteredRecords.map((r) => r.channelName || '')).size
@@ -678,14 +712,22 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                         <h4 className="game-title">{channel.channelName}</h4>
                         <span className="channel-badge">{channel.gameCount} 个游戏</span>
                       </div>
-                      <div className="game-stats">
+                      <div className="game-stats game-stats--channel-summary">
                         <span className="stat">
-                          <span className="label">流水</span>
+                          <span className="label">总流水</span>
                           <span className="value">{formatMoney(channel.totalFlow)}</span>
                         </span>
                         <span className="stat">
-                          <span className="label">结算</span>
+                          <span className="label">应收</span>
                           <span className="value settlement">{formatMoney(channel.totalSettlement)}</span>
+                        </span>
+                        <span className="stat">
+                          <span className="label">已收</span>
+                          <span className="value">{formatMoney(channel.totalReceived || 0)}</span>
+                        </span>
+                        <span className="stat">
+                          <span className="label">未收</span>
+                          <span className="value">{formatMoney(channel.totalUnpaid || 0)}</span>
                         </span>
                         <span className="stat">
                           <span className="label">占比</span>
@@ -699,7 +741,63 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                     </div>
 
                     {expandedGames[channel.channelName] && (
-                      <div className="game-channels">
+                      <>
+                        <div
+                          className="channel-rd__record-toolbar"
+                          role="region"
+                          aria-label="按对账单收款"
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                        >
+                          {channel.records.map((rec) => {
+                            const rid = getChannelRecordId(rec) || rec.id
+                            const settled = isChannelReceiptSettled(rec)
+                            const unpaid = getChannelUnpaidAmount(rec)
+                            return (
+                              <div key={rid} className="channel-rd__record-toolbar-row">
+                                <div className="channel-rd__record-toolbar-meta">
+                                  <span className="channel-rd__record-toolbar-title">
+                                    {rec.settlementMonth || '未设月份'} · {rec.startDate || '—'} ~{' '}
+                                    {rec.endDate || '—'}
+                                  </span>
+                                  <div className="channel-rd__record-toolbar-progress">
+                                    <ChannelReceiptProgressBlock record={rec} compact />
+                                  </div>
+                                </div>
+                                <div className="channel-rd__record-toolbar-actions">
+                                  <button
+                                    type="button"
+                                    className="edit-btn"
+                                    onClick={() => setReceiptListDrawerRecord(rec)}
+                                  >
+                                    收款记录
+                                  </button>
+                                  {!settled && unpaid > 1e-6 ? (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className="edit-btn channel-rd__btn-receipt"
+                                        onClick={() => openReceiptRegister(rec)}
+                                      >
+                                        收款登记
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="edit-btn channel-rd__btn-receipt"
+                                        onClick={() => openReceiptQuickFull(rec)}
+                                      >
+                                        快速收全款
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <span className="channel-receipt-tag channel-receipt-tag--cleared">已结清</span>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                        <div className="game-channels">
                         <table className="channel-detail-table">
                           <thead>
                             <tr>
@@ -713,9 +811,6 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                               <th>分成金额</th>
                               <th>税率</th>
                               <th>结算金额</th>
-                              <th>已收金额</th>
-                              <th>未收金额</th>
-                              <th>收款状态</th>
                               <th>操作</th>
                             </tr>
                           </thead>
@@ -756,34 +851,9 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                                     <td>{formatMoney(shareAmount)}</td>
                                     <td>{line.taxRate ?? 5}%</td>
                                     <td className="settlement">{formatMoney(settlement)}</td>
-                                    <td className="channel-rd__receipt">
-                                      {lineIdx === 0 ? formatMoney(getChannelReceivedAmount(record)) : '—'}
-                                    </td>
-                                    <td className="channel-rd__receipt">
-                                      {lineIdx === 0 ? formatMoney(getChannelUnpaidAmount(record)) : '—'}
-                                    </td>
-                                    <td className="channel-rd__receipt">
-                                      {lineIdx === 0 ? (
-                                        <span
-                                          className={receiptStatusTagClass(record.receiptStatus)}
-                                          title={receiptStatusTagLabel(record.receiptStatus)}
-                                        >
-                                          {receiptStatusTagLabel(record.receiptStatus)}
-                                        </span>
-                                      ) : (
-                                        '—'
-                                      )}
-                                    </td>
                                     <td className="actions">
                                       {lineIdx === 0 ? (
                                         <>
-                                          <button
-                                            type="button"
-                                            className="edit-btn channel-rd__btn-receipt"
-                                            onClick={() => setReceiptDrawerRecord(record)}
-                                          >
-                                            收款登记
-                                          </button>
                                           <button
                                             type="button"
                                             className="edit-btn"
@@ -847,14 +917,12 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                               </td>
                               <td>-</td>
                               <td className="settlement">{formatMoney(channel.totalSettlement)}</td>
-                              <td className="channel-rd__receipt">{formatMoney(channel.totalReceived || 0)}</td>
-                              <td className="channel-rd__receipt">{formatMoney(channel.totalUnpaid || 0)}</td>
-                              <td />
                               <td />
                             </tr>
                           </tfoot>
                         </table>
-                      </div>
+                        </div>
+                      </>
                     )}
                   </div>
                 ))
@@ -878,16 +946,14 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                     <th>服务器</th>
                     <th>代金券</th>
                     <th>结算金额</th>
-                    <th>已收金额</th>
-                    <th>未收金额</th>
-                    <th>收款状态</th>
+                    <th>收款进度</th>
                     <th>操作</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredRecords.length === 0 ? (
                     <tr>
-                      <td colSpan="15" className="admin-list-empty-cell">
+                      <td colSpan="13" className="admin-list-empty-cell">
                         <AdminListEmptyState
                           variant="inline"
                           title="暂无渠道记录"
@@ -930,21 +996,35 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                         <td className="settlement">
                           {formatMoney(getChannelTotals(record).settlementAmount)}
                         </td>
-                        <td className="channel-rd__receipt">{formatMoney(getChannelReceivedAmount(record))}</td>
-                        <td className="channel-rd__receipt">{formatMoney(getChannelUnpaidAmount(record))}</td>
-                        <td>
-                          <span className={receiptStatusTagClass(record.receiptStatus)}>
-                            {receiptStatusTagLabel(record.receiptStatus)}
-                          </span>
+                        <td className="channel-rd__receipt-col">
+                          <ChannelReceiptProgressBlock record={record} compact />
                         </td>
                         <td className="actions">
                           <button
                             type="button"
-                            className="edit-btn channel-rd__btn-receipt"
-                            onClick={() => setReceiptDrawerRecord(record)}
+                            className="edit-btn"
+                            onClick={() => setReceiptListDrawerRecord(record)}
                           >
-                            收款登记
+                            收款记录
                           </button>
+                          {!isChannelReceiptSettled(record) && getChannelUnpaidAmount(record) > 1e-6 ? (
+                            <>
+                              <button
+                                type="button"
+                                className="edit-btn channel-rd__btn-receipt"
+                                onClick={() => openReceiptRegister(record)}
+                              >
+                                收款登记
+                              </button>
+                              <button
+                                type="button"
+                                className="edit-btn channel-rd__btn-receipt"
+                                onClick={() => openReceiptQuickFull(record)}
+                              >
+                                快速收全款
+                              </button>
+                            </>
+                          ) : null}
                           <button
                             type="button"
                             className="edit-btn"
@@ -980,9 +1060,23 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                       <td>{formatMoney(statistics.totalServerCost)}</td>
                       <td>{formatMoney(statistics.totalVoucherCost)}</td>
                       <td className="settlement">{formatMoney(statistics.totalSettlement)}</td>
-                      <td className="channel-rd__receipt">{formatMoney(statistics.totalReceived)}</td>
-                      <td className="channel-rd__receipt">{formatMoney(statistics.totalUnpaid)}</td>
-                      <td />
+                      <td className="channel-rd__receipt-col">
+                        <div className="channel-receipt-progress channel-receipt-progress--compact">
+                          <div className="channel-receipt-progress__line">
+                            <span className="channel-receipt-progress__ratio">
+                              {formatYuanExact(listFooterReceiptProgress.received)} /{' '}
+                              {formatYuanExact(listFooterReceiptProgress.receivable)}
+                            </span>
+                          </div>
+                          <div className="channel-receipt-progress__bar" aria-hidden="true">
+                            <div
+                              className="channel-receipt-progress__fill"
+                              style={{ width: `${listFooterReceiptProgress.pct}%` }}
+                            />
+                          </div>
+                          <div className="channel-receipt-progress__pct">{listFooterReceiptProgress.pct}%</div>
+                        </div>
+                      </td>
                       <td />
                     </tr>
                   </tfoot>
@@ -996,12 +1090,23 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
       <ChannelReceiptDrawer
         open={Boolean(receiptDrawerRecord)}
         record={receiptDrawerRecord}
+        quickFull={receiptDrawerQuickFull}
         partyA={partyA}
         partyB={partyB}
         channelApiEnabled={channelApiEnabled}
         showToast={showToast}
-        onClose={() => setReceiptDrawerRecord(null)}
+        onClose={closeReceiptDrawer}
         onRegisterReceipt={onChannelRegisterReceipt}
+      />
+
+      <ChannelReceiptListDrawer
+        open={Boolean(receiptListDrawerRecord)}
+        recordId={receiptListDrawerRecord ? getChannelRecordId(receiptListDrawerRecord) : ''}
+        channelName={receiptListDrawerRecord?.channelName || ''}
+        channelApiEnabled={channelApiEnabled}
+        showToast={showToast}
+        onClose={() => setReceiptListDrawerRecord(null)}
+        onDeleteReceipt={onChannelDeleteReceipt}
       />
 
       <ChannelLightDrawer

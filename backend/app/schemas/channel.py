@@ -17,6 +17,23 @@ class ChannelReceiptCreate(BaseModel):
     attachment_url: str | None = None
 
 
+class ChannelReceiptRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    channel_record_id: str
+    amount: float
+    receipt_date: str | None
+    bank_account: str | None
+    remark: str | None
+    attachment_url: str | None
+    created_at: datetime
+
+
+class ChannelReceiptListResponse(BaseModel):
+    items: list[ChannelReceiptRead]
+
+
 class ChannelLineItemCreate(BaseModel):
     """单行游戏明细；金额字段与 ORM 一致（支付通道费为 gateway_cost 绝对金额）。"""
 

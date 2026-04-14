@@ -158,6 +158,29 @@ export function createChannelReceipt(recordId: string, body: ChannelReceiptPaylo
   return apiPost<ApiChannelRow>(`${PATH}/${encodeURIComponent(recordId)}/receipts`, body)
 }
 
+export type ApiChannelReceipt = {
+  id: string
+  channel_record_id: string
+  amount: number
+  receipt_date: string | null
+  bank_account: string | null
+  remark: string | null
+  attachment_url: string | null
+  created_at: string
+}
+
+export type ChannelReceiptListApiResponse = {
+  items: ApiChannelReceipt[]
+}
+
+export function listChannelReceipts(recordId: string): Promise<ChannelReceiptListApiResponse> {
+  return apiGet<ChannelReceiptListApiResponse>(`${PATH}/${encodeURIComponent(recordId)}/receipts`)
+}
+
+export function deleteChannelReceipt(recordId: string, receiptId: string): Promise<void> {
+  return apiDelete(`${PATH}/${encodeURIComponent(recordId)}/receipts/${encodeURIComponent(receiptId)}`)
+}
+
 function numOrNull(v: unknown): number | null {
   if (v === undefined || v === null || v === '') return null
   const n = typeof v === 'number' ? v : parseFloat(String(v))

@@ -6,7 +6,8 @@ import {
   getChannelTotals,
   getChannelReceivedAmount,
   getChannelUnpaidAmount,
-  receiptStatusTagLabel
+  receiptStatusTagLabel,
+  isChannelReceiptSettled
 } from '@/domain/channel/channelAggregates.js'
 
 /**
@@ -88,7 +89,13 @@ function ChannelLightDrawer({
             <dt>未收金额</dt>
             <dd>¥{getChannelUnpaidAmount(record).toFixed(2)}</dd>
             <dt>收款状态</dt>
-            <dd>{receiptStatusTagLabel(record.receiptStatus)}</dd>
+            <dd>
+              {isChannelReceiptSettled(record) ? (
+                <span className="channel-receipt-tag channel-receipt-tag--cleared">已结清</span>
+              ) : (
+                receiptStatusTagLabel(record.receiptStatus)
+              )}
+            </dd>
           </dl>
 
           <div className="rec-light-field">
