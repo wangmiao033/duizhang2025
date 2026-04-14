@@ -164,15 +164,19 @@
 /* 表单区域 */
 .channel-form-section {
   background: var(--admin-card-bg);
-  border-radius: var(--admin-radius);
-  padding: var(--admin-space-md);
+  border-radius: 12px;
+  padding: 16px 20px;
   border: 1px solid var(--admin-border-soft);
   box-shadow: var(--admin-shadow-sm);
   height: fit-content;
   min-width: 0;
   overflow: hidden;
   width: 100%;
-  max-width: 100%;
+   max-width: 100%;
+}
+
+.channel-form-section .form-section-title {
+  margin-top: 0;
 }
 
 .channel-form-section h3 {
@@ -1160,9 +1164,19 @@
 .channel-line-items-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
   margin-bottom: 8px;
+}
+
+.channel-line-items-toolbar--split {
+  justify-content: space-between;
+}
+
+.channel-line-items-toolbar-leading {
+  font-size: var(--admin-font-sm);
+  font-weight: 600;
+  color: var(--admin-text-main);
 }
 
 .channel-line-items-table-wrap {
@@ -1230,6 +1244,99 @@
   font-size: 16px;
   font-weight: 600;
   margin-top: 4px;
+}
+
+.channel-line-items-summary .summary-item--accent {
+  border-color: rgba(99, 102, 241, 0.28);
+  background: var(--admin-primary-muted, rgba(99, 102, 241, 0.08));
+}
+
+.channel-line-items-summary--rd .summary-item--hero {
+  border-color: rgba(22, 163, 74, 0.35);
+  background: var(--admin-success-muted, rgba(22, 163, 74, 0.1));
+}
+
+.channel-line-items-summary--rd .summary-item--hero .value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--admin-success, #16a34a);
+}
+
+/* 研发对账：游戏明细 grid（列与渠道明细表一致：紧凑、可横向滚动） */
+.rd-line-items-grid {
+  min-width: 960px;
+}
+
+.rd-line-items-grid-head,
+.rd-line-items-grid-row {
+  display: grid;
+  grid-template-columns:
+    minmax(88px, 1.25fr) 92px 80px 88px 84px 84px 84px 72px 72px 88px 88px 76px;
+  gap: 8px 10px;
+  padding: 10px 12px;
+  align-items: center;
+  border-bottom: 1px solid var(--admin-border-soft, #e5e7eb);
+}
+
+.rd-line-items-grid-head {
+  background: var(--table-header-bg, #f9fafb);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--admin-text-sub, #64748b);
+}
+
+.rd-line-items-grid-row:hover {
+  background: var(--admin-elevated-bg, #f8fafc);
+}
+
+.rd-line-items-grid-head .channel-cell,
+.rd-line-items-grid-row .channel-cell {
+  min-width: 0;
+}
+
+.rd-line-items-grid-head .channel-cell--num,
+.rd-line-items-grid-row .channel-cell--num {
+  text-align: right;
+}
+
+.rd-line-items-grid .admin-input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.rd-line-items-grid .admin-input[type='number'],
+.rd-line-items-grid .admin-input.channel-input-num {
+  text-align: right;
+}
+
+.rd-line-items-grid-row .channel-cell--actions {
+  display: flex;
+  justify-content: center;
+}
+
+.rec-btn.rec-btn--danger-outline {
+  border: 1px solid rgba(220, 38, 38, 0.55);
+  color: #dc2626;
+  background: transparent;
+}
+
+.rec-btn.rec-btn--danger-outline:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.09);
+}
+
+.rd-recon-billing-form .channel-line-items-wrap {
+  margin-top: 0;
+}
+
+.rd-recon-meta-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 8px;
 }
 
 .channel-discount-hint {

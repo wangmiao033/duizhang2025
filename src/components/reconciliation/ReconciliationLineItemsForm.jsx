@@ -2,12 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { findGamePreset } from '@/components/GamePresets.jsx'
 import GamePresets from '@/components/GamePresets.jsx'
 import { STATUS_OPTIONS } from '@/components/StatusManager.jsx'
+import LineItemsTable from '@/components/shared/LineItemsTable.jsx'
 import {
   calculateSettlementAmount,
   calculateSettlementGrossShare,
-  rdLineItemToSettlementPayload,
+  rdLineItemToSettlementPayload
 } from '@/domain/settlement/calculateSettlementAmount.js'
-import '@/components/DataForm.css'
+import '@/components/ChannelBilling.css'
 
 export function createEmptyRdLine(sortOrder = 0) {
   return {
@@ -44,7 +45,7 @@ function cloneItemsFromRecord(record) {
 }
 
 /**
- * 研发对账：公共信息 + 多行游戏（每行沿用 calculateSettlementAmount 口径）
+ * 研发对账：布局与渠道 ChannelBillingForm 一致（channel-form-section + LineItemsTable + grid明细）
  */
 function ReconciliationLineItemsForm({
   formId,
@@ -63,6 +64,8 @@ function ReconciliationLineItemsForm({
   onPreviewChange,
   submitIntentRef
 }) {
+  const partnerListId = `${formId || 'rd'}-partner-list`
+
   const [header, setHeader] = useState({
     settlementMonth: settlementMonth || '',
     settlementNumber: '',
@@ -235,10 +238,7 @@ function ReconciliationLineItemsForm({
   }
 
   const updateLine = (index, field, value) => {
-    setLines((prev) => {
-      const next = prev.map((row, i) => (i === index ? { ...row, [field]: value } : row))
-      return next
-    })
+    setLines((prev) => prev.map((row, i) => (i === index ? { ...row, [field]: value } : row)))
   }
 
   const applyGamePresetToRow = (index, presetData) => {
@@ -275,16 +275,20 @@ function ReconciliationLineItemsForm({
   const isDrawer = layout === 'drawer'
   const isCreatePage = layout === 'createPage'
 
+  const formClass = `channel-form rd-recon-billing-form ${isDrawer ? 'channel-form--drawer' : 'channel-form--page'}`
+
   return (
-    <div
-      className={`data-form ${isDrawer ? 'data-form--drawer' : ''} ${isCreatePage ? 'data-form--create-page' : ''}`}
-    >
-      <form id={formId || undefined} onSubmit={handleSubmit} className="form">
+    <div className="channel-rd">
+      <form id={formId || undefined} onSubmit={handleSubmit} className={formClass}>
         {!isDrawer && !isCreatePage && (
-          <div className="form-header-row">
-            <div>
-              <h3>{mode === 'edit' ? '编辑对账记录' : '添加对账记录'}</h3>
-              <span className="form-hint">必填项已标 *</span>
+          <div className="rd-recon-meta-header">
+            <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+              <h3 style={{ margin: 0, fontSize: 'var(--admin-font-title)' }}>
+                {mode === 'edit' ? '编辑对账记录' : '添加对账记录'}
+              </h3>
+              <span className="channel-discount-hint" style={{ display: 'block', marginTop: 4 }}>
+                必填项见标签；税点仅展示，不参与结算公式。
+              </span>
             </div>
             <GamePresets
               onApplyPreset={(p) => applyGamePresetToRow(0, p)}
@@ -293,7 +297,7 @@ function ReconciliationLineItemsForm({
           </div>
         )}
         {isDrawer && (
-          <div className="form-header-row form-header-row--drawer">
+          <div className="rd-recon-meta-header" style={{ justifyContent: 'flex-end' }}>
             <GamePresets
               onApplyPreset={(p) => applyGamePresetToRow(0, p)}
               currentGameName={lines[0]?.gameName}
@@ -301,7 +305,7 @@ function ReconciliationLineItemsForm({
           </div>
         )}
         {isCreatePage && (
-          <div className="form-header-row form-header-row--create-inline">
+          <div className="rd-recon-meta-header" style={{ justifyContent: 'flex-end' }}>
             <GamePresets
               onApplyPreset={(p) => applyGamePresetToRow(0, p)}
               currentGameName={lines[0]?.gameName}
@@ -309,14 +313,15 @@ function ReconciliationLineItemsForm({
           </div>
         )}
 
-        <div className="form-section">
-          <div className="section-title">基础信息</div>
-          <div className="form-grid">
+        <div className="channel-form-section">
+          <div className="form-section-title">1）基础信息</div>
+          <div className="form-row">
             {mode === 'edit' && (
               <div className="form-group">
                 <label>结算单编号</label>
                 <input
                   type="text"
+                  className="admin-input"
                   value={header.settlementNumber}
                   onChange={(e) => setHeader((h) => ({ ...h, settlementNumber: e.target.value }))}
                   placeholder="结算单编号"
@@ -327,6 +332,7 @@ function ReconciliationLineItemsForm({
               <label>结算月份 *</label>
               <input
                 type="text"
+                className="admin-input"
                 value={header.settlementMonth}
                 onChange={(e) => setHeader((h) => ({ ...h, settlementMonth: e.target.value }))}
                 required
@@ -335,16 +341,17 @@ function ReconciliationLineItemsForm({
             </div>
             <div className="form-group">
               <label>合作方</label>
-              <div className="partner-select-wrapper">
+              <div className="partner-select-wrapper" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <input
                   type="text"
-                  list="rd-partner-list"
+                  list={partnerListId}
+                  className="admin-input"
+                  style={{ flex: 1 }}
                   value={header.partner}
                   onChange={(e) => setHeader((h) => ({ ...h, partner: e.target.value }))}
                   placeholder="选择或输入合作方名称"
-                  className="partner-input"
                 />
-                <datalist id="rd-partner-list">
+                <datalist id={partnerListId}>
                   {partners.map((p) => (
                     <option key={p.id} value={p.name}>
                       {p.name} {p.category ? `(${p.category})` : ''}
@@ -354,7 +361,7 @@ function ReconciliationLineItemsForm({
                 {header.partner && !partners.find((p) => p.name === header.partner) && (
                   <button
                     type="button"
-                    className="add-partner-quick-btn"
+                    className="rec-btn rec-btn--ghost"
                     onClick={() => {
                       if (onAddPartner && header.partner.trim()) onAddPartner(header.partner.trim())
                     }}
@@ -365,20 +372,23 @@ function ReconciliationLineItemsForm({
                 )}
               </div>
             </div>
+          </div>
+          <div className="form-row">
             <div className="form-group">
-              <label>通道费率(%)（整单共用）</label>
+              <label>通道费率（%）整单共用</label>
               <input
                 type="number"
                 step="0.01"
+                className="admin-input channel-input-num"
                 value={header.channelFeeRate}
                 onChange={(e) => setHeader((h) => ({ ...h, channelFeeRate: e.target.value }))}
-                className="number-input"
               />
             </div>
             <div className="form-group full-width">
               <label>备注</label>
               <input
                 type="text"
+                className="admin-input"
                 value={header.memo}
                 onChange={(e) => setHeader((h) => ({ ...h, memo: e.target.value }))}
                 placeholder="内部备注"
@@ -387,156 +397,160 @@ function ReconciliationLineItemsForm({
           </div>
         </div>
 
-        <div className="rd-line-items-wrap">
-          <div className="rd-line-items-toolbar">
-            <span className="section-title" style={{ margin: 0 }}>
-              游戏明细
-            </span>
-            <button type="button" className="rec-btn rec-btn--secondary" onClick={addRow}>
-              + 新增一行游戏
-            </button>
-          </div>
-          <p className="rd-line-items-hint">
-            折扣系数含义与历史一致（如 1 无折扣，0.005 为 0.05 折档）；税点仅展示，不参与结算公式。
-          </p>
-          <div className="rd-line-items-table-wrap">
-            <table className="rd-line-items-table">
-              <thead>
-                <tr>
-                  <th>游戏名称</th>
-                  <th className="num">后台流水</th>
-                  <th className="num">折扣系数</th>
-                  <th className="num">总流水</th>
-                  <th className="num">代金券</th>
-                  <th className="num">测试费</th>
-                  <th className="num">额外费用</th>
-                  <th className="num">分成比例%</th>
-                  <th className="num">税率%</th>
-                  <th className="num">分成金额</th>
-                  <th className="num">结算金额</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lines.map((line, index) => {
-                  const rev = parseFloat(line.revenue || 0)
-                  const dRaw = parseFloat(line.discountRate)
-                  const d = Number.isFinite(dRaw) ? dRaw : 1
-                  const net = (Number.isFinite(rev) ? rev : 0) * d
-                  const payload = rdLineItemToSettlementPayload(line, header.channelFeeRate)
-                  const gross = calculateSettlementGrossShare(payload)
-                  const settlement = calculateSettlementAmount(payload)
-                  return (
-                    <tr key={line.id}>
-                      <td>
-                        <input
-                          type="text"
-                          value={line.gameName}
-                          onChange={(e) => updateLine(index, 'gameName', e.target.value)}
-                          onBlur={(e) => onGameNameBlur(index, e.target.value)}
-                          placeholder="游戏名称"
-                        />
-                      </td>
-                      <td className="num">
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={line.revenue}
-                          onChange={(e) => updateLine(index, 'revenue', e.target.value)}
-                        />
-                      </td>
-                      <td className="num">
-                        <input
-                          type="number"
-                          step="0.001"
-                          min="0"
-                          max="1"
-                          value={line.discountRate}
-                          onChange={(e) => updateLine(index, 'discountRate', e.target.value)}
-                        />
-                      </td>
-                      <td className="num">
-                        <input
-                          type="text"
-                          readOnly
-                          className="rd-line-items-readonly"
-                          value={net.toFixed(2)}
-                        />
-                      </td>
-                      <td className="num">
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={line.couponAmount}
-                          onChange={(e) => updateLine(index, 'couponAmount', e.target.value)}
-                        />
-                      </td>
-                      <td className="num">
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={line.testFee}
-                          onChange={(e) => updateLine(index, 'testFee', e.target.value)}
-                        />
-                      </td>
-                      <td className="num">
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={line.extraFee}
-                          onChange={(e) => updateLine(index, 'extraFee', e.target.value)}
-                        />
-                      </td>
-                      <td className="num">
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={line.shareRatio}
-                          onChange={(e) => updateLine(index, 'shareRatio', e.target.value)}
-                        />
-                      </td>
-                      <td className="num">
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={line.taxRate}
-                          onChange={(e) => updateLine(index, 'taxRate', e.target.value)}
-                        />
-                      </td>
-                      <td className="num">
-                        <input
-                          type="text"
-                          readOnly
-                          className="rd-line-items-readonly"
-                          value={gross.toFixed(2)}
-                        />
-                      </td>
-                      <td className="num">
-                        <input
-                          type="text"
-                          readOnly
-                          className="rd-line-items-readonly"
-                          value={settlement.toFixed(2)}
-                        />
-                      </td>
-                      <td className="line-actions">
-                        <button
-                          type="button"
-                          className="rec-btn rec-btn--ghost"
-                          disabled={lines.length <= 1}
-                          onClick={() => removeRow(index)}
-                        >
-                          删除
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+        <div className="channel-form-section">
+          <div className="form-section-title">2）游戏明细</div>
+          <LineItemsTable
+            onAddRow={addRow}
+            hint="折扣系数与历史口径一致（如 1 无折扣，0.005 为 0.05 折档）。自动计算列不可编辑。"
+          >
+            <div className="rd-line-items-grid">
+              <div className="rd-line-items-grid-head" aria-hidden="true">
+                <div className="channel-cell">游戏名称</div>
+                <div className="channel-cell channel-cell--num">后台流水</div>
+                <div className="channel-cell channel-cell--num">折扣</div>
+                <div className="channel-cell channel-cell--num">总流水</div>
+                <div className="channel-cell channel-cell--num">代金券</div>
+                <div className="channel-cell channel-cell--num">测试费</div>
+                <div className="channel-cell channel-cell--num">额外费用</div>
+                <div className="channel-cell channel-cell--num">分成%</div>
+                <div className="channel-cell channel-cell--num">税率%</div>
+                <div className="channel-cell channel-cell--num">分成金额</div>
+                <div className="channel-cell channel-cell--num">结算金额</div>
+                <div className="channel-cell channel-cell--actions">操作</div>
+              </div>
+              {lines.map((line, index) => {
+                const rev = parseFloat(line.revenue || 0)
+                const dRaw = parseFloat(line.discountRate)
+                const d = Number.isFinite(dRaw) ? dRaw : 1
+                const net = (Number.isFinite(rev) ? rev : 0) * d
+                const payload = rdLineItemToSettlementPayload(line, header.channelFeeRate)
+                const gross = calculateSettlementGrossShare(payload)
+                const settlement = calculateSettlementAmount(payload)
+                return (
+                  <div key={line.id} className="rd-line-items-grid-row">
+                    <div className="channel-cell">
+                      <input
+                        type="text"
+                        className="admin-input"
+                        value={line.gameName}
+                        onChange={(e) => updateLine(index, 'gameName', e.target.value)}
+                        onBlur={(e) => onGameNameBlur(index, e.target.value)}
+                        placeholder="必填"
+                      />
+                    </div>
+                    <div className="channel-cell channel-cell--num">
+                      <input
+                        type="number"
+                        step="0.01"
+                        className="admin-input channel-input-num"
+                        value={line.revenue}
+                        onChange={(e) => updateLine(index, 'revenue', e.target.value)}
+                      />
+                    </div>
+                    <div className="channel-cell channel-cell--num">
+                      <input
+                        type="number"
+                        step="0.001"
+                        min="0"
+                        max="1"
+                        className="admin-input channel-input-num"
+                        value={line.discountRate}
+                        onChange={(e) => updateLine(index, 'discountRate', e.target.value)}
+                        title="0.05折填0.005"
+                      />
+                    </div>
+                    <div className="channel-cell channel-cell--num">
+                      <input
+                        type="text"
+                        readOnly
+                        disabled
+                        className="admin-input readonly-input channel-input-num"
+                        value={net.toFixed(2)}
+                      />
+                    </div>
+                    <div className="channel-cell channel-cell--num">
+                      <input
+                        type="number"
+                        step="0.01"
+                        className="admin-input channel-input-num"
+                        value={line.couponAmount}
+                        onChange={(e) => updateLine(index, 'couponAmount', e.target.value)}
+                      />
+                    </div>
+                    <div className="channel-cell channel-cell--num">
+                      <input
+                        type="number"
+                        step="0.01"
+                        className="admin-input channel-input-num"
+                        value={line.testFee}
+                        onChange={(e) => updateLine(index, 'testFee', e.target.value)}
+                      />
+                    </div>
+                    <div className="channel-cell channel-cell--num">
+                      <input
+                        type="number"
+                        step="0.01"
+                        className="admin-input channel-input-num"
+                        value={line.extraFee}
+                        onChange={(e) => updateLine(index, 'extraFee', e.target.value)}
+                      />
+                    </div>
+                    <div className="channel-cell channel-cell--num">
+                      <input
+                        type="number"
+                        step="0.01"
+                        className="admin-input channel-input-num"
+                        value={line.shareRatio}
+                        onChange={(e) => updateLine(index, 'shareRatio', e.target.value)}
+                      />
+                    </div>
+                    <div className="channel-cell channel-cell--num">
+                      <input
+                        type="number"
+                        step="0.01"
+                        className="admin-input channel-input-num"
+                        value={line.taxRate}
+                        onChange={(e) => updateLine(index, 'taxRate', e.target.value)}
+                      />
+                    </div>
+                    <div className="channel-cell channel-cell--num">
+                      <input
+                        type="text"
+                        readOnly
+                        disabled
+                        className="admin-input readonly-input channel-input-num"
+                        value={gross.toFixed(2)}
+                      />
+                    </div>
+                    <div className="channel-cell channel-cell--num">
+                      <input
+                        type="text"
+                        readOnly
+                        disabled
+                        className="admin-input readonly-input channel-input-num"
+                        value={settlement.toFixed(2)}
+                      />
+                    </div>
+                    <div className="channel-cell channel-cell--actions">
+                      <button
+                        type="button"
+                        className="rec-btn rec-btn--danger-outline"
+                        disabled={lines.length <= 1}
+                        onClick={() => removeRow(index)}
+                      >
+                        删除
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </LineItemsTable>
+        </div>
 
-          <div className="rd-line-items-summary">
+        <div className="channel-form-section">
+          <div className="form-section-title">3）汇总</div>
+          <div className="channel-line-items-summary channel-line-items-summary--rd">
             <div className="summary-item summary-item--accent">
               <div className="label">总后台流水</div>
               <div className="value">¥{totals.sumRevenue.toFixed(2)}</div>
@@ -549,7 +563,7 @@ function ReconciliationLineItemsForm({
               <div className="label">总代金券</div>
               <div className="value">¥{totals.sumCoupon.toFixed(2)}</div>
             </div>
-            <div className="summary-item summary-item--accent">
+            <div className="summary-item summary-item--hero">
               <div className="label">总结算金额</div>
               <div className="value">¥{totals.sumSettlement.toFixed(2)}</div>
             </div>
@@ -557,12 +571,13 @@ function ReconciliationLineItemsForm({
         </div>
 
         {mode === 'edit' && (
-          <div className="form-section">
-            <div className="section-title">状态</div>
-            <div className="form-grid">
+          <div className="channel-form-section">
+            <div className="form-section-title">状态</div>
+            <div className="form-row">
               <div className="form-group">
                 <label>记录状态</label>
                 <select
+                  className="admin-input"
                   value={header.status || 'pending'}
                   onChange={(e) => setHeader((h) => ({ ...h, status: e.target.value }))}
                 >
@@ -578,17 +593,19 @@ function ReconciliationLineItemsForm({
         )}
 
         {!isDrawer && !isCreatePage && (
-          <div className="form-preview">
-            <div className="preview-card">
-              <span className="preview-label">预计结算金额：</span>
-              <span className="preview-amount">¥{totals.sumSettlement.toFixed(2)}</span>
+          <div className="channel-form-section" style={{ padding: '12px 16px' }}>
+            <div className="form-row" style={{ alignItems: 'center' }}>
+              <span style={{ color: 'var(--admin-text-sub)', fontSize: 14 }}>预计结算金额</span>
+              <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--admin-success)' }}>
+                {`\u00a5${totals.sumSettlement.toFixed(2)}`}
+              </span>
             </div>
           </div>
         )}
 
         {showSubmitButton && (
-          <div className="form-actions">
-            <button type="submit" className="submit-btn">
+          <div className="form-actions" style={{ marginTop: 8 }}>
+            <button type="submit" className="rec-btn rec-btn--primary">
               {mode === 'edit' ? '保存修改' : '添加记录'}
             </button>
           </div>

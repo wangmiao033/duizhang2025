@@ -11,6 +11,7 @@ import {
   recordToLineForms
 } from '@/domain/channel/channelBillingForm.js'
 import '@/components/ChannelBilling.css'
+import LineItemsTable from '@/components/shared/LineItemsTable.jsx'
 
 const COMMON_CHANNELS = [
   '广州触点互联网科技有限公司',
@@ -187,6 +188,7 @@ function ChannelBillingForm({
 
   return (
     <form id={formId} onSubmit={handleSubmit} className={`channel-form channel-form--page ${className}`}>
+      <div className="channel-form-section">
       <div className="form-section-title">1）公共信息</div>
       <div className="form-row">
         <div className="form-group full-width">
@@ -248,9 +250,14 @@ function ChannelBillingForm({
           />
         </div>
       </div>
+      </div>
 
+      <div className="channel-form-section">
       <div className="form-section-title">2）游戏明细（每行独立按原公式计算结算金额）</div>
-      <div className="channel-line-items-wrap">
+      <LineItemsTable
+        onAddRow={addLine}
+        hint="折扣系数仅填数字（如 0.005 表示 0.05 折）。结算与导出均以「折算后总流水」为准。"
+      >
         <table className="channel-line-items-table">
           <thead>
             <tr>
@@ -405,15 +412,11 @@ function ChannelBillingForm({
             ))}
           </tbody>
         </table>
-        <button type="button" className="rec-btn rec-btn--secondary channel-line-add" onClick={addLine}>
-          + 新增一行游戏
-        </button>
+      </LineItemsTable>
       </div>
 
+      <div className="channel-form-section">
       <div className="form-section-title">3）汇总</div>
-      <p className="channel-discount-hint muted">
-        折扣系数仅填数字（如 0.005 表示 0.05 折）。结算与导出均以「折算后总流水」为准。
-      </p>
       <div className="form-row four-col channel-totals-row">
         <div className="form-group">
           <label>原始后台流水合计</label>
@@ -448,7 +451,9 @@ function ChannelBillingForm({
           />
         </div>
       </div>
+      </div>
 
+      <div className="channel-form-section">
       <div className="form-section-title">备注与其它</div>
       <div className="form-row">
         <div className="form-group full-width">
@@ -460,6 +465,7 @@ function ChannelBillingForm({
             className="admin-input"
           />
         </div>
+      </div>
       </div>
     </form>
   )
