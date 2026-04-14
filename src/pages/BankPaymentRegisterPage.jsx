@@ -165,8 +165,8 @@ function BankPaymentRegisterPage() {
     setUploading(true)
     try {
       const att = await uploadBankTransactionAttachment(file)
-      setAttachmentUrl(att.file_url || '')
-      setAttachmentName(att.file_name || file.name)
+      setAttachmentUrl(att.url || '')
+      setAttachmentName(att.filename || file.name)
       showToast('回单已上传', 'success')
     } catch (err) {
       showToast(err instanceof ApiError ? err.message : '上传失败', 'info')

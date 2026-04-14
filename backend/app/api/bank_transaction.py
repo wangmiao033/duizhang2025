@@ -25,6 +25,8 @@ from app.schemas.bank_transaction import (
 )
 
 router = APIRouter()
+# 先于 CRUD 注册（见 main.py），避免未部署上传路由时 POST …/upload-attachment 落到 GET /{transaction_id} 导致 405
+attachment_router = APIRouter()
 
 _ALLOWED_TYPES = frozenset({"statement_import", "payment_register", "collection_register"})
 
@@ -139,51 +141,6 @@ def list_bank_transactions(
     return BankTransactionListResponse(items=[_row_to_read(r) for r in rows], total=total)
 
 
-@router.post(
-    "/upload-attachment",
-    response_model=BankTransactionAttachmentUploadResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-async def upload_bank_transaction_attachment(
-    file: UploadFile = File(...),
-) -> BankTransactionAttachmentUploadResponse:
-    """付款确认单等：上传回单至本地目录，返回可写入 attachment_url 的下载路径。"""
-    content_type = (file.content_type or "").split(";")[0].strip().lower()
-    if content_type not in _UPLOAD_CONTENT_TYPES:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "error": "unsupported_file_type",
-                "message": "仅支持图片（JPEG/PNG/GIF/WebP）与 PDF",
-            },
-        )
-    ext = _UPLOAD_CONTENT_TYPES[content_type]
-    body = await file.read()
-    if len(body) > _MAX_ATTACHMENT_BYTES:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail={"error": "file_too_large", "max_bytes": _MAX_ATTACHMENT_BYTES},
-        )
-
-    file_id = str(uuid4())
-    root = ensure_bank_transaction_upload_root()
-    dest_path = root / f"{file_id}{ext}"
-    dest_path.write_bytes(body)
-    orig_name = _safe_upload_original_name(file.filename or f"attachment{ext}")
-    download_url = f"/api/bank-transactions/attachments/{file_id}/file"
-    return BankTransactionAttachmentUploadResponse(file_url=download_url, file_name=orig_name)
-
-
-@router.get("/attachments/{file_id}/file")
-def download_bank_transaction_attachment(file_id: str) -> FileResponse:
-    path = _resolve_bank_tx_upload_file(file_id)
-    return FileResponse(
-        path,
-        filename=path.name,
-        content_disposition_type="inline",
-    )
-
-
 @router.get("/{transaction_id}", response_model=BankTransactionRead)
 def get_bank_transaction(transaction_id: str, db: Session = Depends(get_db)) -> BankTransactionRead:
     row = db.get(BankTransaction, transaction_id)
@@ -237,3 +194,53 @@ def delete_bank_transaction(transaction_id: str, db: Session = Depends(get_db)) 
         raise HTTPException(status_code=404, detail={"error": "not_found", "id": transaction_id})
     db.delete(row)
     db.commit()
+
+
+@attachment_router.post(
+    "/upload-attachment",
+    response_model=BankTransactionAttachmentUploadResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_bank_transaction_attachment(
+    file: UploadFile = File(...),
+) -> BankTransactionAttachmentUploadResponse:
+    """付款确认单等：上传回单至本地目录，返回可写入 attachment_url 的下载路径。"""
+    content_type = (file.content_type or "").split(";")[0].strip().lower()
+    if content_type not in _UPLOAD_CONTENT_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "unsupported_file_type",
+                "message": "仅支持图片（JPEG/PNG/GIF/WebP）与 PDF",
+            },
+        )
+    ext = _UPLOAD_CONTENT_TYPES[content_type]
+    body = await file.read()
+    if len(body) > _MAX_ATTACHMENT_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail={"error": "file_too_large", "max_bytes": _MAX_ATTACHMENT_BYTES},
+        )
+
+    file_id = str(uuid4())
+    root = ensure_bank_transaction_upload_root()
+    dest_path = root / f"{file_id}{ext}"
+    dest_path.write_bytes(body)
+    orig_name = _safe_upload_original_name(file.filename or f"attachment{ext}")
+    download_url = f"/api/bank-transactions/attachments/{file_id}/file"
+    return BankTransactionAttachmentUploadResponse(
+        url=download_url,
+        filename=orig_name,
+        content_type=content_type,
+        size=len(body),
+    )
+
+
+@attachment_router.get("/attachments/{file_id}/file")
+def download_bank_transaction_attachment(file_id: str) -> FileResponse:
+    path = _resolve_bank_tx_upload_file(file_id)
+    return FileResponse(
+        path,
+        filename=path.name,
+        content_disposition_type="inline",
+    )

@@ -28,6 +28,7 @@ __pycache__/
 
 # 付款流水单附件本地存储（勿提交二进制）
 backend/var/
+backend/app/var/
 
 # IDE
 .vscode
