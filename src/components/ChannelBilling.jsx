@@ -974,6 +974,10 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                           </div>
                           <div className="channel-receipt-progress__pct">{listFooterReceiptProgress.pct}%</div>
                         </div>
+                        <div className="channel-table__tfoot-subtotals" aria-label="成本合计">
+                          <span>服务器 {formatMoney(statistics.totalServerCost)}</span>
+                          <span>代金券 {formatMoney(statistics.totalVoucherCost)}</span>
+                        </div>
                       </td>
                       <td className="channel-table__col--sticky-end" />
                     </tr>

@@ -568,6 +568,16 @@
   vertical-align: middle;
 }
 
+.channel-table__tfoot-subtotals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 8px;
+  font-size: var(--admin-font-sm);
+  font-weight: 500;
+  color: var(--admin-text-sub);
+}
+
 .channel-table .channel-name {
   font-weight: 600;
   color: var(--admin-text-main);
