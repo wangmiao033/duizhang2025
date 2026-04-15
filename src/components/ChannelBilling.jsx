@@ -109,6 +109,79 @@ function recordMatchesStatusFilter(record, statusFilter) {
   return true
 }
 
+function normalizeSettlementPeriod(record) {
+  const raw =
+    record?.settlementMonth ||
+    record?.settlement_month ||
+    record?.settlementPeriod ||
+    record?.settlement_period ||
+    ''
+  const text = String(raw).trim()
+  const match = text.match(/^(\d{4})[-/年](\d{1,2})/)
+  if (!match) return { key: 'unknown', label: '未设结算周期', sort: -1 }
+  const year = Number(match[1])
+  const month = Number(match[2])
+  if (!year || !month || month < 1 || month > 12) return { key: 'unknown', label: '未设结算周期', sort: -1 }
+  return {
+    key: `${year}-${String(month).padStart(2, '0')}`,
+    label: `${year}年${month}月`,
+    sort: year * 100 + month
+  }
+}
+
+function aggregateByChannel(records) {
+  const grouped = {}
+
+  records.forEach((record) => {
+    const channelName = record.channelName || '未命名渠道'
+    if (!grouped[channelName]) {
+      grouped[channelName] = {
+        channelName,
+        records: [],
+        totalFlow: 0,
+        totalRawFlow: 0,
+        totalSettlement: 0,
+        totalReceived: 0,
+        totalUnpaid: 0,
+        totalServerCost: 0,
+        totalVoucherCost: 0,
+        totalTestCost: 0,
+        games: new Set()
+      }
+    }
+    grouped[channelName].records.push(record)
+    const lines = getChannelLineItems(record)
+    const t = getChannelTotals(record)
+    grouped[channelName].totalFlow += t.flow
+    grouped[channelName].totalRawFlow += lines.reduce((s, l) => s + (parseFloat(l.flow) || 0), 0)
+    grouped[channelName].totalSettlement += t.settlementAmount
+    grouped[channelName].totalReceived += getChannelReceivedAmount(record)
+    grouped[channelName].totalUnpaid += getChannelUnpaidAmount(record)
+    grouped[channelName].totalVoucherCost += t.voucherCost
+    grouped[channelName].totalNoWorryCost =
+      (grouped[channelName].totalNoWorryCost || 0) +
+      lines.reduce((s, l) => s + (parseFloat(l.noWorryCost) || 0), 0)
+    grouped[channelName].totalRefundCost = (grouped[channelName].totalRefundCost || 0) + t.refundCost
+    grouped[channelName].totalTestCost += lines.reduce((s, l) => s + (parseFloat(l.testCost) || 0), 0)
+    grouped[channelName].totalWelfareCost =
+      (grouped[channelName].totalWelfareCost || 0) +
+      lines.reduce((s, l) => s + (parseFloat(l.welfareCost) || 0), 0)
+    lines.forEach((line) => {
+      if (line.gameName) grouped[channelName].games.add(line.gameName)
+    })
+  })
+
+  return Object.values(grouped)
+    .map((channel) => ({
+      ...channel,
+      gameCount: channel.games.size,
+      games: Array.from(channel.games),
+      profitRate:
+        channel.totalFlow > 0 ? ((channel.totalSettlement / channel.totalFlow) * 100).toFixed(1) : 0
+    }))
+    .sort((a, b) => b.totalSettlement - a.totalSettlement)
+}
+
 function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpdateRecord, onDeleteRecord }) {
   const { showToast, setActiveView, openChannelReconciliationEdit, recon, settings } = useAppState()
   const { channelApiEnabled, onChannelRegisterReceipt, onChannelDeleteReceipt } = recon
@@ -130,6 +203,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
   const [searchTerm, setSearchTerm] = useState('')
 
   const [selectedIds, setSelectedIds] = useState([])
+  const [expandedPeriods, setExpandedPeriods] = useState({})
   const [expandedListRowIds, setExpandedListRowIds] = useState(() => new Set())
 
   const toggleListRowExpand = useCallback((rawId) => {
@@ -270,59 +344,41 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
     return new Set(filteredRecords.map((r) => r.channelName || '')).size
   }, [filteredRecords])
 
-  const groupedByChannel = useMemo(() => {
-    const grouped = {}
+  const groupedByChannel = useMemo(() => aggregateByChannel(filteredRecords), [filteredRecords])
 
+  const groupedByPeriod = useMemo(() => {
+    const periodMap = new Map()
     filteredRecords.forEach((record) => {
-      const channelName = record.channelName || '未命名渠道'
-      if (!grouped[channelName]) {
-        grouped[channelName] = {
-          channelName,
-          records: [],
-          totalFlow: 0,
-          totalRawFlow: 0,
-          totalSettlement: 0,
-          totalReceived: 0,
-          totalUnpaid: 0,
-          totalServerCost: 0,
-          totalVoucherCost: 0,
-          totalTestCost: 0,
-          games: new Set()
-        }
+      const period = normalizeSettlementPeriod(record)
+      if (!periodMap.has(period.key)) {
+        periodMap.set(period.key, { ...period, records: [] })
       }
-      grouped[channelName].records.push(record)
-      const lines = getChannelLineItems(record)
-      const t = getChannelTotals(record)
-      grouped[channelName].totalFlow += t.flow
-      grouped[channelName].totalRawFlow += lines.reduce((s, l) => s + (parseFloat(l.flow) || 0), 0)
-      grouped[channelName].totalSettlement += t.settlementAmount
-      grouped[channelName].totalReceived += getChannelReceivedAmount(record)
-      grouped[channelName].totalUnpaid += getChannelUnpaidAmount(record)
-      grouped[channelName].totalVoucherCost += t.voucherCost
-      grouped[channelName].totalNoWorryCost =
-        (grouped[channelName].totalNoWorryCost || 0) +
-        lines.reduce((s, l) => s + (parseFloat(l.noWorryCost) || 0), 0)
-      grouped[channelName].totalRefundCost =
-        (grouped[channelName].totalRefundCost || 0) + t.refundCost
-      grouped[channelName].totalTestCost += lines.reduce((s, l) => s + (parseFloat(l.testCost) || 0), 0)
-      grouped[channelName].totalWelfareCost =
-        (grouped[channelName].totalWelfareCost || 0) +
-        lines.reduce((s, l) => s + (parseFloat(l.welfareCost) || 0), 0)
-      lines.forEach((line) => {
-        if (line.gameName) grouped[channelName].games.add(line.gameName)
-      })
+      periodMap.get(period.key).records.push(record)
     })
-
-    return Object.values(grouped)
-      .map((channel) => ({
-        ...channel,
-        gameCount: channel.games.size,
-        games: Array.from(channel.games),
-        profitRate:
-          channel.totalFlow > 0 ? ((channel.totalSettlement / channel.totalFlow) * 100).toFixed(1) : 0
+    return Array.from(periodMap.values())
+      .map((period) => ({
+        ...period,
+        channels: aggregateByChannel(period.records)
       }))
-      .sort((a, b) => b.totalSettlement - a.totalSettlement)
+      .sort((a, b) => b.sort - a.sort)
   }, [filteredRecords])
+
+  useEffect(() => {
+    setExpandedPeriods((prev) => {
+      const next = { ...prev }
+      groupedByPeriod.forEach((p) => {
+        if (next[p.key] === undefined) next[p.key] = true
+      })
+      Object.keys(next).forEach((k) => {
+        if (!groupedByPeriod.some((p) => p.key === k)) delete next[k]
+      })
+      return next
+    })
+  }, [groupedByPeriod])
+
+  const togglePeriodExpand = useCallback((periodKey) => {
+    setExpandedPeriods((prev) => ({ ...prev, [periodKey]: !prev[periodKey] }))
+  }, [])
 
   const handleDelete = (id) => {
     if (window.confirm('确定要删除这条渠道记录吗？')) {
@@ -734,7 +790,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
         <div className="admin-table-card__body channel-rd__table-body">
           {viewMode === 'byGame' ? (
             <div className="games-list">
-              {groupedByChannel.length === 0 ? (
+              {groupedByPeriod.length === 0 ? (
                 <AdminListEmptyState
                   title="暂无渠道记录"
                   description="新增一条渠道对账记录，或使用 Excel 导入；也可放宽筛选条件。"
@@ -744,21 +800,48 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                   }}
                 />
               ) : (
-                groupedByChannel.map((channel) => (
-                  <ChannelGroupCard
-                    key={channel.channelName}
-                    channel={channel}
-                    expanded={Boolean(expandedGames[channel.channelName])}
-                    onToggleExpand={() => toggleChannelExpand(channel.channelName)}
-                    formatMoney={formatMoney}
-                    onView={(record) => setLightDrawerRecord(record)}
-                    onEdit={(rid) => openChannelReconciliationEdit(rid)}
-                    onDelete={handleDelete}
-                    onReceiptList={setReceiptListDrawerRecord}
-                    onReceiptRegister={openReceiptRegister}
-                    onReceiptQuickFull={openReceiptQuickFull}
-                  />
-                ))
+                groupedByPeriod.map((period) => {
+                  const periodOpen = expandedPeriods[period.key] !== false
+                  return (
+                    <section key={period.key} className="channel-period-group">
+                      <button
+                        type="button"
+                        className="channel-period-group__header"
+                        aria-expanded={periodOpen}
+                        onClick={() => togglePeriodExpand(period.key)}
+                      >
+                        <span
+                          className={`channel-period-group__chevron ${periodOpen ? 'is-open' : ''}`}
+                          aria-hidden
+                        />
+                        <span className="channel-period-group__title">{period.label}</span>
+                        <span className="channel-period-group__meta">{period.channels.length} 个渠道</span>
+                      </button>
+                      {periodOpen && (
+                        <div className="channel-period-group__body">
+                          {period.channels.map((channel) => {
+                            const channelExpandKey = `${period.key}::${channel.channelName}`
+                            return (
+                              <ChannelGroupCard
+                                key={channelExpandKey}
+                                channel={channel}
+                                expanded={Boolean(expandedGames[channelExpandKey])}
+                                onToggleExpand={() => toggleChannelExpand(channelExpandKey)}
+                                formatMoney={formatMoney}
+                                onView={(record) => setLightDrawerRecord(record)}
+                                onEdit={(rid) => openChannelReconciliationEdit(rid)}
+                                onDelete={handleDelete}
+                                onReceiptList={setReceiptListDrawerRecord}
+                                onReceiptRegister={openReceiptRegister}
+                                onReceiptQuickFull={openReceiptQuickFull}
+                              />
+                            )
+                          })}
+                        </div>
+                      )}
+                    </section>
+                  )
+                })
               )}
             </div>
           ) : (
