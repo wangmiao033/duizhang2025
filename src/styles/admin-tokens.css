@@ -45,13 +45,19 @@
   --admin-space-lg: 20px;
   --admin-space-xl: 28px;
   --admin-header-h: 64px;
-  --admin-sidebar-w: 228px;
-  /* 侧栏导航（SaaS 密度与图标） */
-  --admin-sidebar-item-h: 38px;
+  /* 侧栏宽度：在 228px 基础上加宽，缓解中文标签挤压 */
+  --admin-sidebar-w: 256px;
+  /* 侧栏导航：一级 / 二级行高与字号略增，重点配合宽度与留白 */
+  --admin-sidebar-item-h: 44px;
+  --admin-sidebar-item-h-sub: 42px;
+  --admin-sidebar-font-level1: calc(var(--font-size-body) + 0.5px);
+  --admin-sidebar-font-level2: calc(var(--font-size-body) + 0.25px);
   --admin-sidebar-icon-size: 16px;
-  --admin-sidebar-item-gap: 10px;
-  --admin-sidebar-group-gap: 14px;
-  --admin-sidebar-brand-pad-y: 4px;
+  --admin-sidebar-item-gap: 11px;
+  --admin-sidebar-group-gap: 22px;
+  --admin-sidebar-active-bg: color-mix(in srgb, var(--admin-primary) 17%, var(--admin-card-bg));
+  --admin-sidebar-active-bar-w: 4px;
+  --admin-sidebar-brand-pad-y: 6px;
   --admin-workspace-pad-x: 24px;
   --admin-drawer-w: 440px;
   --admin-drawer-w-max: 480px;
@@ -89,6 +95,7 @@
 }
 
 [data-theme='dark'] {
+  --admin-sidebar-active-bg: color-mix(in srgb, var(--admin-primary) 22%, var(--admin-card-bg));
   --bg-main: #0f111a;
   --bg-card: #1a1d2e;
   --bg-soft: #222536;

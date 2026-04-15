@@ -55,6 +55,8 @@ function Sidebar({ activeView, onNavigate }) {
   const [expandedId, setExpandedId] = useState(activeGroupId)
   const [recentViews, setRecentViews] = useState(() => sanitizeTrackable(readRecentViews()))
   const [favoriteViews, setFavoriteViews] = useState(() => sanitizeTrackable(readFavoriteViews()))
+  /** 最近访问默认收起，避免挤占主导航；展开后最多展示 2 条 */
+  const [recentSectionOpen, setRecentSectionOpen] = useState(false)
 
   useEffect(() => {
     setExpandedId(activeGroupId)
@@ -78,6 +80,7 @@ function Sidebar({ activeView, onNavigate }) {
     () => sanitizeTrackable(recentViews).filter((v) => !favoriteSet.has(v)),
     [recentViews, favoriteSet]
   )
+  const recentDisplayLimited = useMemo(() => recentDisplay.slice(0, 2), [recentDisplay])
 
   const addFavorite = (view) => {
     if (!isSidebarTrackableView(view)) return
@@ -195,10 +198,25 @@ function Sidebar({ activeView, onNavigate }) {
           )}
           {recentDisplay.length > 0 && (
             <div className="sidebar-shortcuts-block">
-              <div className="sidebar-group-title sidebar-group-title--static">最近访问</div>
-              <div className="sidebar-sub-list sidebar-sub-list--shortcuts">
-                {recentDisplay.map((view) => renderShortcutRow(view, { mode: 'recent' }))}
-              </div>
+              <button
+                type="button"
+                className="sidebar-recent-toggle"
+                aria-expanded={recentSectionOpen}
+                onClick={() => setRecentSectionOpen((v) => !v)}
+              >
+                <div className="sidebar-group-title sidebar-group-title--static sidebar-group-title--in-toggle">
+                  最近访问
+                </div>
+                <span
+                  className={`sidebar-group-chevron sidebar-group-chevron--recent ${recentSectionOpen ? 'is-open' : ''}`}
+                  aria-hidden
+                />
+              </button>
+              {recentSectionOpen && (
+                <div className="sidebar-sub-list sidebar-sub-list--shortcuts">
+                  {recentDisplayLimited.map((view) => renderShortcutRow(view, { mode: 'recent' }))}
+                </div>
+              )}
             </div>
           )}
         </div>
