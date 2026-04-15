@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useMemo, useRef, useEffect, useCallback, Fragment } from 'react'
 import * as XLSX from 'xlsx'
 import AdminWorkspace from '@/components/admin/AdminWorkspace.jsx'
 import AdminFilterBar from '@/components/admin/AdminFilterBar.jsx'
@@ -25,6 +25,7 @@ import {
   getLineEffectiveFlow,
   getLineDiscountFactor,
   receiptStatusTagLabel,
+  receiptStatusTagClass,
   isChannelReceiptSettled,
   receiptProgressPercent
 } from '@/domain/channel/channelAggregates.js'
@@ -36,6 +37,9 @@ import {
 } from '@/domain/export/channelSettlementExport.js'
 import { consumeChannelFocus } from '@/lib/exceptions/navFocus.ts'
 import './ChannelBilling.css'
+
+/** 列表模式主表列数（勾选 + 展开 + 6），用于 colSpan */
+const LIST_MODE_MAIN_COL_COUNT = 8
 
 const PERIOD_OPTIONS = [
   { value: 'all', label: '全部周期' },
@@ -126,6 +130,17 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
   const [searchTerm, setSearchTerm] = useState('')
 
   const [selectedIds, setSelectedIds] = useState([])
+  const [expandedListRowIds, setExpandedListRowIds] = useState(() => new Set())
+
+  const toggleListRowExpand = useCallback((rawId) => {
+    const sid = String(rawId)
+    setExpandedListRowIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(sid)) next.delete(sid)
+      else next.add(sid)
+      return next
+    })
+  }, [])
 
   const openReceiptRegister = useCallback((record) => {
     setReceiptDrawerQuickFull(false)
@@ -754,24 +769,21 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                     <th className="channel-rd__th-check">
                       <span className="visually-hidden">选择</span>
                     </th>
+                    <th className="channel-table__th-expand" scope="col">
+                      <span className="visually-hidden">展开</span>
+                    </th>
                     <th>游戏</th>
                     <th>渠道</th>
-                    <th>流水</th>
-                    <th>折扣</th>
-                    <th>渠道费</th>
-                    <th>研发分成</th>
-                    <th>业务毛利</th>
-                    <th>服务器</th>
-                    <th>代金券</th>
-                    <th>结算金额</th>
-                    <th>收款进度</th>
-                    <th>操作</th>
+                    <th className="channel-table__col-num">流水</th>
+                    <th className="channel-table__col-num">结算金额</th>
+                    <th>收款状态</th>
+                    <th className="channel-table__col--sticky-end">操作</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredRecords.length === 0 ? (
                     <tr>
-                      <td colSpan="13" className="admin-list-empty-cell">
+                      <td colSpan={LIST_MODE_MAIN_COL_COUNT} className="admin-list-empty-cell">
                         <AdminListEmptyState
                           variant="inline"
                           title="暂无渠道记录"
@@ -786,82 +798,150 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                   ) : (
                     filteredRecords.map((record) => {
                       const rid = getChannelRecordId(record) || record.id
+                      const ridStr = String(rid)
+                      const expanded = expandedListRowIds.has(ridStr)
+                      const totals = getChannelTotals(record)
+                      const voucherDisplay =
+                        totals.voucherCost != null && totals.voucherCost !== ''
+                          ? totals.voucherCost
+                          : '-'
                       return (
-                        <tr key={rid}>
-                        <td>
-                          <input
-                            type="checkbox"
-                            checked={rowSelected(rid)}
-                            onChange={() => toggleSelect(rid)}
-                            aria-label="选择行"
-                          />
-                        </td>
-                        <td className="game-name" title={getChannelGamesDisplay(record)}>
-                          {getChannelGamesDisplay(record)}
-                        </td>
-                        <td className="channel-name">{record.channelName}</td>
-                        <td>{formatMoney(getChannelTotals(record).flow)}</td>
-                        <td>{record.discountType}</td>
-                        <td>{record.channelFeeRate}%</td>
-                        <td>{record.devShareRate}%</td>
-                        <td>
-                          <span className={`profit-badge ${record.profitRate >= 0 ? 'positive' : 'negative'}`}>
-                            {record.profitRate?.toFixed(1) || 0}%
-                          </span>
-                        </td>
-                        <td>{record.serverCost || '-'}</td>
-                        <td>{getChannelTotals(record).voucherCost || '-'}</td>
-                        <td className="settlement">
-                          {formatMoney(getChannelTotals(record).settlementAmount)}
-                        </td>
-                        <td className="channel-rd__receipt-col">
-                          <ChannelReceiptProgressBlock record={record} compact />
-                        </td>
-                        <td className="actions">
-                          <button
-                            type="button"
-                            className="edit-btn"
-                            onClick={() => setReceiptListDrawerRecord(record)}
-                          >
-                            收款记录
-                          </button>
-                          {!isChannelReceiptSettled(record) && getChannelUnpaidAmount(record) > 1e-6 ? (
-                            <>
+                        <Fragment key={ridStr}>
+                          <tr className="channel-table__row-main">
+                            <td>
+                              <input
+                                type="checkbox"
+                                checked={rowSelected(rid)}
+                                onChange={() => toggleSelect(rid)}
+                                aria-label="选择行"
+                              />
+                            </td>
+                            <td className="channel-table__td-expand">
                               <button
                                 type="button"
-                                className="edit-btn channel-rd__btn-receipt"
-                                onClick={() => openReceiptRegister(record)}
+                                className="channel-table__expand-btn"
+                                aria-expanded={expanded}
+                                aria-label={expanded ? '收起详情' : '展开详情'}
+                                onClick={() => toggleListRowExpand(rid)}
                               >
-                                收款登记
+                                <span
+                                  className={`channel-table__expand-icon ${expanded ? 'is-open' : ''}`}
+                                  aria-hidden
+                                />
+                              </button>
+                            </td>
+                            <td
+                              className="game-name channel-table__col-text"
+                              title={getChannelGamesDisplay(record)}
+                            >
+                              {getChannelGamesDisplay(record)}
+                            </td>
+                            <td className="channel-name channel-table__col-text" title={record.channelName || ''}>
+                              {record.channelName}
+                            </td>
+                            <td className="channel-table__col-num">{formatMoney(totals.flow)}</td>
+                            <td className="channel-table__col-num settlement">
+                              {formatMoney(totals.settlementAmount)}
+                            </td>
+                            <td>
+                              <span className={receiptStatusTagClass(record.receiptStatus)}>
+                                {receiptStatusTagLabel(record.receiptStatus)}
+                              </span>
+                            </td>
+                            <td className="actions channel-table__col--sticky-end">
+                              <button type="button" className="edit-btn" onClick={() => setLightDrawerRecord(record)}>
+                                查看
                               </button>
                               <button
                                 type="button"
-                                className="edit-btn channel-rd__btn-receipt"
-                                onClick={() => openReceiptQuickFull(record)}
+                                className="edit-btn"
+                                onClick={() => openChannelReconciliationEdit(rid)}
                               >
-                                快速收全款
+                                编辑
                               </button>
-                            </>
+                            </td>
+                          </tr>
+                          {expanded ? (
+                            <tr className="channel-table__row-detail">
+                              <td colSpan={LIST_MODE_MAIN_COL_COUNT} className="channel-table__detail-cell">
+                                <div className="channel-list-expand">
+                                  <div className="channel-list-expand__grid">
+                                    <div className="channel-list-expand__pair">
+                                      <span className="channel-list-expand__label">折扣</span>
+                                      <span className="channel-list-expand__value">{record.discountType ?? '—'}</span>
+                                    </div>
+                                    <div className="channel-list-expand__pair">
+                                      <span className="channel-list-expand__label">渠道费</span>
+                                      <span className="channel-list-expand__value">
+                                        {record.channelFeeRate != null ? `${record.channelFeeRate}%` : '—'}
+                                      </span>
+                                    </div>
+                                    <div className="channel-list-expand__pair">
+                                      <span className="channel-list-expand__label">研发分成</span>
+                                      <span className="channel-list-expand__value">
+                                        {record.devShareRate != null ? `${record.devShareRate}%` : '—'}
+                                      </span>
+                                    </div>
+                                    <div className="channel-list-expand__pair">
+                                      <span className="channel-list-expand__label">业务毛利</span>
+                                      <span className="channel-list-expand__value">
+                                        <span
+                                          className={`profit-badge ${
+                                            record.profitRate >= 0 ? 'positive' : 'negative'
+                                          }`}
+                                        >
+                                          {record.profitRate?.toFixed(1) ?? 0}%
+                                        </span>
+                                      </span>
+                                    </div>
+                                    <div className="channel-list-expand__pair">
+                                      <span className="channel-list-expand__label">服务器</span>
+                                      <span className="channel-list-expand__value">{record.serverCost || '—'}</span>
+                                    </div>
+                                    <div className="channel-list-expand__pair">
+                                      <span className="channel-list-expand__label">代金券</span>
+                                      <span className="channel-list-expand__value">{voucherDisplay}</span>
+                                    </div>
+                                  </div>
+                                  <div className="channel-list-expand__progress">
+                                    <div className="channel-list-expand__progress-title">收款进度</div>
+                                    <ChannelReceiptProgressBlock record={record} compact />
+                                  </div>
+                                  <div className="channel-list-expand__actions">
+                                    <button
+                                      type="button"
+                                      className="edit-btn"
+                                      onClick={() => setReceiptListDrawerRecord(record)}
+                                    >
+                                      收款记录
+                                    </button>
+                                    {!isChannelReceiptSettled(record) && getChannelUnpaidAmount(record) > 1e-6 ? (
+                                      <>
+                                        <button
+                                          type="button"
+                                          className="edit-btn channel-rd__btn-receipt"
+                                          onClick={() => openReceiptRegister(record)}
+                                        >
+                                          收款登记
+                                        </button>
+                                        <button
+                                          type="button"
+                                          className="edit-btn channel-rd__btn-receipt"
+                                          onClick={() => openReceiptQuickFull(record)}
+                                        >
+                                          快速收全款
+                                        </button>
+                                      </>
+                                    ) : null}
+                                    <button type="button" className="delete-btn" onClick={() => handleDelete(rid)}>
+                                      删除
+                                    </button>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
                           ) : null}
-                          <button
-                            type="button"
-                            className="edit-btn"
-                            onClick={() => setLightDrawerRecord(record)}
-                          >
-                            查看
-                          </button>
-                          <button
-                            type="button"
-                            className="edit-btn"
-                            onClick={() => openChannelReconciliationEdit(rid)}
-                          >
-                            编辑
-                          </button>
-                          <button type="button" className="delete-btn" onClick={() => handleDelete(rid)}>
-                            删除
-                          </button>
-                        </td>
-                        </tr>
+                        </Fragment>
                       )
                     })
                   )}
@@ -870,15 +950,15 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                   <tfoot>
                     <tr>
                       <td />
-                      <td colSpan="2" className="total-label">
+                      <td />
+                      <td colSpan={2} className="total-label">
                         合计
                       </td>
-                      <td>{formatMoney(statistics.totalFlow)}</td>
-                      <td colSpan="4" />
-                      <td>{formatMoney(statistics.totalServerCost)}</td>
-                      <td>{formatMoney(statistics.totalVoucherCost)}</td>
-                      <td className="settlement">{formatMoney(statistics.totalSettlement)}</td>
-                      <td className="channel-rd__receipt-col">
+                      <td className="channel-table__col-num">{formatMoney(statistics.totalFlow)}</td>
+                      <td className="channel-table__col-num settlement">
+                        {formatMoney(statistics.totalSettlement)}
+                      </td>
+                      <td className="channel-table__tfoot-receipt">
                         <div className="channel-receipt-progress channel-receipt-progress--compact">
                           <div className="channel-receipt-progress__line">
                             <span className="channel-receipt-progress__ratio">
@@ -895,7 +975,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                           <div className="channel-receipt-progress__pct">{listFooterReceiptProgress.pct}%</div>
                         </div>
                       </td>
-                      <td />
+                      <td className="channel-table__col--sticky-end" />
                     </tr>
                   </tfoot>
                 )}
