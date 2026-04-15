@@ -135,12 +135,16 @@ export function useInvoiceStore({ showToast }) {
     formData,
     { editId, resetFormAfterAdd = true } = {}
   ) => {
-    if (!formData.title) {
-      showToast('请填写发票抬头', 'error')
+    const direction = String(formData.invoiceDirection || formData.invoice_direction || 'output')
+    const counterpartyName = direction === 'input' ? formData.sellerName : formData.title
+    const counterpartyTaxNo = direction === 'input' ? formData.sellerTaxNo : formData.taxNo
+
+    if (!counterpartyName) {
+      showToast(direction === 'input' ? '请填写销售方名称' : '请填写购买方名称', 'error')
       return false
     }
-    if (!formData.taxNo) {
-      showToast('请填写税号', 'error')
+    if (!counterpartyTaxNo) {
+      showToast(direction === 'input' ? '请填写销售方税号' : '请填写购买方税号', 'error')
       return false
     }
     const amountStr = parseFloat(formData.amount || 0).toFixed(2)

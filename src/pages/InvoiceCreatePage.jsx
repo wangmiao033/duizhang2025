@@ -27,7 +27,7 @@ function InvoiceCreatePage() {
     <InvoiceFormPageLayout
       toolsSlot={
         <p className="admin-workspace__card-desc" style={{ margin: 0 }}>
-          文件名解析、导入 PDF 等能力仍在列表页；此处可使用表单内「从文件名快速解析」。
+          先在下方“粘贴发票文本自动识别”中粘贴税务系统文本，再做人工校对与保存。
         </p>
       }
       previewAmount={previewAmount}
