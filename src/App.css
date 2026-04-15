@@ -626,7 +626,7 @@
 .invoice-table-head,
 .invoice-table-row {
   display: grid;
-  grid-template-columns: 1.4fr 1.2fr 0.9fr 0.7fr 1fr 1fr 0.85fr 1.15fr 1fr;
+  grid-template-columns: 0.5fr 0.9fr 1.1fr 0.9fr 0.9fr 1.5fr 1.3fr 1fr 1fr 1fr 1fr 0.9fr 0.8fr 1.4fr 1.4fr;
   gap: 10px;
   align-items: center;
 }
@@ -659,6 +659,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.invoice-table__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.invoice-table__remark {
+  max-width: 260px;
 }
 
 .tag {
@@ -830,21 +839,14 @@
 
   .invoice-table-head,
   .invoice-table-row {
-    grid-template-columns: 1.2fr 1fr 0.9fr 0.7fr 1fr 1fr 0.75fr 0.9fr 0.7fr;
+    grid-template-columns: 0.5fr 0.9fr 1fr 0.9fr 0.9fr 1.3fr 1.2fr 0.95fr 0.95fr 0.95fr 1fr 0.9fr 0.8fr 1.3fr 1.2fr;
   }
 }
 
 @media (max-width: 720px) {
   .invoice-table-head,
   .invoice-table-row {
-    grid-template-columns: 1fr 1fr 0.8fr 0.7fr 0.9fr;
-  }
-
-  .invoice-table-head span:nth-child(5),
-  .invoice-table-head span:nth-child(6),
-  .invoice-table-row span:nth-child(5),
-  .invoice-table-row span:nth-child(6) {
-    display: none;
+    grid-template-columns: repeat(8, minmax(90px, 1fr));
   }
 }
 

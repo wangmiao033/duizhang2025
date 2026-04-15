@@ -23,6 +23,8 @@ export const VIEWS = {
   SETTLE_MONTHLY: 'settle-monthly',
   SETTLE_CHANNEL: 'settle-channel',
   SETTLE_STATUS: 'settle-status',
+  INVOICE_OUTPUT: 'invoice-output',
+  INVOICE_INPUT: 'invoice-input',
   INVOICE_MANAGE: 'invoice-manage',
   INVOICE_VERIFY: 'invoice-verify',
   INVOICE_PAYMENT: 'invoice-payment',
@@ -90,11 +92,10 @@ export const SIDEBAR_GROUPS = [
   },
   {
     id: 'invoice',
-    label: '发票与回款',
+    label: '发票管理',
     items: [
-      { view: VIEWS.INVOICE_MANAGE, label: '发票管理' },
-      { view: VIEWS.INVOICE_CREATE, label: '新增发票' },
-      { view: VIEWS.INVOICE_VERIFY, label: '发票核销' },
+      { view: VIEWS.INVOICE_OUTPUT, label: '销项发票' },
+      { view: VIEWS.INVOICE_INPUT, label: '进项发票' },
       { view: VIEWS.INVOICE_PAYMENT, label: '回款登记' },
       { view: VIEWS.PAYMENT_CREATE, label: '新增回款登记' }
     ]
@@ -161,6 +162,8 @@ const VIEW_TITLES = {
   [VIEWS.SETTLE_MONTHLY]: '月度结算单',
   [VIEWS.SETTLE_CHANNEL]: '渠道结算单',
   [VIEWS.SETTLE_STATUS]: '结算状态',
+  [VIEWS.INVOICE_OUTPUT]: '销项发票',
+  [VIEWS.INVOICE_INPUT]: '进项发票',
   [VIEWS.INVOICE_MANAGE]: '发票管理',
   [VIEWS.INVOICE_CREATE]: '新增发票',
   [VIEWS.INVOICE_EDIT]: '编辑发票',
@@ -206,6 +209,8 @@ const VIEW_DESCRIPTIONS = {
   [VIEWS.SETTLE_MONTHLY]: '月度结算单生成与查看',
   [VIEWS.SETTLE_CHANNEL]: '渠道维度结算',
   [VIEWS.SETTLE_STATUS]: '结算进度与状态跟踪',
+  [VIEWS.INVOICE_OUTPUT]: '销项发票开具与台账',
+  [VIEWS.INVOICE_INPUT]: '进项发票接收与台账',
   [VIEWS.INVOICE_MANAGE]: '发票开具与台账',
   [VIEWS.INVOICE_CREATE]: '完整录入发票，与编辑页共用表单与校验',
   [VIEWS.INVOICE_EDIT]: '完整编辑发票；保存后返回发票管理',
@@ -247,6 +252,8 @@ export const VIEW_ICONS = {
   [VIEWS.SETTLE_MONTHLY]: '月',
   [VIEWS.SETTLE_CHANNEL]: '结',
   [VIEWS.SETTLE_STATUS]: '态',
+  [VIEWS.INVOICE_OUTPUT]: '销',
+  [VIEWS.INVOICE_INPUT]: '进',
   [VIEWS.INVOICE_MANAGE]: '票',
   [VIEWS.INVOICE_CREATE]: '增',
   [VIEWS.INVOICE_EDIT]: '改',
@@ -310,15 +317,15 @@ export function getBreadcrumb(view) {
   if (view === VIEWS.INVOICE_EDIT) {
     return [
       { label: '工作台', view: VIEWS.DASHBOARD },
-      { label: '发票与回款' },
-      { label: getPageTitle(VIEWS.INVOICE_MANAGE), view: VIEWS.INVOICE_MANAGE },
+      { label: '发票管理' },
+      { label: getPageTitle(VIEWS.INVOICE_OUTPUT), view: VIEWS.INVOICE_OUTPUT },
       { label: getPageTitle(VIEWS.INVOICE_EDIT), current: true }
     ]
   }
   if (view === VIEWS.PAYMENT_EDIT) {
     return [
       { label: '工作台', view: VIEWS.DASHBOARD },
-      { label: '发票与回款' },
+      { label: '发票管理' },
       { label: getPageTitle(VIEWS.INVOICE_PAYMENT), view: VIEWS.INVOICE_PAYMENT },
       { label: getPageTitle(VIEWS.PAYMENT_EDIT), current: true }
     ]

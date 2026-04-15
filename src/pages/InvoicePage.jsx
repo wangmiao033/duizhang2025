@@ -16,7 +16,10 @@ function InvoicePage({ section }) {
 
   return (
     <PageContainer hideHeader className="page-container--recon-rd">
-      <InvoiceManageWorkspace variant={section === VIEWS.INVOICE_VERIFY ? 'verify' : 'manage'} />
+      <InvoiceManageWorkspace
+        variant={section === VIEWS.INVOICE_VERIFY ? 'verify' : 'manage'}
+        direction={section === VIEWS.INVOICE_INPUT ? 'input' : 'output'}
+      />
     </PageContainer>
   )
 }

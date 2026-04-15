@@ -13,19 +13,53 @@ import {
 } from '@/lib/api/invoice.ts'
 
 const defaultInvoiceForm = {
+  invoiceDirection: 'output',
+  invoiceType: '',
+  digitalInvoiceNo: '',
+  invoiceCode: '',
+  invoiceNo: '',
+  sellerName: '',
+  sellerTaxNo: '',
   title: '',
   taxNo: '',
   amount: '',
+  taxAmount: '',
+  amountWithTax: '',
   status: '未开',
   issueDate: '',
+  issuer: '',
   remark: ''
+}
+
+function inferInvoiceDirection(r) {
+  const explicit = String(r.invoiceDirection || r.invoice_direction || '').trim().toLowerCase()
+  if (explicit === 'input' || explicit === 'output') return explicit
+  const seller = String(r.sellerName || r.seller_name || '').trim()
+  const buyer = String(r.title || '').trim()
+  if (seller && !buyer) return 'input'
+  return 'output'
 }
 
 function normalizeLocalInvoiceRecords(saved) {
   return (saved || []).map((r) => ({
     ...r,
+    invoiceDirection: inferInvoiceDirection(r),
+    invoiceType: r.invoiceType || r.invoice_type || '',
+    digitalInvoiceNo: r.digitalInvoiceNo || r.digital_invoice_no || '',
+    invoiceCode: r.invoiceCode || r.invoice_code || '',
+    invoiceNo: r.invoiceNo || r.invoice_no || '',
+    sellerName: r.sellerName || r.seller_name || '',
+    sellerTaxNo: r.sellerTaxNo || r.seller_tax_no || '',
     id: r.id != null ? String(r.id) : String(Date.now()),
     amount: r.amount != null ? String(r.amount) : '0.00',
+    taxAmount: r.taxAmount != null ? String(r.taxAmount) : '0.00',
+    amountWithTax:
+      r.amountWithTax != null
+        ? String(r.amountWithTax)
+        : (
+            (parseFloat(String(r.amount ?? 0)) || 0) + (parseFloat(String(r.taxAmount ?? 0)) || 0)
+          ).toFixed(2),
+    issuer: r.issuer != null ? String(r.issuer) : '',
     verifiedRecordIds: Array.isArray(r.verifiedRecordIds) ? r.verifiedRecordIds.map(String) : [],
     verified: Boolean(r.verified),
     verifiedAmount:
@@ -39,7 +73,15 @@ export function useInvoiceStore({ showToast }) {
   const [invoiceForm, setInvoiceForm] = useState(defaultInvoiceForm)
   const [invoiceApiEnabled, setInvoiceApiEnabled] = useState(false)
   const [invoiceRecords, setInvoiceRecords] = useState([])
-  const [invoiceFilter, setInvoiceFilter] = useState({ keyword: '', status: '全部' })
+  const [invoiceFilter, setInvoiceFilter] = useState({
+    direction: 'all',
+    dateStart: '',
+    dateEnd: '',
+    status: '全部',
+    invoiceType: '',
+    companyKeyword: '',
+    numberKeyword: ''
+  })
   const [showVerificationDialog, setShowVerificationDialog] = useState(false)
   const [selectedInvoiceForVerification, setSelectedInvoiceForVerification] = useState(null)
   const [verificationRecordIds, setVerificationRecordIds] = useState([])
@@ -364,8 +406,18 @@ export function useInvoiceStore({ showToast }) {
           }
           const normalized = data.map((item) => ({
             ...item,
+            invoiceDirection: inferInvoiceDirection(item),
+            invoiceType: item.invoiceType || item.invoice_type || '',
+            digitalInvoiceNo: item.digitalInvoiceNo || item.digital_invoice_no || '',
+            invoiceCode: item.invoiceCode || item.invoice_code || '',
+            invoiceNo: item.invoiceNo || item.invoice_no || '',
+            sellerName: item.sellerName || item.seller_name || '',
+            sellerTaxNo: item.sellerTaxNo || item.seller_tax_no || '',
             id: item.id != null ? String(item.id) : String(Date.now() + Math.random()),
             amount: parseFloat(item.amount || 0).toFixed(2),
+            taxAmount: parseFloat(item.taxAmount || 0).toFixed(2),
+            amountWithTax: parseFloat(item.amountWithTax || parseFloat(item.amount || 0) + parseFloat(item.taxAmount || 0)).toFixed(2),
+            issuer: item.issuer != null ? String(item.issuer) : '',
             status: item.status || '未开',
             verified: Boolean(item.verified),
             verifiedRecordIds: Array.isArray(item.verifiedRecordIds)

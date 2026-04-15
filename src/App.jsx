@@ -202,6 +202,8 @@ function App() {
       case VIEWS.SETTLE_CHANNEL:
       case VIEWS.SETTLE_STATUS:
         return <SettlementPage section={activeView} />
+      case VIEWS.INVOICE_OUTPUT:
+      case VIEWS.INVOICE_INPUT:
       case VIEWS.INVOICE_MANAGE:
       case VIEWS.INVOICE_VERIFY:
       case VIEWS.INVOICE_PAYMENT:

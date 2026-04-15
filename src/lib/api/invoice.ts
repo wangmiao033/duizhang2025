@@ -6,10 +6,20 @@ import { apiDelete, apiGet, apiPost, apiPut } from '@/lib/api/client.ts'
 
 export type ApiInvoiceRow = {
   id: string
+  invoice_direction: 'output' | 'input' | null
+  invoice_type: string | null
+  digital_invoice_no: string | null
+  invoice_code: string | null
+  invoice_no: string | null
+  seller_name: string | null
+  seller_tax_no: string | null
   title: string | null
   tax_no: string | null
   invoice_amount: number
+  tax_amount: number
+  amount_with_tax: number
   invoice_date: string | null
+  issuer: string | null
   status: string | null
   remark: string | null
   verified: boolean
@@ -25,10 +35,20 @@ export type InvoiceListResponse = {
 }
 
 export type InvoiceRecordPayload = {
+  invoice_direction?: 'output' | 'input' | null
+  invoice_type?: string | null
+  digital_invoice_no?: string | null
+  invoice_code?: string | null
+  invoice_no?: string | null
+  seller_name?: string | null
+  seller_tax_no?: string | null
   title?: string | null
   tax_no?: string | null
   invoice_amount: number
+  tax_amount?: number
+  amount_with_tax?: number
   invoice_date?: string | null
+  issuer?: string | null
   status?: string | null
   remark?: string | null
   verified: boolean
@@ -77,12 +97,24 @@ export function deleteInvoiceRecord(id: string): Promise<void> {
 /** API 行 -> 前端发票记录（与 useInvoiceStore / InvoiceForm 字段一致） */
 export function apiInvoiceRowToFrontend(row: ApiInvoiceRow): Record<string, unknown> {
   const amt = row.invoice_amount
+  const tax = Number.isFinite(row.tax_amount) ? row.tax_amount : 0
+  const withTax = Number.isFinite(row.amount_with_tax) ? row.amount_with_tax : amt + tax
   return {
     id: row.id != null ? String(row.id) : '',
+    invoiceDirection: row.invoice_direction || 'output',
+    invoiceType: row.invoice_type ?? '',
+    digitalInvoiceNo: row.digital_invoice_no ?? '',
+    invoiceCode: row.invoice_code ?? '',
+    invoiceNo: row.invoice_no ?? '',
+    sellerName: row.seller_name ?? '',
+    sellerTaxNo: row.seller_tax_no ?? '',
     title: row.title ?? '',
     taxNo: row.tax_no ?? '',
     amount: Number.isFinite(amt) ? amt.toFixed(2) : '0.00',
+    taxAmount: Number.isFinite(tax) ? tax.toFixed(2) : '0.00',
+    amountWithTax: Number.isFinite(withTax) ? withTax.toFixed(2) : '0.00',
     issueDate: row.invoice_date ?? '',
+    issuer: row.issuer ?? '',
     status: row.status || '未开',
     remark: row.remark != null ? String(row.remark) : '',
     verified: Boolean(row.verified),
@@ -101,10 +133,25 @@ export function frontendInvoiceRecordToPayload(record: Record<string, unknown>):
   const verifiedAmt =
     typeof va === 'number' && Number.isFinite(va) ? va : parseFloat(String(va ?? 0)) || 0
   return {
+    invoice_direction:
+      String(record.invoiceDirection || record.invoice_direction || 'output') === 'input'
+        ? 'input'
+        : 'output',
+    invoice_type: (record.invoiceType as string) || null,
+    digital_invoice_no: (record.digitalInvoiceNo as string) || null,
+    invoice_code: (record.invoiceCode as string) || null,
+    invoice_no: (record.invoiceNo as string) || null,
+    seller_name: (record.sellerName as string) || null,
+    seller_tax_no: (record.sellerTaxNo as string) || null,
     title: (record.title as string) || null,
     tax_no: (record.taxNo as string) || null,
     invoice_amount: parseFloat(String(record.amount ?? 0)),
+    tax_amount: parseFloat(String(record.taxAmount ?? 0)),
+    amount_with_tax:
+      parseFloat(String(record.amountWithTax ?? 0)) ||
+      parseFloat(String(record.amount ?? 0)) + parseFloat(String(record.taxAmount ?? 0)),
     invoice_date: (record.issueDate as string) || null,
+    issuer: (record.issuer as string) || null,
     status: (record.status as string) || '未开',
     remark:
       record.remark != null && String(record.remark).trim() !== '' ? String(record.remark) : null,
