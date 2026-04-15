@@ -733,7 +733,7 @@
 .games-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 22px;
   width: 100%;
   min-width: 0;
 }
@@ -1621,4 +1621,344 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ========== 按渠道：账单卡片（ChannelGroupCard / Header / Table） ========== */
+.channel-bill-card {
+  border-radius: var(--admin-radius);
+  border: 1px solid var(--admin-border);
+  overflow: hidden;
+  background: var(--admin-card-bg);
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.channel-bill-card:hover {
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.channel-bill-card .channel-bill-card__header {
+  border-left: 3px solid var(--admin-success);
+}
+
+.channel-bill-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  flex-wrap: wrap;
+  padding: 6px 12px 8px;
+  background: var(--admin-card-bg);
+  border-bottom: 1px solid var(--admin-border-soft);
+}
+
+.channel-bill-card__header-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 200px;
+  margin: 0;
+  padding: 4px 6px;
+  border: none;
+  border-radius: var(--admin-radius-sm);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  transition: background 0.15s ease;
+}
+
+.channel-bill-card__header-left:hover {
+  background: var(--admin-bg-soft);
+}
+
+.channel-bill-card__header-left:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--admin-primary-muted);
+}
+
+.channel-bill-card__chevron {
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  border-right: 2.5px solid var(--admin-primary);
+  border-bottom: 2.5px solid var(--admin-primary);
+  transform: rotate(-45deg);
+  margin-top: -0.2em;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+  opacity: 0.9;
+}
+
+.channel-bill-card__chevron.is-open {
+  transform: rotate(45deg);
+  margin-top: 0.12em;
+}
+
+.channel-bill-card__name {
+  font-size: var(--admin-font-title);
+  font-weight: 600;
+  color: var(--admin-text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.channel-bill-card__count {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+  background: var(--admin-page-bg);
+  border: 1px solid var(--admin-border-soft);
+  padding: 2px 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.channel-bill-card__metrics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 8px;
+  flex: 1 1 280px;
+  justify-content: flex-end;
+}
+
+.channel-bill-metric {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 5px;
+  padding: 1px 2px;
+  white-space: nowrap;
+}
+
+.channel-bill-metric__label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+  letter-spacing: 0.02em;
+}
+
+.channel-bill-metric__value {
+  font-size: var(--admin-font-sm);
+  font-weight: 600;
+  color: var(--admin-text-main);
+  font-variant-numeric: tabular-nums;
+}
+
+.channel-bill-metric__value--emph {
+  color: var(--admin-success);
+}
+
+.channel-bill-metric__value--received {
+  color: var(--admin-success);
+}
+
+.channel-bill-metric__value--unpaid {
+  color: #c2410c;
+}
+
+.channel-bill-metric__value--cleared {
+  color: var(--admin-text-muted);
+  font-weight: 500;
+}
+
+.channel-bill-metric__value--pos {
+  color: var(--admin-success);
+}
+
+.channel-bill-metric__value--neg {
+  color: var(--admin-danger);
+}
+
+.channel-bill-card__receipts {
+  padding: 6px 12px 8px;
+  background: var(--admin-card-bg);
+  border-bottom: 1px solid var(--admin-border-soft);
+}
+
+.channel-bill-card__receipt-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--admin-border-soft);
+}
+
+.channel-bill-card__receipt-row:last-child {
+  border-bottom: none;
+  padding-bottom: 2px;
+}
+
+.channel-bill-card__receipt-meta {
+  flex: 1 1 240px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.channel-bill-card__receipt-title {
+  font-size: var(--admin-font-sm);
+  font-weight: 600;
+  color: var(--admin-text-sub);
+}
+
+.channel-bill-card__receipt-progress {
+  max-width: 400px;
+}
+
+.channel-bill-card__receipt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.channel-bill-card__detail {
+  padding: 0 0 10px;
+  background: var(--admin-card-bg);
+}
+
+.channel-bill-card__detail-title {
+  padding: 8px 12px 6px;
+  margin: 0 10px;
+  font-size: var(--admin-font-sm);
+  font-weight: 600;
+  color: var(--admin-text-sub);
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--admin-border-soft);
+}
+
+.channel-bill-card__table-scroll {
+  padding: 6px 10px 0;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.channel-group-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--admin-table-font-size);
+  min-width: 900px;
+}
+
+.channel-group-table th {
+  padding: 7px 9px;
+  text-align: left;
+  background: var(--admin-card-bg);
+  color: var(--admin-text-muted);
+  font-weight: 500;
+  font-size: var(--admin-font-sm);
+  white-space: nowrap;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.channel-group-table th.channel-group-table__num {
+  text-align: right;
+}
+
+.channel-group-table th.channel-group-table__actions {
+  text-align: right;
+  position: sticky;
+  right: 0;
+  background: var(--admin-card-bg);
+  z-index: 2;
+  box-shadow: -6px 0 10px -6px rgba(15, 23, 42, 0.12);
+}
+
+.channel-group-table td {
+  padding: 7px 9px;
+  border-bottom: 1px solid var(--admin-border-soft);
+  color: var(--admin-text-main);
+  vertical-align: middle;
+}
+
+.channel-group-table__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.channel-group-table__settlement {
+  font-weight: 600;
+  color: var(--admin-primary);
+}
+
+.channel-group-table__subnum {
+  font-size: var(--admin-font-sm);
+}
+
+.channel-group-table__pair {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  line-height: 1.35;
+  color: var(--admin-text-sub);
+}
+
+.channel-group-table__actions {
+  text-align: right;
+  position: sticky;
+  right: 0;
+  background: var(--admin-card-bg);
+  z-index: 1;
+  box-shadow: -6px 0 10px -6px rgba(15, 23, 42, 0.08);
+}
+
+.channel-group-table tbody tr:hover {
+  background: var(--admin-page-bg);
+}
+
+.channel-group-table tbody tr:hover .channel-group-table__actions {
+  background: var(--admin-page-bg);
+}
+
+.channel-group-table__foot td {
+  font-weight: 600;
+  background: color-mix(in srgb, var(--admin-primary) 5%, var(--admin-card-bg));
+  border-top: 2px solid color-mix(in srgb, var(--admin-primary) 28%, var(--admin-border));
+  border-bottom: none;
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+.channel-group-table__foot .channel-group-table__actions {
+  background: color-mix(in srgb, var(--admin-primary) 5%, var(--admin-card-bg));
+}
+
+.channel-group-table__foot-label {
+  font-weight: 600;
+  color: var(--admin-text-main);
+}
+
+.channel-group-table__foot .channel-group-table__settlement {
+  font-size: var(--admin-font-base);
+}
+
+[data-theme='dark'] .channel-bill-card__receipt-title {
+  color: var(--admin-text-sub);
+}
+
+[data-theme='dark'] .channel-group-table th.channel-group-table__actions,
+[data-theme='dark'] .channel-group-table__actions {
+  background: var(--admin-card-bg);
+  box-shadow: -6px 0 10px -6px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme='dark'] .channel-group-table tbody tr:hover,
+[data-theme='dark'] .channel-group-table tbody tr:hover .channel-group-table__actions {
+  background: var(--admin-elevated-bg);
+}
+
+[data-theme='dark'] .channel-group-table__foot td,
+[data-theme='dark'] .channel-group-table__foot .channel-group-table__actions {
+  background: color-mix(in srgb, var(--admin-primary) 12%, var(--admin-card-bg));
 }

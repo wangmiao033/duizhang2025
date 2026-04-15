@@ -10,6 +10,7 @@ import ChannelLightDrawer from '@/components/channel/ChannelLightDrawer.jsx'
 import ChannelReceiptDrawer from '@/components/channel/ChannelReceiptDrawer.jsx'
 import ChannelReceiptListDrawer from '@/components/channel/ChannelReceiptListDrawer.jsx'
 import ChannelReceiptProgressBlock from '@/components/channel/ChannelReceiptProgressBlock.jsx'
+import ChannelGroupCard from '@/components/channel/ChannelGroupCard.jsx'
 import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
 import {
   initialForm,
@@ -729,244 +730,19 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                 />
               ) : (
                 groupedByChannel.map((channel) => (
-                  <div key={channel.channelName} className="game-card channel-card">
-                    <div
-                      className="game-card-header"
-                      onClick={() => toggleChannelExpand(channel.channelName)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          toggleChannelExpand(channel.channelName)
-                        }
-                      }}
-                      role="button"
-                      tabIndex={0}
-                    >
-                      <div className="game-info">
-                        <span className="expand-icon">{expandedGames[channel.channelName] ? '\u25be' : '\u25b8'}</span>
-                        <h4 className="game-title">{channel.channelName}</h4>
-                        <span className="channel-badge">{channel.gameCount} 个游戏</span>
-                      </div>
-                      <div className="game-stats game-stats--channel-summary">
-                        <span className="stat">
-                          <span className="label">总流水</span>
-                          <span className="value">{formatMoney(channel.totalFlow)}</span>
-                        </span>
-                        <span className="stat">
-                          <span className="label">应收</span>
-                          <span className="value settlement">{formatMoney(channel.totalSettlement)}</span>
-                        </span>
-                        <span className="stat">
-                          <span className="label">已收</span>
-                          <span className="value">{formatMoney(channel.totalReceived || 0)}</span>
-                        </span>
-                        <span className="stat">
-                          <span className="label">未收</span>
-                          <span className="value">{formatMoney(channel.totalUnpaid || 0)}</span>
-                        </span>
-                        <span className="stat">
-                          <span className="label">占比</span>
-                          <span
-                            className={`value ${parseFloat(channel.profitRate) >= 0 ? 'positive' : 'negative'}`}
-                          >
-                            {channel.profitRate}%
-                          </span>
-                        </span>
-                      </div>
-                    </div>
-
-                    {expandedGames[channel.channelName] && (
-                      <>
-                        <div
-                          className="channel-rd__record-toolbar"
-                          role="region"
-                          aria-label="按对账单收款"
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                        >
-                          {channel.records.map((rec) => {
-                            const rid = getChannelRecordId(rec) || rec.id
-                            const settled = isChannelReceiptSettled(rec)
-                            const unpaid = getChannelUnpaidAmount(rec)
-                            return (
-                              <div key={rid} className="channel-rd__record-toolbar-row">
-                                <div className="channel-rd__record-toolbar-meta">
-                                  <span className="channel-rd__record-toolbar-title">
-                                    {rec.settlementMonth || '未设月份'} · {rec.startDate || '—'} ~{' '}
-                                    {rec.endDate || '—'}
-                                  </span>
-                                  <div className="channel-rd__record-toolbar-progress">
-                                    <ChannelReceiptProgressBlock record={rec} compact />
-                                  </div>
-                                </div>
-                                <div className="channel-rd__record-toolbar-actions">
-                                  <button
-                                    type="button"
-                                    className="edit-btn"
-                                    onClick={() => setReceiptListDrawerRecord(rec)}
-                                  >
-                                    收款记录
-                                  </button>
-                                  {!settled && unpaid > 1e-6 ? (
-                                    <>
-                                      <button
-                                        type="button"
-                                        className="edit-btn channel-rd__btn-receipt"
-                                        onClick={() => openReceiptRegister(rec)}
-                                      >
-                                        收款登记
-                                      </button>
-                                      <button
-                                        type="button"
-                                        className="edit-btn channel-rd__btn-receipt"
-                                        onClick={() => openReceiptQuickFull(rec)}
-                                      >
-                                        快速收全款
-                                      </button>
-                                    </>
-                                  ) : (
-                                    <span className="channel-receipt-tag channel-receipt-tag--cleared">已结清</span>
-                                  )}
-                                </div>
-                              </div>
-                            )
-                          })}
-                        </div>
-                        <div className="game-channels">
-                        <table className="channel-detail-table">
-                          <thead>
-                            <tr>
-                              <th className="channel-rd__th-check" aria-label="选择" />
-                              <th>游戏名称</th>
-                              <th>后台流水</th>
-                              <th>折扣系数</th>
-                              <th>总流水</th>
-                              <th>代金券</th>
-                              <th>测试费</th>
-                              <th>计费金额</th>
-                              <th>分成比例</th>
-                              <th>分成金额</th>
-                              <th>税率</th>
-                              <th>结算金额</th>
-                              <th>操作</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {channel.records.flatMap((record) => {
-                              const rid = getChannelRecordId(record) || record.id
-                              const lines = getChannelLineItems(record)
-                              return lines.map((line, lineIdx) => {
-                                const rawFlow = parseFloat(line.flow) || 0
-                                const effFlow = getLineEffectiveFlow(line)
-                                const voucher = parseFloat(line.voucherCost) || 0
-                                const noWorry = parseFloat(line.noWorryCost) || 0
-                                const refund = parseFloat(line.refundCost) || 0
-                                const test = parseFloat(line.testCost) || 0
-                                const welfare = parseFloat(line.welfareCost) || 0
-                                const billingAmount = effFlow - voucher - noWorry - refund - test - welfare
-                                const shareRate = parseFloat(line.shareRate ||30)
-                                const shareAmount = billingAmount * (shareRate / 100)
-                                const settlement = parseFloat(line.settlementAmount) || shareAmount
-                                const rowKey = `${rid}-${lineIdx}`
-                                return (
-                                  <tr key={rowKey}>
-                                    <td>
-                                      {lineIdx === 0 ? (
-                                        <input
-                                          type="checkbox"
-                                          checked={rowSelected(rid)}
-                                          onChange={() => toggleSelect(rid)}
-                                          aria-label="选择行"
-                                        />
-                                      ) : null}
-                                    </td>
-                                    <td className="game-name-cell">{line.gameName}</td>
-                                    <td>{formatMoney(rawFlow)}</td>
-                                    <td>{getLineDiscountFactor(line)}</td>
-                                    <td>{effFlow.toFixed(2)}</td>
-                                    <td>{voucher}</td>
-                                    <td>{test}</td>
-                                    <td>{formatMoney(billingAmount)}</td>
-                                    <td>{shareRate}%</td>
-                                    <td>{formatMoney(shareAmount)}</td>
-                                    <td>{line.taxRate ?? 5}%</td>
-                                    <td className="settlement">{formatMoney(settlement)}</td>
-                                    <td className="actions">
-                                      {lineIdx === 0 ? (
-                                        <>
-                                          <button
-                                            type="button"
-                                            className="edit-btn"
-                                            onClick={() => setLightDrawerRecord(record)}
-                                          >
-                                            查看
-                                          </button>
-                                          <button
-                                            type="button"
-                                            className="edit-btn"
-                                            onClick={() => openChannelReconciliationEdit(rid)}
-                                          >
-                                            编辑
-                                          </button>
-                                          <button
-                                            type="button"
-                                            className="delete-btn"
-                                            onClick={() => handleDelete(rid)}
-                                          >
-                                            删除
-                                          </button>
-                                        </>
-                                      ) : null}
-                                    </td>
-                                  </tr>
-                                )
-                              })
-                            })}
-                          </tbody>
-                          <tfoot>
-                            <tr>
-                              <td />
-                              <td className="total-label">合计</td>
-                              <td>{formatMoney(channel.totalRawFlow || 0)}</td>
-                              <td />
-                              <td>{formatMoney(channel.totalFlow)}</td>
-                              <td>{formatMoney(channel.totalVoucherCost)}</td>
-                              <td>{formatMoney(channel.totalTestCost)}</td>
-                              <td>
-                                {formatMoney(
-                                  channel.totalFlow -
-                                    channel.totalVoucherCost -
-                                    (channel.totalNoWorryCost || 0) -
-                                    (channel.totalRefundCost || 0) -
-                                    channel.totalTestCost -
-                                    (channel.totalWelfareCost || 0)
-                                )}
-                              </td>
-                              <td>-</td>
-                              <td>
-                                {formatMoney(
-                                  (channel.totalFlow -
-                                    channel.totalVoucherCost -
-                                    (channel.totalNoWorryCost || 0) -
-                                    (channel.totalRefundCost || 0) -
-                                    channel.totalTestCost -
-                                    (channel.totalWelfareCost || 0)) *
-                                    (channel.records[0]
-                                      ? parseFloat(channel.records[0].shareRate || channel.records[0].cfChannelRate || 30) /
-                                        100
-                                      : 0.3)
-                                )}
-                              </td>
-                              <td>-</td>
-                              <td className="settlement">{formatMoney(channel.totalSettlement)}</td>
-                              <td />
-                            </tr>
-                          </tfoot>
-                        </table>
-                        </div>
-                      </>
-                    )}
-                  </div>
+                  <ChannelGroupCard
+                    key={channel.channelName}
+                    channel={channel}
+                    expanded={Boolean(expandedGames[channel.channelName])}
+                    onToggleExpand={() => toggleChannelExpand(channel.channelName)}
+                    formatMoney={formatMoney}
+                    onView={(record) => setLightDrawerRecord(record)}
+                    onEdit={(rid) => openChannelReconciliationEdit(rid)}
+                    onDelete={handleDelete}
+                    onReceiptList={setReceiptListDrawerRecord}
+                    onReceiptRegister={openReceiptRegister}
+                    onReceiptQuickFull={openReceiptQuickFull}
+                  />
                 ))
               )}
             </div>
