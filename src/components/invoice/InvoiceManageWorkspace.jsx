@@ -7,7 +7,6 @@ import AdminFilterBar from '@/components/admin/AdminFilterBar.jsx'
 import AdminActionBar from '@/components/admin/AdminActionBar.jsx'
 import AdminStatsRow from '@/components/admin/AdminStatsRow.jsx'
 import AdminTableCard from '@/components/admin/AdminTableCard.jsx'
-import AdminListEmptyState from '@/components/admin/AdminListEmptyState.jsx'
 import InvoiceLightDrawer from '@/components/invoice/InvoiceLightDrawer.jsx'
 import '@/components/reconciliation/reconciliation-admin.css'
 import { getInvoiceRecordId } from '@/lib/api/invoice.ts'
@@ -249,46 +248,30 @@ function InvoiceManageWorkspace({ variant = 'manage', direction = 'output' }) {
       </AdminStatsRow>
 
       <AdminTableCard className="invoice-rd__table-card">
-        {filteredInvoices.length === 0 ? (
-          <AdminListEmptyState
-            title="暂无发票记录"
-            description={
-              variant === 'manage'
-                ? '可新增发票或通过列表页导入 JSON / PDF。'
-                : '调整搜索或状态筛选；核销请在列表中点击「核销」。'
-            }
-            primaryAction={
-              variant === 'manage'
-                ? {
-                    label: '新增发票',
-                    onClick: () => {
-                      setInvoiceForm((prev) => ({ ...prev, invoiceDirection: direction }))
-                      setActiveView(VIEWS.INVOICE_CREATE)
-                    }
-                  }
-                : undefined
-            }
-          />
-        ) : (
-          <div className="invoice-table invoice-table--workspace">
-            <div className="invoice-table-head">
-              <span>序号</span>
-              <span>票种</span>
-              <span>数电发票号码</span>
-              <span>发票代码</span>
-              <span>发票号码</span>
-              <span>{direction === 'output' ? '购买方纳税人名称' : '销售方名称'}</span>
-              <span>{direction === 'output' ? '购买方纳税人识别号' : '销售方纳税人识别号'}</span>
-              <span>金额</span>
-              <span>税额</span>
-              <span>价税合计</span>
-              <span>开票日期</span>
-              <span>开票人</span>
-              <span>状态</span>
-              <span>操作</span>
-              <span>备注</span>
+        <div className="invoice-table invoice-table--workspace">
+          <div className="invoice-table-head">
+            <span>序号</span>
+            <span>票种</span>
+            <span>数电发票号码</span>
+            <span>发票代码</span>
+            <span>发票号码</span>
+            <span>{direction === 'output' ? '购买方纳税人名称' : '销售方名称'}</span>
+            <span>{direction === 'output' ? '购买方纳税人识别号' : '销售方纳税人识别号'}</span>
+            <span>金额</span>
+            <span>税额</span>
+            <span>价税合计</span>
+            <span>开票日期</span>
+            <span>开票人</span>
+            <span>发票状态</span>
+            <span>操作</span>
+            <span>备注</span>
+          </div>
+          {filteredInvoices.length === 0 ? (
+            <div className="invoice-table-row invoice-table-row--empty">
+              <span className="invoice-table-empty-text">暂无发票数据，当前筛选无匹配记录</span>
             </div>
-            {filteredInvoices.map((item, idx) => {
+          ) : (
+            filteredInvoices.map((item, idx) => {
               const rid = getInvoiceRecordId(item) || item.id
               const counterpartyName = direction === 'output' ? item.title : item.sellerName
               const counterpartyTaxNo = direction === 'output' ? item.taxNo : item.sellerTaxNo
@@ -304,7 +287,10 @@ function InvoiceManageWorkspace({ variant = 'manage', direction = 'output' }) {
                   <span className="invoice-table__num">¥{parseFloat(item.amount || 0).toFixed(2)}</span>
                   <span className="invoice-table__num">¥{parseFloat(item.taxAmount || 0).toFixed(2)}</span>
                   <span className="invoice-table__num">
-                    ¥{parseFloat(item.amountWithTax || parseFloat(item.amount || 0) + parseFloat(item.taxAmount || 0)).toFixed(2)}
+                    ¥
+                    {parseFloat(
+                      item.amountWithTax || parseFloat(item.amount || 0) + parseFloat(item.taxAmount || 0)
+                    ).toFixed(2)}
                   </span>
                   <span>{item.issueDate || '-'}</span>
                   <span>{item.issuer || '-'}</span>
@@ -332,9 +318,9 @@ function InvoiceManageWorkspace({ variant = 'manage', direction = 'output' }) {
                   </span>
                 </div>
               )
-            })}
-          </div>
-        )}
+            })
+          )}
+        </div>
       </AdminTableCard>
 
       <InvoiceLightDrawer

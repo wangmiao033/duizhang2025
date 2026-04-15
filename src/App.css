@@ -655,6 +655,18 @@
   border-color: var(--admin-border);
 }
 
+.invoice-table-row--empty {
+  grid-template-columns: 1fr;
+}
+
+.invoice-table-empty-text {
+  display: block;
+  padding: 8px 4px;
+  text-align: center;
+  color: var(--admin-text-sub);
+  white-space: normal;
+}
+
 .invoice-table-row span {
   overflow: hidden;
   text-overflow: ellipsis;
