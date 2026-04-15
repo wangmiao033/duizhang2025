@@ -11,6 +11,8 @@ export type ApiInvoiceRow = {
   digital_invoice_no: string | null
   invoice_code: string | null
   invoice_no: string | null
+  buyer_name: string | null
+  buyer_tax_no: string | null
   seller_name: string | null
   seller_tax_no: string | null
   title: string | null
@@ -40,6 +42,8 @@ export type InvoiceRecordPayload = {
   digital_invoice_no?: string | null
   invoice_code?: string | null
   invoice_no?: string | null
+  buyer_name?: string | null
+  buyer_tax_no?: string | null
   seller_name?: string | null
   seller_tax_no?: string | null
   title?: string | null
@@ -106,6 +110,8 @@ export function apiInvoiceRowToFrontend(row: ApiInvoiceRow): Record<string, unkn
     digitalInvoiceNo: row.digital_invoice_no ?? '',
     invoiceCode: row.invoice_code ?? '',
     invoiceNo: row.invoice_no ?? '',
+    buyerName: row.buyer_name ?? row.title ?? '',
+    buyerTaxNo: row.buyer_tax_no ?? row.tax_no ?? '',
     sellerName: row.seller_name ?? '',
     sellerTaxNo: row.seller_tax_no ?? '',
     title: row.title ?? '',
@@ -141,6 +147,8 @@ export function frontendInvoiceRecordToPayload(record: Record<string, unknown>):
     digital_invoice_no: (record.digitalInvoiceNo as string) || null,
     invoice_code: (record.invoiceCode as string) || null,
     invoice_no: (record.invoiceNo as string) || null,
+    buyer_name: (record.buyerName as string) || (record.title as string) || null,
+    buyer_tax_no: (record.buyerTaxNo as string) || (record.taxNo as string) || null,
     seller_name: (record.sellerName as string) || null,
     seller_tax_no: (record.sellerTaxNo as string) || null,
     title: (record.title as string) || null,

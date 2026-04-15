@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useAppState } from '@/app/AppStateContext.jsx'
-import InvoicePaymentLinkTools from '@/components/invoice/InvoicePaymentLinkTools.jsx'
-import { useInvoicePaymentLinks } from '@/hooks/useInvoicePaymentLinks.js'
 import AdminWorkspace from '@/components/admin/AdminWorkspace.jsx'
 import AdminFilterBar from '@/components/admin/AdminFilterBar.jsx'
 import AdminActionBar from '@/components/admin/AdminActionBar.jsx'
@@ -10,17 +8,16 @@ import AdminTableCard from '@/components/admin/AdminTableCard.jsx'
 import InvoiceLightDrawer from '@/components/invoice/InvoiceLightDrawer.jsx'
 import '@/components/reconciliation/reconciliation-admin.css'
 import { getInvoiceRecordId } from '@/lib/api/invoice.ts'
-import { getPaymentRecordId } from '@/lib/api/payment.ts'
 import { VIEWS } from '@/app/routes.js'
 import { consumeInvoiceFocus } from '@/lib/exceptions/navFocus.ts'
 
 /**
- * 发票管理 / 发票核销 共用列表工作台（无完整表单）
+ * 发票管理列表工作台（销项/进项共用）
  * @param {'manage' | 'verify'} variant
  * @param {'output' | 'input'} direction
  */
 function InvoiceManageWorkspace({ variant = 'manage', direction = 'output' }) {
-  const { invoice, setActiveView, setActiveViewRaw, openInvoiceEdit, settings, showToast } = useAppState()
+  const { invoice, setActiveView, setActiveViewRaw, openInvoiceEdit } = useAppState()
 
   const {
     filteredInvoices,
@@ -29,46 +26,23 @@ function InvoiceManageWorkspace({ variant = 'manage', direction = 'output' }) {
     setInvoiceForm,
     invoiceFileInputRef,
     handleDeleteInvoice,
-    handleOpenVerification,
-    handleExportInvoiceJSON,
     handleExportInvoiceCSV,
     handleImportInvoiceJSON,
     updateInvoiceRecord
   } = invoice
 
   const [drawerRecord, setDrawerRecord] = useState(null)
-  const { refresh: refreshIpLinks, byInvoiceId } = useInvoicePaymentLinks()
-  const [focusInvoiceForLink, setFocusInvoiceForLink] = useState('')
+  const [pageSize, setPageSize] = useState(20)
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
-    const id = consumeInvoiceFocus()
-    if (id) setFocusInvoiceForLink(id)
+    consumeInvoiceFocus()
   }, [])
 
   useEffect(() => {
     if (invoiceFilter.direction === direction) return
     setInvoiceFilter((prev) => ({ ...prev, direction }))
   }, [direction, invoiceFilter.direction, setInvoiceFilter])
-
-  const paymentLabelById = useMemo(() => {
-    const m = new Map()
-    for (const p of settings?.deliveries || []) {
-      const pid = getPaymentRecordId(p)
-      const label = [p.partnerName, p.trackingNumber].filter(Boolean).join(' · ') || pid
-      m.set(pid, label)
-    }
-    return m
-  }, [settings?.deliveries])
-
-  const drawerLinkedPayments = useMemo(() => {
-    if (!drawerRecord) return []
-    const rid = getInvoiceRecordId(drawerRecord)
-    return (byInvoiceId.get(rid) || []).map((L) => ({
-      linkId: L.id,
-      paymentId: L.payment_id,
-      label: paymentLabelById.get(L.payment_id) || L.payment_id
-    }))
-  }, [drawerRecord, byInvoiceId, paymentLabelById])
 
   const stats = useMemo(() => {
     return filteredInvoices.reduce(
@@ -94,6 +68,19 @@ function InvoiceManageWorkspace({ variant = 'manage', direction = 'output' }) {
     })
     return Array.from(set)
   }, [filteredInvoices])
+
+  const totalPages = Math.max(1, Math.ceil(filteredInvoices.length / pageSize))
+  useEffect(() => {
+    setPage((p) => Math.min(p, totalPages))
+  }, [totalPages])
+  useEffect(() => {
+    setPage(1)
+  }, [invoiceFilter, pageSize, direction])
+
+  const pagedInvoices = useMemo(() => {
+    const start = (page - 1) * pageSize
+    return filteredInvoices.slice(start, start + pageSize)
+  }, [filteredInvoices, page, pageSize])
 
   const wrapImport = (e) => {
     const file = e.target.files?.[0]
@@ -191,9 +178,6 @@ function InvoiceManageWorkspace({ variant = 'manage', direction = 'output' }) {
                 >
                   新增发票
                 </button>
-                <button type="button" className="rec-btn rec-btn--secondary" onClick={handleExportInvoiceJSON}>
-                  导出 JSON
-                </button>
                 <button type="button" className="rec-btn rec-btn--secondary" onClick={handleExportInvoiceCSV}>
                   导出 CSV
                 </button>
@@ -212,17 +196,9 @@ function InvoiceManageWorkspace({ variant = 'manage', direction = 'output' }) {
                   style={{ display: 'none' }}
                   onChange={wrapImport}
                 />
-                <InvoicePaymentLinkTools
-                  invoiceRecords={invoice.invoiceRecords}
-                  deliveries={settings?.deliveries || []}
-                  onLinksChanged={() => void refreshIpLinks()}
-                  showToast={showToast}
-                  focusInvoiceId={focusInvoiceForLink}
-                  onConsumedFocusInvoice={() => setFocusInvoiceForLink('')}
-                />
               </>
             ) : (
-              <span className="rec-toolbar__batch-label">在列表中点击「核销」勾选对账记录</span>
+              <span className="rec-toolbar__batch-label">发票台账查询</span>
             )}
           </div>
         </div>
@@ -271,13 +247,13 @@ function InvoiceManageWorkspace({ variant = 'manage', direction = 'output' }) {
               <span className="invoice-table-empty-text">暂无发票数据，当前筛选无匹配记录</span>
             </div>
           ) : (
-            filteredInvoices.map((item, idx) => {
+            pagedInvoices.map((item, idx) => {
               const rid = getInvoiceRecordId(item) || item.id
-              const counterpartyName = direction === 'output' ? item.title : item.sellerName
-              const counterpartyTaxNo = direction === 'output' ? item.taxNo : item.sellerTaxNo
+              const counterpartyName = direction === 'output' ? item.buyerName || item.title : item.sellerName
+              const counterpartyTaxNo = direction === 'output' ? item.buyerTaxNo || item.taxNo : item.sellerTaxNo
               return (
                 <div className="invoice-table-row" key={rid}>
-                  <span>{idx + 1}</span>
+                  <span>{(page - 1) * pageSize + idx + 1}</span>
                   <span>{item.invoiceType || '-'}</span>
                   <span title={item.digitalInvoiceNo}>{item.digitalInvoiceNo || '-'}</span>
                   <span>{item.invoiceCode || '-'}</span>
@@ -304,9 +280,6 @@ function InvoiceManageWorkspace({ variant = 'manage', direction = 'output' }) {
                         编辑
                       </button>
                     ) : null}
-                    <button type="button" className="verify-btn" onClick={() => handleOpenVerification(item)}>
-                      核销
-                    </button>
                     {variant === 'manage' ? (
                       <button type="button" className="delete-btn" onClick={() => void handleDeleteInvoice(rid)}>
                         删除
@@ -321,6 +294,40 @@ function InvoiceManageWorkspace({ variant = 'manage', direction = 'output' }) {
             })
           )}
         </div>
+        <div className="channel-table__pagination">
+          <div className="channel-table__pagination-info">
+            第 {page}/{totalPages} 页，共 {filteredInvoices.length} 条
+          </div>
+          <div className="channel-table__pagination-actions">
+            <label className="channel-table__pagination-size">
+              每页
+              <select
+                className="admin-input channel-rd__select"
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value) || 20)}
+              >
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </label>
+            <button
+              type="button"
+              className="rec-btn rec-btn--ghost"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              上一页
+            </button>
+            <button
+              type="button"
+              className="rec-btn rec-btn--ghost"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              下一页
+            </button>
+          </div>
+        </div>
       </AdminTableCard>
 
       <InvoiceLightDrawer
@@ -329,10 +336,10 @@ function InvoiceManageWorkspace({ variant = 'manage', direction = 'output' }) {
         onClose={() => setDrawerRecord(null)}
         onUpdateRecord={(id, rec) => updateInvoiceRecord(id, rec)}
         onNavigateToFullEdit={(id) => openInvoiceEdit(id)}
-        onOpenVerification={variant === 'verify' || variant === 'manage' ? handleOpenVerification : undefined}
-        linkedPaymentRows={drawerLinkedPayments}
-        onLinksChanged={() => void refreshIpLinks()}
-        onRequestManualLinkToPayment={(invId) => setFocusInvoiceForLink(invId)}
+        onOpenVerification={undefined}
+        linkedPaymentRows={[]}
+        onLinksChanged={undefined}
+        onRequestManualLinkToPayment={undefined}
       />
     </AdminWorkspace>
   )

@@ -10,7 +10,7 @@ const FORM_ID = 'invoice-create-form'
 
 function InvoiceCreatePage() {
   const { invoice, showToast, setActiveView } = useAppState()
-  const { submitInvoiceFromForm, parseInvoiceFromFilename } = invoice
+  const { submitInvoiceFromForm } = invoice
 
   const submitIntentRef = useRef('back')
   const [previewAmount, setPreviewAmount] = useState(0)
@@ -67,7 +67,6 @@ function InvoiceCreatePage() {
         submitInvoiceFromForm={submitInvoiceFromForm}
         onAfterSubmit={handleAfterSubmit}
         onPreviewChange={setPreviewAmount}
-        parseInvoiceFromFilename={parseInvoiceFromFilename}
         showToast={showToast}
       />
     </InvoiceFormPageLayout>

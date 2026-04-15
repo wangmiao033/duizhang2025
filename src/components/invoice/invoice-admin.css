@@ -74,6 +74,36 @@
   align-items: center;
 }
 
+.channel-table__pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--admin-border-soft);
+  background: var(--admin-card-bg);
+}
+
+.channel-table__pagination-info {
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-sub);
+}
+
+.channel-table__pagination-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.channel-table__pagination-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-sub);
+}
+
 .invoice-rd__table-card {
   flex: 1 1 auto;
   min-height: 0;

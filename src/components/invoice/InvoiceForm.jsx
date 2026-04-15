@@ -8,6 +8,8 @@ const defaultInvoiceForm = {
   digitalInvoiceNo: '',
   invoiceCode: '',
   invoiceNo: '',
+  buyerName: '',
+  buyerTaxNo: '',
   sellerName: '',
   sellerTaxNo: '',
   title: '',
@@ -29,6 +31,8 @@ function recordToForm(inv) {
     digitalInvoiceNo: inv.digitalInvoiceNo || '',
     invoiceCode: inv.invoiceCode || '',
     invoiceNo: inv.invoiceNo || '',
+    buyerName: inv.buyerName || inv.title || '',
+    buyerTaxNo: inv.buyerTaxNo || inv.taxNo || '',
     sellerName: inv.sellerName || '',
     sellerTaxNo: inv.sellerTaxNo || '',
     title: inv.title || '',
@@ -61,7 +65,6 @@ function InvoiceForm({
   submitInvoiceFromForm,
   onAfterSubmit,
   onPreviewChange,
-  parseInvoiceFromFilename,
   showToast
 }) {
   const { invoice } = useAppState()
@@ -90,6 +93,8 @@ function InvoiceForm({
         digitalInvoiceNo: invoiceForm.digitalInvoiceNo || '',
         invoiceCode: invoiceForm.invoiceCode || '',
         invoiceNo: invoiceForm.invoiceNo || '',
+        buyerName: invoiceForm.buyerName || invoiceForm.title || '',
+        buyerTaxNo: invoiceForm.buyerTaxNo || invoiceForm.taxNo || '',
         sellerName: invoiceForm.sellerName || '',
         sellerTaxNo: invoiceForm.sellerTaxNo || '',
         title: invoiceForm.title || '',
@@ -144,8 +149,12 @@ function InvoiceForm({
         base.sellerName = parsed.seller_name || prev.sellerName
         base.sellerTaxNo = parsed.seller_tax_no || prev.sellerTaxNo
       } else {
-        base.title = parsed.buyer_name || prev.title
-        base.taxNo = parsed.buyer_tax_no || prev.taxNo
+        const buyerName = parsed.buyer_name || prev.buyerName || prev.title
+        const buyerTaxNo = parsed.buyer_tax_no || prev.buyerTaxNo || prev.taxNo
+        base.buyerName = buyerName
+        base.buyerTaxNo = buyerTaxNo
+        base.title = buyerName
+        base.taxNo = buyerTaxNo
       }
       return base
     })
@@ -197,7 +206,17 @@ function InvoiceForm({
           <select
             className="admin-input"
             value={formData.invoiceDirection}
-            onChange={(e) => setField('invoiceDirection', e.target.value)}
+          onChange={(e) => {
+            const nextDirection = e.target.value
+            setFormData((prev) => {
+              const next = { ...prev, invoiceDirection: nextDirection }
+              if (nextDirection === 'output') {
+                next.title = prev.buyerName || prev.title
+                next.taxNo = prev.buyerTaxNo || prev.taxNo
+              }
+              return next
+            })
+          }}
           >
             <option value="output">销项发票</option>
             <option value="input">进项发票</option>
@@ -262,10 +281,15 @@ function InvoiceForm({
         <input
           type="text"
           className="admin-input"
-          value={formData.invoiceDirection === 'input' ? formData.sellerName : formData.title}
-          onChange={(e) =>
-            setField(formData.invoiceDirection === 'input' ? 'sellerName' : 'title', e.target.value)
-          }
+          value={formData.invoiceDirection === 'input' ? formData.sellerName : formData.buyerName || formData.title}
+          onChange={(e) => {
+            const v = e.target.value
+            if (formData.invoiceDirection === 'input') setField('sellerName', v)
+            else {
+              setField('buyerName', v)
+              setField('title', v)
+            }
+          }}
           placeholder="公司名称"
         />
       </div>
@@ -274,10 +298,15 @@ function InvoiceForm({
         <input
           type="text"
           className="admin-input"
-          value={formData.invoiceDirection === 'input' ? formData.sellerTaxNo : formData.taxNo}
-          onChange={(e) =>
-            setField(formData.invoiceDirection === 'input' ? 'sellerTaxNo' : 'taxNo', e.target.value)
-          }
+          value={formData.invoiceDirection === 'input' ? formData.sellerTaxNo : formData.buyerTaxNo || formData.taxNo}
+          onChange={(e) => {
+            const v = e.target.value
+            if (formData.invoiceDirection === 'input') setField('sellerTaxNo', v)
+            else {
+              setField('buyerTaxNo', v)
+              setField('taxNo', v)
+            }
+          }}
           placeholder="纳税人识别号"
         />
       </div>
@@ -342,22 +371,7 @@ function InvoiceForm({
             placeholder="开票人"
           />
         </div>
-        <div>
-          <label>发票来源</label>
-          <input
-            type="text"
-            className="admin-input"
-            value={formData.invoiceSource}
-            onChange={(e) => setField('invoiceSource', e.target.value)}
-            placeholder="例如：电子发票服务平台"
-          />
-        </div>
       </div>
-
-      <div className="form-section-title">关联结算 / 合作方提示</div>
-      <p className="admin-workspace__card-desc" style={{ margin: '0 0 12px' }}>
-        核销对账记录请在「发票管理」列表中点击「核销」；此处可填写备注说明关联结算单或合作方。
-      </p>
 
       <div className="form-section-title">状态与备注</div>
       <div className="invoice-form__row invoice-form__row--two">
@@ -385,29 +399,6 @@ function InvoiceForm({
         </div>
       </div>
 
-      {mode === 'add' && parseInvoiceFromFilename && showToast ? (
-        <div className="invoice-form__quick">
-          <button
-            type="button"
-            className="rec-btn rec-btn--secondary"
-            onClick={() => {
-              const filename = window.prompt(
-                '请输入发票文件名（格式：销售方+购买方+金额+日期），例如：深圳龙魂+广州熊动22557.99+20260126'
-              )
-              if (!filename) return
-              const parsedInfo = parseInvoiceFromFilename(filename)
-              if (parsedInfo) {
-                setFormData((prev) => ({ ...prev, ...parsedInfo }))
-                showToast('已解析发票信息，请确认并补充税号后保存', 'success')
-              } else {
-                showToast('文件名格式不正确', 'error')
-              }
-            }}
-          >
-            从文件名快速解析
-          </button>
-        </div>
-      ) : null}
     </form>
   )
 }
