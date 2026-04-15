@@ -22,8 +22,11 @@ import {
   getChannelUnpaidAmount,
   getLineEffectiveFlow,
   getLineDiscountFactor,
-  receiptStatusTagLabel,
-  receiptStatusTagClass
+  receiptStatusTagLabelFromRecord,
+  receiptStatusTagClassFromRecord,
+  getInvoiceStatus,
+  invoiceStatusTagLabel,
+  invoiceStatusTagClass
 } from '@/domain/channel/channelAggregates.js'
 import { getChannelRecordId } from '@/lib/api/channel.ts'
 import { VIEWS } from '@/app/routes.js'
@@ -388,6 +391,13 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
     }
   }
 
+  const markInvoiceIssued = (record) => {
+    const rid = getChannelRecordId(record) || record.id
+    if (getInvoiceStatus(record) === 'issued') return
+    void onUpdateRecord?.(rid, { ...record, invoiceStatus: 'issued', invoice_status: 'issued' })
+    showToast?.('已标记为已开票', 'success')
+  }
+
   const toggleChannelExpand = (channelName) => {
     setExpandedGames((prev) => ({
       ...prev,
@@ -448,7 +458,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
         备注: r.remark,
         已收金额: getChannelReceivedAmount(r),
         未收金额: getChannelUnpaidAmount(r),
-        收款状态: receiptStatusTagLabel(r.receiptStatus)
+        收款状态: receiptStatusTagLabelFromRecord(r)
       }
       lines.forEach((line) => {
         rows.push({
@@ -496,7 +506,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
           结算金额: line.settlementAmount,
           已收金额: getChannelReceivedAmount(r),
           未收金额: getChannelUnpaidAmount(r),
-          收款状态: receiptStatusTagLabel(r.receiptStatus)
+          收款状态: receiptStatusTagLabelFromRecord(r)
         })
       })
     })
@@ -866,6 +876,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                     <th className="channel-table__col-num">结算金额</th>
                     <th className="channel-table__col-num">已收金额</th>
                     <th className="channel-table__col-num">未收金额</th>
+                    <th className="channel-table__col-center">发票状态</th>
                     <th className="channel-table__col-center">收款状态</th>
                     <th>创建时间</th>
                     <th className="channel-table__col--sticky-end">操作</th>
@@ -874,7 +885,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                 <tbody>
                   {filteredRecords.length === 0 ? (
                     <tr>
-                      <td colSpan={11} className="admin-list-empty-cell">
+                      <td colSpan={12} className="admin-list-empty-cell">
                         <AdminListEmptyState
                           variant="inline"
                           title="暂无渠道记录"
@@ -896,6 +907,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                       const period = normalizeSettlementPeriod(record)
                       const received = getChannelReceivedAmount(record)
                       const unpaid = getChannelUnpaidAmount(record)
+                      const invoiceStatus = getInvoiceStatus(record)
                       return (
                         <tr key={rid} className="channel-table__row-main">
                           <td>
@@ -916,12 +928,23 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                           <td className="channel-table__col-num">{formatMoney(received)}</td>
                           <td className="channel-table__col-num">{formatMoney(unpaid)}</td>
                           <td className="channel-table__col-center">
-                            <span className={receiptStatusTagClass(record.receiptStatus)}>
-                              {receiptStatusTagLabel(record.receiptStatus)}
+                            <span className={invoiceStatusTagClass(invoiceStatus)}>
+                              {invoiceStatusTagLabel(invoiceStatus)}
+                            </span>
+                          </td>
+                          <td className="channel-table__col-center">
+                            <span className={receiptStatusTagClassFromRecord(record)}>
+                              {receiptStatusTagLabelFromRecord(record)}
                             </span>
                           </td>
                           <td>{formatRecordCreatedAt(record)}</td>
                           <td className="actions channel-table__col--sticky-end">
+                            <button type="button" className="edit-btn" onClick={() => markInvoiceIssued(record)}>
+                              开票
+                            </button>
+                            <button type="button" className="edit-btn" onClick={() => openReceiptRegister(record)}>
+                              收款
+                            </button>
                             <button type="button" className="edit-btn" onClick={() => setLightDrawerRecord(record)}>
                               查看
                             </button>
@@ -949,6 +972,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                       <td className="channel-table__col-num settlement">{formatMoney(statistics.totalSettlement)}</td>
                       <td className="channel-table__col-num">{formatMoney(statistics.totalReceived)}</td>
                       <td className="channel-table__col-num">{formatMoney(statistics.totalUnpaid)}</td>
+                      <td />
                       <td />
                       <td />
                       <td className="channel-table__col--sticky-end" />

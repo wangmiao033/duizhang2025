@@ -123,12 +123,14 @@ export function getChannelUnpaidAmount(record) {
   return getChannelTotals(record).settlementAmount - getChannelReceivedAmount(record)
 }
 
+export function getSimpleReceiptStatus(record) {
+  return getChannelReceivedAmount(record) > 0 ? 'paid' : 'unpaid'
+}
+
 export function receiptStatusTagLabel(status) {
   switch (String(status || 'unpaid')) {
     case 'paid':
       return '已收'
-    case 'partial':
-      return '部分收'
     default:
       return '未收'
   }
@@ -138,11 +140,32 @@ export function receiptStatusTagClass(status) {
   switch (String(status || 'unpaid')) {
     case 'paid':
       return 'channel-receipt-tag channel-receipt-tag--paid'
-    case 'partial':
-      return 'channel-receipt-tag channel-receipt-tag--partial'
     default:
       return 'channel-receipt-tag channel-receipt-tag--unpaid'
   }
+}
+
+export function receiptStatusTagLabelFromRecord(record) {
+  return receiptStatusTagLabel(getSimpleReceiptStatus(record))
+}
+
+export function receiptStatusTagClassFromRecord(record) {
+  return receiptStatusTagClass(getSimpleReceiptStatus(record))
+}
+
+export function getInvoiceStatus(record) {
+  const raw = record?.invoiceStatus || record?.invoice_status
+  return String(raw || 'pending_invoice') === 'issued' ? 'issued' : 'pending_invoice'
+}
+
+export function invoiceStatusTagLabel(status) {
+  return String(status || 'pending_invoice') === 'issued' ? '已开' : '待开'
+}
+
+export function invoiceStatusTagClass(status) {
+  return String(status || 'pending_invoice') === 'issued'
+    ? 'channel-invoice-tag channel-invoice-tag--issued'
+    : 'channel-invoice-tag channel-invoice-tag--pending'
 }
 
 /** 已收占应收比例0–100（应收≤0 且已收≥0 视为 100%） */

@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import { StatusSelector } from '@/components/StatusManager.jsx'
 import { getChannelRecordId } from '@/lib/api/channel.ts'
 import {
   getChannelGamesDisplay,
   getChannelTotals,
   getChannelReceivedAmount,
   getChannelUnpaidAmount,
-  receiptStatusTagLabel,
-  isChannelReceiptSettled
+  receiptStatusTagLabelFromRecord,
+  receiptStatusTagClassFromRecord,
+  getInvoiceStatus,
+  invoiceStatusTagClass,
+  invoiceStatusTagLabel
 } from '@/domain/channel/channelAggregates.js'
 
 /**
@@ -42,6 +44,7 @@ function ChannelLightDrawer({
   if (!open || !record) return null
 
   const recordId = getChannelRecordId(record)
+  const invoiceStatus = getInvoiceStatus(record)
 
   const saveRemark = () => {
     const next = remark.trim()
@@ -88,22 +91,37 @@ function ChannelLightDrawer({
             <dd>¥{getChannelReceivedAmount(record).toFixed(2)}</dd>
             <dt>未收金额</dt>
             <dd>¥{getChannelUnpaidAmount(record).toFixed(2)}</dd>
+            <dt>发票状态</dt>
+            <dd>
+              <span className={invoiceStatusTagClass(invoiceStatus)}>
+                {invoiceStatusTagLabel(invoiceStatus)}
+              </span>
+            </dd>
             <dt>收款状态</dt>
             <dd>
-              {isChannelReceiptSettled(record) ? (
-                <span className="channel-receipt-tag channel-receipt-tag--cleared">已结清</span>
-              ) : (
-                receiptStatusTagLabel(record.receiptStatus)
-              )}
+              <span className={receiptStatusTagClassFromRecord(record)}>
+                {receiptStatusTagLabelFromRecord(record)}
+              </span>
             </dd>
           </dl>
 
           <div className="rec-light-field">
-            <span className="rec-light-field__label">状态</span>
-            <StatusSelector
-              currentStatus={record.status || 'pending'}
-              onStatusChange={(s) => void onUpdateRecord?.(recordId, { ...record, status: s })}
-            />
+            <span className="rec-light-field__label">快捷操作</span>
+            <div className="channel-list-expand__actions">
+              <button
+                type="button"
+                className="edit-btn"
+                onClick={() =>
+                  void onUpdateRecord?.(recordId, {
+                    ...record,
+                    invoiceStatus: 'issued',
+                    invoice_status: 'issued'
+                  })
+                }
+              >
+                开票
+              </button>
+            </div>
           </div>
 
           <div className="rec-light-field">
