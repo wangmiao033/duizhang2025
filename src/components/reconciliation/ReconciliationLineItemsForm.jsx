@@ -56,11 +56,35 @@ function getCurrentCycleLabel() {
   return `${now.getFullYear()}年${now.getMonth() + 1}月`
 }
 
+function buildRecentCycleOptions(monthCount = 12) {
+  const now = new Date()
+  const out = []
+  for (let i = 0; i < monthCount; i += 1) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    out.push(`${d.getFullYear()}年${d.getMonth() + 1}月`)
+  }
+  return out
+}
+
 function normalizeSettlementCycleLabel(raw) {
   const text = raw == null ? '' : String(raw).trim()
   if (!text) return ''
   let m = text.match(/^(\d{4})年(\d{1,2})月$/)
   if (m) return `${m[1]}年${Math.min(Math.max(Number(m[2]), 1), 12)}月`
+  m = text.match(/^(\d{1,2})月$/)
+  if (m) {
+    const now = new Date()
+    return `${now.getFullYear()}年${Math.min(Math.max(Number(m[1]), 1), 12)}月`
+  }
+  m = text.match(/^(\d{1,2})$/)
+  if (m) {
+    const now = new Date()
+    return `${now.getFullYear()}年${Math.min(Math.max(Number(m[1]), 1), 12)}月`
+  }
+  m = text.match(/^(\d{4})[\/.](\d{1,2})$/)
+  if (m) return `${m[1]}年${Math.min(Math.max(Number(m[2]), 1), 12)}月`
+  m = text.match(/^(\d{1,2})[\/.](\d{4})$/)
+  if (m) return `${m[2]}年${Math.min(Math.max(Number(m[1]), 1), 12)}月`
   m = text.match(/^(\d{4})-(\d{1,2})$/)
   if (m) return `${m[1]}年${Math.min(Math.max(Number(m[2]), 1), 12)}月`
   m = text.match(/^(\d{4})(\d{2})$/)
@@ -111,6 +135,9 @@ function ReconciliationLineItemsForm({
   const [lines, setLines] = useState([createEmptyRdLine(0, initialCycle)])
   const cycleOptions = useMemo(() => {
     const set = new Set()
+    for (const recent of buildRecentCycleOptions(12)) {
+      set.add(recent)
+    }
     for (const raw of settlementCycles) {
       const normalized = normalizeSettlementCycleLabel(raw)
       if (normalized) set.add(normalized)
