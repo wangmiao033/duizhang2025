@@ -5,6 +5,7 @@ import { STATUS_OPTIONS } from '@/components/StatusManager.jsx'
 import LineItemsTable from '@/components/shared/LineItemsTable.jsx'
 import {
   calculateSettlementAmount,
+  calculateSettlementAmountRaw,
   calculateSettlementGrossShare,
   rdLineItemToSettlementPayload
 } from '@/domain/settlement/calculateSettlementAmount.js'
@@ -203,7 +204,7 @@ function ReconciliationLineItemsForm({
       sumNet += (Number.isFinite(rev) ? rev : 0) * d
       sumCoupon += parseFloat(line.couponAmount || 0) || 0
       const payload = rdLineItemToSettlementPayload(line, header.channelFeeRate)
-      sumSettlement += calculateSettlementAmount(payload)
+      sumSettlement += calculateSettlementAmountRaw(payload)
     }
     return {
       sumRevenue,

@@ -1,17 +1,4 @@
-/**
- * 研发对账结算金额（与账单 Excel 口径一致）
- *
- * 1. 折后流水 = 游戏流水 × 折扣
- * 2. 结算基数 = 折后流水 − 测试费 − 代金券 − 退款
- * 3. 结算金额 = ROUND(MAX(0, 结算基数 × (1 − 通道费率) × 分成比例), 2)
- *
- * 通道费率、分成比例为表单中的百分数（如 15 表示 15%）。
- * 税点字段仍存在于表单，当前账单口径不参与本计算。
- *
- * @param {Record<string, unknown>} record
- * @returns {number}
- */
-export function calculateSettlementAmount(record) {
+function calculateSettlementAmountBase(record) {
   const gameFlow = parseFloat(record.gameFlow || 0)
   const testingFee = parseFloat(record.testingFee || 0)
   const voucher = parseFloat(record.voucher || 0)
@@ -26,7 +13,21 @@ export function calculateSettlementAmount(record) {
   const amount = base * (1 - channelFeeRate) * revenueShareRatio
 
   if (!Number.isFinite(amount)) return 0
-  return Math.max(0, Math.round(amount * 100) / 100)
+  return Math.max(0, amount)
+}
+
+/**
+ * 单行结算金额（展示口径）：ROUND(MAX(0, ...), 2)
+ */
+export function calculateSettlementAmount(record) {
+  return Math.round(calculateSettlementAmountBase(record) * 100) / 100
+}
+
+/**
+ * 单行结算金额（汇总口径）：仅做 MAX(0, ...)，不做分位四舍五入。
+ */
+export function calculateSettlementAmountRaw(record) {
+  return calculateSettlementAmountBase(record)
 }
 
 /**
@@ -74,7 +75,7 @@ export function rdLineItemToSettlementPayload(line, channelFeeRatePercent) {
 }
 
 /**
- * 多游戏明细时：各自行结算金额之和（与逐行 calculateSettlementAmount 一致）
+ * 多游戏明细时：先求和再四舍五入（与财务 Excel 汇总口径一致）
  * @param {Record<string, unknown>} record
  */
 export function totalReconciliationSettlementAmount(record) {
@@ -83,7 +84,7 @@ export function totalReconciliationSettlementAmount(record) {
     const cf = record.channelFeeRate
     let sum = 0
     for (const line of items) {
-      sum += calculateSettlementAmount(rdLineItemToSettlementPayload(line, cf))
+      sum += calculateSettlementAmountRaw(rdLineItemToSettlementPayload(line, cf))
     }
     return Math.round(sum * 100) / 100
   }

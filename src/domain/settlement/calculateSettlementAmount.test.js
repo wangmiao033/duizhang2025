@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   calculateSettlementAmount,
+  calculateSettlementAmountRaw,
   formatSettlementAmountString,
   totalReconciliationSettlementAmount
 } from '@/domain/settlement/calculateSettlementAmount.js'
@@ -125,6 +126,36 @@ describe('calculateSettlementAmount', () => {
       refund: 0
     })
     expect(totalReconciliationSettlementAmount(rec)).toBe(Math.round(one * 2 * 100) / 100)
+  })
+
+  it('多游戏明细汇总口径：先合计再四舍五入（避免逐行四舍五入累计误差）', () => {
+    const rec = {
+      channelFeeRate: '0',
+      items: [
+        { revenue: 1, discountRate: '1', testFee: '0', couponAmount: '0', extraFee: '0', shareRatio: '33.3333' },
+        { revenue: 1, discountRate: '1', testFee: '0', couponAmount: '0', extraFee: '0', shareRatio: '33.3333' },
+        { revenue: 1, discountRate: '1', testFee: '0', couponAmount: '0', extraFee: '0', shareRatio: '33.3333' }
+      ]
+    }
+    const asSingle = {
+      gameFlow: 1,
+      testingFee: 0,
+      voucher: 0,
+      channelFeeRate: 0,
+      taxPoint: 0,
+      revenueShareRatio: 33.3333,
+      discount: 1,
+      refund: 0
+    }
+    const lineRounded = rec.items.reduce((sum) => {
+      return sum + calculateSettlementAmount(asSingle)
+    }, 0)
+    const lineRaw = rec.items.reduce((sum) => {
+      return sum + calculateSettlementAmountRaw(asSingle)
+    }, 0)
+    expect(Math.round(lineRounded * 100) / 100).toBe(0.99)
+    expect(Math.round(lineRaw * 100) / 100).toBe(1.0)
+    expect(totalReconciliationSettlementAmount(rec)).toBe(1.0)
   })
 
   it('导入后重算：字符串金额与数值计算一致', () => {
