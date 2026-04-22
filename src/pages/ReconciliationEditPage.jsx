@@ -266,6 +266,7 @@ function ReconciliationEditPage() {
         onSubmitted={handleSubmitted}
         onUpdateRecord={updateRecord}
         settlementMonth={settlementMonth}
+        settlementCycles={records.map((r) => r.settlementMonth)}
         onError={(msg) => showToast(msg, 'error')}
         quickFillData={quickFillData}
         partners={partners}

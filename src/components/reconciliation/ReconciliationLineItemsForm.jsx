@@ -71,6 +71,15 @@ function monthInputToCn(value) {
   return `${m[1]}年${Number(m[2])}月`
 }
 
+function normalizeCycleOption(value) {
+  const normalized = toMonthInputValue(value)
+  if (!normalized) return null
+  return {
+    value: normalized,
+    label: monthInputToCn(normalized)
+  }
+}
+
 /**
  * 研发对账：布局与渠道 ChannelBillingForm 一致（channel-form-section + LineItemsTable + grid明细）
  */
@@ -86,6 +95,7 @@ function ReconciliationLineItemsForm({
   onError,
   quickFillData,
   partners = [],
+  settlementCycles = [],
   onAddPartner,
   onSubmitted,
   onPreviewChange,
@@ -102,6 +112,20 @@ function ReconciliationLineItemsForm({
     status: 'pending'
   })
   const [lines, setLines] = useState([createEmptyRdLine(0)])
+  const cycleOptions = useMemo(() => {
+    const map = new Map()
+    for (const raw of settlementCycles) {
+      const item = normalizeCycleOption(raw)
+      if (item && !map.has(item.value)) {
+        map.set(item.value, item)
+      }
+    }
+    const current = normalizeCycleOption(header.settlementMonth)
+    if (current && !map.has(current.value)) {
+      map.set(current.value, current)
+    }
+    return Array.from(map.values()).sort((a, b) => b.value.localeCompare(a.value))
+  }, [settlementCycles, header.settlementMonth])
 
   useEffect(() => {
     if (mode === 'edit' && editRecord) {
@@ -370,6 +394,26 @@ function ReconciliationLineItemsForm({
                 required
                 title="请选择结算月份"
               />
+            </div>
+            <div className="form-group">
+              <label>结算周期</label>
+              <select
+                className="admin-input"
+                value={toMonthInputValue(header.settlementMonth)}
+                onChange={(e) =>
+                  setHeader((h) => ({
+                    ...h,
+                    settlementMonth: monthInputToCn(e.target.value)
+                  }))
+                }
+              >
+                <option value="">请选择历史周期</option>
+                {cycleOptions.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="form-group">
               <label>合作方</label>

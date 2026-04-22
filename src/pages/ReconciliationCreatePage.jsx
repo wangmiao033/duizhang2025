@@ -12,7 +12,7 @@ const FORM_ID = 'reconciliation-create-form'
 
 function ReconciliationCreatePage() {
   const { recon, settings, showToast, setActiveView } = useAppState()
-  const { addRecord, handleApplyTemplate, quickFillData, setQuickFillData } = recon
+  const { records, addRecord, handleApplyTemplate, quickFillData, setQuickFillData } = recon
   const { settlementMonth, partners, setPartners } = settings
 
   const submitIntentRef = useRef('back')
@@ -92,6 +92,7 @@ function ReconciliationCreatePage() {
         onSubmitted={handleSubmitted}
         onAddRecord={addRecord}
         settlementMonth={settlementMonth}
+        settlementCycles={records.map((r) => r.settlementMonth)}
         onError={(msg) => showToast(msg, 'error')}
         quickFillData={quickFillData}
         partners={partners}
