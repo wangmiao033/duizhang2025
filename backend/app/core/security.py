@@ -28,6 +28,16 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _is_production_env() -> bool:
+    value = (
+        os.environ.get("APP_ENV")
+        or os.environ.get("ENV")
+        or os.environ.get("ENVIRONMENT")
+        or ""
+    ).strip().lower()
+    return value in {"prod", "production"}
+
+
 def get_auth_jwt_secret() -> str:
     secret = os.environ.get("AUTH_JWT_SECRET", "").strip()
     if not secret:
@@ -50,14 +60,22 @@ def get_auth_cookie_domain() -> str | None:
 
 
 def get_auth_cookie_secure() -> bool:
-    return os.environ.get("AUTH_COOKIE_SECURE", "true").strip().lower() in {"1", "true", "yes", "on"}
+    raw = os.environ.get("AUTH_COOKIE_SECURE")
+    if raw is not None and raw.strip():
+        return raw.strip().lower() in {"1", "true", "yes", "on"}
+    return _is_production_env()
 
 
 def get_auth_cookie_samesite() -> str:
-    value = os.environ.get("AUTH_COOKIE_SAMESITE", "none").strip().lower()
-    if value not in {"none", "lax", "strict"}:
-        return "none"
-    return value
+    raw = os.environ.get("AUTH_COOKIE_SAMESITE")
+    if raw is not None and raw.strip():
+        value = raw.strip().lower()
+        if value in {"none", "lax", "strict"}:
+            return value
+    # 本地开发（HTTP）默认用 lax，避免浏览器拒收 Cookie。
+    if not get_auth_cookie_secure():
+        return "lax"
+    return "none"
 
 
 def verify_password(plain_password: str, hashed_password: str | None) -> bool:

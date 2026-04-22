@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import Calendar from '@/components/Calendar.jsx'
 import NotificationCenter from '@/components/NotificationCenter.jsx'
 import ThemeToggle from '@/components/ThemeToggle.jsx'
@@ -7,14 +7,53 @@ import Settings from '@/components/Settings.jsx'
 import HelpTooltip from '@/components/HelpTooltip.jsx'
 import MobileMenu from '@/components/MobileMenu.jsx'
 import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb.jsx'
+import ConfirmDialog from '@/components/ConfirmDialog.jsx'
 import { SIDEBAR_GROUPS, getBreadcrumb, getPageMeta } from '@/app/routes.js'
 import { useAuth } from '@/features/auth/AuthContext.jsx'
 import './Header.css'
 
 function Header({ activeView, onNavigate, onSettingsChange }) {
   const { user, signOut, updateMyPassword } = useAuth()
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false)
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [submittingPassword, setSubmittingPassword] = useState(false)
   const breadcrumb = useMemo(() => getBreadcrumb(activeView), [activeView])
   const meta = useMemo(() => getPageMeta(activeView), [activeView])
+
+  const closePasswordDialog = () => {
+    setShowPasswordDialog(false)
+    setPasswordError('')
+    setCurrentPassword('')
+    setNewPassword('')
+    setSubmittingPassword(false)
+  }
+
+  const handlePasswordConfirm = async () => {
+    if (submittingPassword) return
+    if (!currentPassword.trim()) {
+      setPasswordError('请输入当前密码')
+      return
+    }
+    if (!newPassword.trim() || newPassword.trim().length < 6) {
+      setPasswordError('新密码至少 6 位')
+      return
+    }
+    setPasswordError('')
+    setSubmittingPassword(true)
+    try {
+      await updateMyPassword(currentPassword, newPassword.trim())
+      closePasswordDialog()
+      window.alert('密码修改成功')
+    } catch (err) {
+      setPasswordError(`修改失败：${String(err?.message || err)}`)
+    } finally {
+      setSubmittingPassword(false)
+    }
+  }
 
   return (
     <header className="app-admin-header">
@@ -69,34 +108,89 @@ function Header({ activeView, onNavigate, onSettingsChange }) {
           <HelpTooltip />
           <UserGuide />
           <ThemeToggle />
-          <button
-            type="button"
-            className="app-admin-header__user"
-            title={user?.email || '用户'}
-            aria-label="用户"
-            onClick={async () => {
-              const action = window.prompt('输入 1 修改密码；输入 2 退出登录')
-              if (action === '1') {
-                const current = window.prompt('请输入当前密码')
-                if (!current) return
-                const next = window.prompt('请输入新密码（至少6位）')
-                if (!next || next.trim().length < 6) return
-                try {
-                  await updateMyPassword(current, next.trim())
-                  window.alert('密码修改成功')
-                } catch (err) {
-                  window.alert(`修改失败：${String(err?.message || err)}`)
-                }
-              }
-              if (action === '2') {
-                await signOut()
-              }
-            }}
-          >
-            <span className="app-admin-header__user-dot" />
-          </button>
+          <div className="app-admin-header__user-wrap">
+            <button
+              type="button"
+              className="app-admin-header__user"
+              title={user?.email || '用户'}
+              aria-label="用户"
+              onClick={() => setShowUserMenu((v) => !v)}
+            >
+              <span className="app-admin-header__user-dot" />
+            </button>
+            {showUserMenu ? (
+              <div className="app-admin-header__user-menu">
+                <div className="app-admin-header__user-email">{user?.email || '当前用户'}</div>
+                <button
+                  type="button"
+                  className="app-admin-header__user-menu-item"
+                  onClick={() => {
+                    setShowUserMenu(false)
+                    setShowPasswordDialog(true)
+                  }}
+                >
+                  修改密码
+                </button>
+                <button
+                  type="button"
+                  className="app-admin-header__user-menu-item danger"
+                  onClick={() => {
+                    setShowUserMenu(false)
+                    setShowLogoutDialog(true)
+                  }}
+                >
+                  退出登录
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
+      <ConfirmDialog
+        isOpen={showPasswordDialog}
+        title="修改密码"
+        message={
+          <div className="app-admin-header__password-form">
+            <label className="app-admin-header__password-label">
+              <span>当前密码</span>
+              <input
+                className="admin-input"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </label>
+            <label className="app-admin-header__password-label">
+              <span>新密码</span>
+              <input
+                className="admin-input"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+            </label>
+            {passwordError ? <div className="app-admin-header__password-error">{passwordError}</div> : null}
+          </div>
+        }
+        onConfirm={handlePasswordConfirm}
+        onCancel={closePasswordDialog}
+        confirmText={submittingPassword ? '提交中...' : '确认修改'}
+        cancelText="取消"
+      />
+      <ConfirmDialog
+        isOpen={showLogoutDialog}
+        title="退出登录"
+        message="确认退出当前账号吗？"
+        onConfirm={async () => {
+          setShowLogoutDialog(false)
+          await signOut()
+        }}
+        onCancel={() => setShowLogoutDialog(false)}
+        confirmText="退出"
+        cancelText="取消"
+      />
     </header>
   )
 }

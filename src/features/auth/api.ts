@@ -38,6 +38,14 @@ export async function loginPassword(email: string, password: string): Promise<Au
   return apiPost<AuthMe>('/api/auth/login-password', { email, password })
 }
 
+export async function resetPasswordWithOtp(email: string, code: string, newPassword: string): Promise<AuthMe> {
+  return apiPost<AuthMe>('/api/auth/reset-password-otp', {
+    email,
+    code,
+    new_password: newPassword
+  })
+}
+
 export async function logout(): Promise<{ ok: boolean; message: string }> {
   return apiPost('/api/auth/logout', {})
 }

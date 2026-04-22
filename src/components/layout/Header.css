@@ -123,6 +123,70 @@
   background: var(--admin-primary);
 }
 
+.app-admin-header__user-wrap {
+  position: relative;
+}
+
+.app-admin-header__user-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  min-width: 188px;
+  border: 1px solid var(--admin-border-soft);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-card-bg);
+  box-shadow: var(--shadow-lg);
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.app-admin-header__user-email {
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-sub);
+  padding: 4px 6px 8px;
+  border-bottom: 1px solid var(--admin-border-soft);
+  word-break: break-all;
+}
+
+.app-admin-header__user-menu-item {
+  border: 1px solid var(--admin-border);
+  background: var(--admin-elevated-bg);
+  color: var(--admin-text-main);
+  border-radius: var(--admin-radius-xs);
+  min-height: 34px;
+  padding: 0 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.app-admin-header__user-menu-item:hover {
+  border-color: var(--admin-primary);
+  background: var(--admin-primary-muted);
+}
+
+.app-admin-header__user-menu-item.danger {
+  color: #b91c1c;
+}
+
+.app-admin-header__password-form {
+  display: grid;
+  gap: 10px;
+}
+
+.app-admin-header__password-label {
+  display: grid;
+  gap: 6px;
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-sub);
+}
+
+.app-admin-header__password-error {
+  color: #dc2626;
+  font-size: var(--admin-font-sm);
+}
+
 /* 面包屑 */
 .admin-breadcrumb {
   display: flex;

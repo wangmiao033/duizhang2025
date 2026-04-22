@@ -6,6 +6,7 @@ import {
   loginOtp,
   loginPassword,
   logout as apiLogout,
+  resetPasswordWithOtp,
   sendOtp
 } from '@/features/auth/api'
 
@@ -50,6 +51,12 @@ export function AuthProvider({ children }) {
     return me
   }, [])
 
+  const resetPasswordByOtp = useCallback(async (email, code, newPassword) => {
+    const me = await resetPasswordWithOtp(email, code, newPassword)
+    setUser(me)
+    return me
+  }, [])
+
   const signOut = useCallback(async () => {
     try {
       await apiLogout()
@@ -74,10 +81,11 @@ export function AuthProvider({ children }) {
       requestOtp,
       signInWithOtp,
       signInWithPassword,
+      resetPasswordByOtp,
       signOut,
       updateMyPassword
     }),
-    [user, loading, refreshMe, requestOtp, signInWithOtp, signInWithPassword, signOut, updateMyPassword]
+    [user, loading, refreshMe, requestOtp, signInWithOtp, signInWithPassword, resetPasswordByOtp, signOut, updateMyPassword]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -38,6 +38,7 @@ from app.schemas.auth import (
     AuthUsersListResponse,
     ChangePasswordRequest,
     OtpLoginRequest,
+    OtpResetPasswordRequest,
     PasswordLoginRequest,
     SendOtpRequest,
     UserCreateRequest,
@@ -129,6 +130,45 @@ def login_password(payload: PasswordLoginRequest, db: Session = Depends(get_db))
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="账号或密码错误")
 
     clear_login_fail(user)
+    token, _ = create_session(db, user)
+    db.commit()
+
+    body = AuthMeResponse(
+        id=user.id,
+        email=user.email,
+        display_name=user.display_name,
+        role=user.role,
+        is_active=user.is_active,
+        last_login_at=user.last_login_at,
+    ).model_dump()
+    resp = JSONResponse(content=body)
+    set_auth_cookie(resp, token)
+    return resp
+
+
+@router.post("/reset-password-otp", response_model=AuthMeResponse)
+def reset_password_with_otp(payload: OtpResetPasswordRequest, db: Session = Depends(get_db)) -> JSONResponse:
+    email = payload.email.strip().lower()
+    user = get_user_by_email(db, email)
+    if user is None or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="账号或验证码错误")
+    if is_locked(user):
+        raise HTTPException(status_code=423, detail="登录已锁定，请稍后再试")
+
+    otp = get_latest_otp(db, user.id)
+    now = datetime.now(timezone.utc)
+    if otp is None or otp.consumed_at is not None or otp.expires_at <= now:
+        register_login_fail(user)
+        db.commit()
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="验证码已失效，请重新获取")
+    if not hmac_equal(hash_otp(payload.code.strip()), otp.code_hash):
+        register_login_fail(user)
+        db.commit()
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="账号或验证码错误")
+
+    clear_login_fail(user)
+    user.password_hash = hash_password(payload.new_password)
+    otp.consumed_at = now
     token, _ = create_session(db, user)
     db.commit()
 
