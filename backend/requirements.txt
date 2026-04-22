@@ -5,3 +5,7 @@ sqlalchemy
 psycopg[binary]
 python-dotenv
 pydantic
+PyJWT
+passlib[bcrypt]
+httpx
+email-validator

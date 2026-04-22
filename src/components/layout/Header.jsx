@@ -8,9 +8,11 @@ import HelpTooltip from '@/components/HelpTooltip.jsx'
 import MobileMenu from '@/components/MobileMenu.jsx'
 import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb.jsx'
 import { SIDEBAR_GROUPS, getBreadcrumb, getPageMeta } from '@/app/routes.js'
+import { useAuth } from '@/features/auth/AuthContext.jsx'
 import './Header.css'
 
 function Header({ activeView, onNavigate, onSettingsChange }) {
+  const { user, signOut, updateMyPassword } = useAuth()
   const breadcrumb = useMemo(() => getBreadcrumb(activeView), [activeView])
   const meta = useMemo(() => getPageMeta(activeView), [activeView])
 
@@ -67,7 +69,30 @@ function Header({ activeView, onNavigate, onSettingsChange }) {
           <HelpTooltip />
           <UserGuide />
           <ThemeToggle />
-          <button type="button" className="app-admin-header__user" title="用户" aria-label="用户">
+          <button
+            type="button"
+            className="app-admin-header__user"
+            title={user?.email || '用户'}
+            aria-label="用户"
+            onClick={async () => {
+              const action = window.prompt('输入 1 修改密码；输入 2 退出登录')
+              if (action === '1') {
+                const current = window.prompt('请输入当前密码')
+                if (!current) return
+                const next = window.prompt('请输入新密码（至少6位）')
+                if (!next || next.trim().length < 6) return
+                try {
+                  await updateMyPassword(current, next.trim())
+                  window.alert('密码修改成功')
+                } catch (err) {
+                  window.alert(`修改失败：${String(err?.message || err)}`)
+                }
+              }
+              if (action === '2') {
+                await signOut()
+              }
+            }}
+          >
             <span className="app-admin-header__user-dot" />
           </button>
         </div>

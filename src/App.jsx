@@ -37,8 +37,12 @@ import BankStatementImportPage from './pages/BankStatementImportPage.jsx'
 import BankPaymentRegisterPage from './pages/BankPaymentRegisterPage.jsx'
 import BankCollectionRegisterPage from './pages/BankCollectionRegisterPage.jsx'
 import BankTransactionsLedgerPage from './pages/BankTransactionsLedgerPage.jsx'
+import LoginPage from './pages/LoginPage.jsx'
+import AuthUsersPage from './pages/AuthUsersPage.jsx'
+import { useAuth } from '@/features/auth/AuthContext.jsx'
 
 function App() {
+  const { isAuthenticated, loading } = useAuth()
   const [activeView, setActiveViewRaw] = useState(VIEWS.DASHBOARD)
   const [reconEditRecordId, setReconEditRecordId] = useState(null)
   const [channelEditRecordId, setChannelEditRecordId] = useState(null)
@@ -198,6 +202,8 @@ function App() {
         return <BankPaymentRegisterPage />
       case VIEWS.BANK_COLLECTION_REGISTER:
         return <BankCollectionRegisterPage />
+      case VIEWS.AUTH_USERS:
+        return <AuthUsersPage />
       case VIEWS.SETTLE_MONTHLY:
       case VIEWS.SETTLE_CHANNEL:
       case VIEWS.SETTLE_STATUS:
@@ -247,6 +253,14 @@ function App() {
     handleConfirmVerification,
     handleCancelVerification
   } = invoice
+
+  if (loading) {
+    return <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>加载登录状态中...</div>
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPage />
+  }
 
   return (
     <ErrorBoundary>

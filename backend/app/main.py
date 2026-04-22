@@ -6,7 +6,7 @@ import logging
 import os
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -14,12 +14,14 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.channel import router as channel_router
 from app.api.health import router as health_router
+from app.api.auth import router as auth_router
 from app.api.invoice import router as invoice_router
 from app.api.exception_status import router as exception_status_router
 from app.api.invoice_payment_link import router as invoice_payment_link_router
 from app.api.payment import router as payment_router
 from app.api.bank_transaction import router as bank_transaction_router
 from app.api.reconciliation import router as reconciliation_router
+from app.core.security import require_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -72,24 +74,48 @@ app.add_middleware(
 )
 
 app.include_router(health_router)
-app.include_router(reconciliation_router, prefix="/api/reconciliation", tags=["reconciliation"])
-app.include_router(channel_router, prefix="/api/channel-records", tags=["channel-records"])
-app.include_router(invoice_router, prefix="/api/invoices", tags=["invoices"])
-app.include_router(payment_router, prefix="/api/payments", tags=["payments"])
+app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
+app.include_router(
+    reconciliation_router,
+    prefix="/api/reconciliation",
+    tags=["reconciliation"],
+    dependencies=[Depends(require_current_user)],
+)
+app.include_router(
+    channel_router,
+    prefix="/api/channel-records",
+    tags=["channel-records"],
+    dependencies=[Depends(require_current_user)],
+)
+app.include_router(
+    invoice_router,
+    prefix="/api/invoices",
+    tags=["invoices"],
+    dependencies=[Depends(require_current_user)],
+)
+app.include_router(
+    payment_router,
+    prefix="/api/payments",
+    tags=["payments"],
+    dependencies=[Depends(require_current_user)],
+)
 app.include_router(
     invoice_payment_link_router,
     prefix="/api/invoice-payment-links",
     tags=["invoice-payment-links"],
+    dependencies=[Depends(require_current_user)],
 )
 app.include_router(
     exception_status_router,
     prefix="/api/exception-statuses",
     tags=["exception-statuses"],
+    dependencies=[Depends(require_current_user)],
 )
 app.include_router(
     bank_transaction_router,
     prefix="/api/bank-transactions",
     tags=["bank-transactions"],
+    dependencies=[Depends(require_current_user)],
 )
 
 Path("uploads").mkdir(parents=True, exist_ok=True)

@@ -43,6 +43,7 @@ export const VIEWS = {
   SETTINGS_HISTORY: 'settings-history',
   SETTINGS_BACKUP: 'settings-backup',
   SETTINGS_APP: 'settings-app',
+  AUTH_USERS: 'auth-users',
   /** 非侧边栏入口：快捷操作等 */
   SETTINGS_REMINDERS: 'settings-reminders',
   /** 银行对账（独立模块） */
@@ -133,7 +134,8 @@ export const SIDEBAR_GROUPS = [
       { view: VIEWS.SETTINGS_TAGS, label: '标签管理' },
       { view: VIEWS.SETTINGS_HISTORY, label: '历史记录' },
       { view: VIEWS.SETTINGS_BACKUP, label: '数据备份' },
-      { view: VIEWS.SETTINGS_APP, label: '系统设置' }
+      { view: VIEWS.SETTINGS_APP, label: '系统设置' },
+      { view: VIEWS.AUTH_USERS, label: '账号管理' }
     ]
   }
 ]
@@ -182,6 +184,7 @@ const VIEW_TITLES = {
   [VIEWS.SETTINGS_HISTORY]: '历史记录',
   [VIEWS.SETTINGS_BACKUP]: '数据备份',
   [VIEWS.SETTINGS_APP]: '系统设置',
+  [VIEWS.AUTH_USERS]: '账号管理',
   [VIEWS.SETTINGS_REMINDERS]: '提醒事项',
   [VIEWS.BANK_TRANSACTIONS_LEDGER]: '银行流水表',
   [VIEWS.BANK_STATEMENT_IMPORT]: '银行流水导入',
@@ -229,6 +232,7 @@ const VIEW_DESCRIPTIONS = {
   [VIEWS.SETTINGS_HISTORY]: '系统内历史记录',
   [VIEWS.SETTINGS_BACKUP]: '数据备份选项',
   [VIEWS.SETTINGS_APP]: '主题、格式与默认参数',
+  [VIEWS.AUTH_USERS]: '登录账号、角色与状态管理',
   [VIEWS.SETTINGS_REMINDERS]: '提醒与待办配置',
   [VIEWS.BANK_TRANSACTIONS_LEDGER]: '流水导入、付款登记、回款登记的统一台账与筛选',
   [VIEWS.BANK_STATEMENT_IMPORT]: '录入或粘贴单条流水，保存后写入服务端统一台账',
@@ -272,6 +276,7 @@ export const VIEW_ICONS = {
   [VIEWS.SETTINGS_HISTORY]: '志',
   [VIEWS.SETTINGS_BACKUP]: '档',
   [VIEWS.SETTINGS_APP]: '设',
+  [VIEWS.AUTH_USERS]: '账',
   [VIEWS.SETTINGS_REMINDERS]: '铃',
   [VIEWS.BANK_TRANSACTIONS_LEDGER]: '账',
   [VIEWS.BANK_STATEMENT_IMPORT]: '流',
