@@ -108,7 +108,7 @@ def login_otp(payload: OtpLoginRequest, db: Session = Depends(get_db)) -> JSONRe
         role=user.role,
         is_active=user.is_active,
         last_login_at=user.last_login_at,
-    ).model_dump()
+    ).model_dump(mode="json")
     resp = JSONResponse(content=body)
     set_auth_cookie(resp, token)
     return resp
@@ -140,7 +140,7 @@ def login_password(payload: PasswordLoginRequest, db: Session = Depends(get_db))
         role=user.role,
         is_active=user.is_active,
         last_login_at=user.last_login_at,
-    ).model_dump()
+    ).model_dump(mode="json")
     resp = JSONResponse(content=body)
     set_auth_cookie(resp, token)
     return resp
@@ -179,7 +179,7 @@ def reset_password_with_otp(payload: OtpResetPasswordRequest, db: Session = Depe
         role=user.role,
         is_active=user.is_active,
         last_login_at=user.last_login_at,
-    ).model_dump()
+    ).model_dump(mode="json")
     resp = JSONResponse(content=body)
     set_auth_cookie(resp, token)
     return resp
@@ -203,7 +203,7 @@ def logout(
     if latest is not None:
         latest.revoked_at = datetime.now(timezone.utc)
         db.commit()
-    resp = JSONResponse(content=AuthMessageResponse(message="已退出登录").model_dump())
+    resp = JSONResponse(content=AuthMessageResponse(message="已退出登录").model_dump(mode="json"))
     clear_auth_cookie(resp)
     return resp
 

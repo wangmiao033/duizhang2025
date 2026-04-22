@@ -80,7 +80,15 @@ export async function parseResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const detail =
       data && typeof data === 'object' && data !== null && 'detail' in data
-        ? JSON.stringify((data as { detail: unknown }).detail)
+        ? (() => {
+            const rawDetail = (data as { detail: unknown }).detail
+            if (typeof rawDetail === 'string') return rawDetail
+            try {
+              return JSON.stringify(rawDetail)
+            } catch {
+              return String(rawDetail)
+            }
+          })()
         : typeof data === 'string'
           ? data
           : res.statusText
