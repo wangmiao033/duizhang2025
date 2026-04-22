@@ -44,6 +44,33 @@ function cloneItemsFromRecord(record) {
   return [createEmptyRdLine(0)]
 }
 
+function toMonthInputValue(raw) {
+  if (!raw) return ''
+  const text = String(raw).trim()
+  const ym = text.match(/^(\d{4})-(\d{1,2})$/)
+  if (ym) {
+    const month = String(Math.min(Math.max(Number(ym[2]), 1), 12)).padStart(2, '0')
+    return `${ym[1]}-${month}`
+  }
+  const cn = text.match(/^(\d{4})年(\d{1,2})月$/)
+  if (cn) {
+    const month = String(Math.min(Math.max(Number(cn[2]), 1), 12)).padStart(2, '0')
+    return `${cn[1]}-${month}`
+  }
+  const compact = text.match(/^(\d{4})(\d{2})$/)
+  if (compact) {
+    const month = String(Math.min(Math.max(Number(compact[2]), 1), 12)).padStart(2, '0')
+    return `${compact[1]}-${month}`
+  }
+  return ''
+}
+
+function monthInputToCn(value) {
+  const m = String(value || '').match(/^(\d{4})-(\d{2})$/)
+  if (!m) return ''
+  return `${m[1]}年${Number(m[2])}月`
+}
+
 /**
  * 研发对账：布局与渠道 ChannelBillingForm 一致（channel-form-section + LineItemsTable + grid明细）
  */
@@ -331,12 +358,17 @@ function ReconciliationLineItemsForm({
             <div className="form-group">
               <label>结算月份 *</label>
               <input
-                type="text"
+                type="month"
                 className="admin-input"
-                value={header.settlementMonth}
-                onChange={(e) => setHeader((h) => ({ ...h, settlementMonth: e.target.value }))}
+                value={toMonthInputValue(header.settlementMonth)}
+                onChange={(e) =>
+                  setHeader((h) => ({
+                    ...h,
+                    settlementMonth: monthInputToCn(e.target.value)
+                  }))
+                }
                 required
-                placeholder="如：2025年9月"
+                title="请选择结算月份"
               />
             </div>
             <div className="form-group">

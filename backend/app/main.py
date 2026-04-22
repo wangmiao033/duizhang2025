@@ -25,6 +25,8 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_CORS_ORIGINS = [
     "https://caiwu2026.hnchpower.cn",
+    "https://duizhang2025.vercel.app",
+    "https://www.duizhang2025.vercel.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:4173",
@@ -35,6 +37,9 @@ DEFAULT_CORS_ORIGINS = [
 def get_cors_origins() -> list[str]:
     """支持环境变量 CORS_EXTRA_ORIGINS（逗号分隔）追加允许的 Origin。"""
     out = list(DEFAULT_CORS_ORIGINS)
+    primary = os.environ.get("CORS_ORIGIN", "").strip()
+    if primary and primary not in out:
+        out.append(primary)
     extra = os.environ.get("CORS_EXTRA_ORIGINS", "").strip()
     if extra:
         for o in extra.split(","):
