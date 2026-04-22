@@ -10,9 +10,10 @@ import {
 } from '@/domain/settlement/calculateSettlementAmount.js'
 import '@/components/ChannelBilling.css'
 
-export function createEmptyRdLine(sortOrder = 0) {
+export function createEmptyRdLine(sortOrder = 0, settlementCycle = '') {
   return {
     id: `new-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    settlementCycle,
     gameName: '',
     revenue: '0',
     discountRate: '1',
@@ -30,6 +31,12 @@ function cloneItemsFromRecord(record) {
   if (Array.isArray(raw) && raw.length > 0) {
     return raw.map((line, idx) => ({
       id: line.id != null ? String(line.id) : `line-${idx}`,
+      settlementCycle:
+        line.settlementCycle != null
+          ? String(line.settlementCycle)
+          : record?.settlementMonth != null
+            ? String(record.settlementMonth)
+            : '',
       gameName: line.gameName != null ? String(line.gameName) : '',
       revenue: line.revenue != null ? String(line.revenue) : '0',
       discountRate: line.discountRate != null ? String(line.discountRate) : '1',
@@ -41,7 +48,7 @@ function cloneItemsFromRecord(record) {
       sortOrder: line.sortOrder != null ? Number(line.sortOrder) : idx
     }))
   }
-  return [createEmptyRdLine(0)]
+  return [createEmptyRdLine(0, record?.settlementMonth != null ? String(record.settlementMonth) : '')]
 }
 
 function toMonthInputValue(raw) {
@@ -111,7 +118,7 @@ function ReconciliationLineItemsForm({
     memo: '',
     status: 'pending'
   })
-  const [lines, setLines] = useState([createEmptyRdLine(0)])
+  const [lines, setLines] = useState([createEmptyRdLine(0, settlementMonth || '')])
   const cycleOptions = useMemo(() => {
     const map = new Map()
     for (const raw of settlementCycles) {
@@ -141,7 +148,7 @@ function ReconciliationLineItemsForm({
       return
     }
     setHeader((h) => ({ ...h, settlementMonth: settlementMonth || '' }))
-    setLines([createEmptyRdLine(0)])
+    setLines([createEmptyRdLine(0, settlementMonth || '')])
   }, [mode, editRecord, settlementMonth])
 
   useEffect(() => {
@@ -316,7 +323,7 @@ function ReconciliationLineItemsForm({
   }
 
   const addRow = () => {
-    setLines((prev) => [...prev, createEmptyRdLine(prev.length)])
+    setLines((prev) => [...prev, createEmptyRdLine(prev.length, header.settlementMonth || '')])
   }
 
   const removeRow = (index) => {
@@ -396,26 +403,6 @@ function ReconciliationLineItemsForm({
               />
             </div>
             <div className="form-group">
-              <label>结算周期</label>
-              <select
-                className="admin-input"
-                value={toMonthInputValue(header.settlementMonth)}
-                onChange={(e) =>
-                  setHeader((h) => ({
-                    ...h,
-                    settlementMonth: monthInputToCn(e.target.value)
-                  }))
-                }
-              >
-                <option value="">请选择历史周期</option>
-                {cycleOptions.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
               <label>合作方</label>
               <div className="partner-select-wrapper" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <input
@@ -481,6 +468,7 @@ function ReconciliationLineItemsForm({
           >
             <div className="rd-line-items-grid">
               <div className="rd-line-items-grid-head" aria-hidden="true">
+                <div className="channel-cell">结算周期</div>
                 <div className="channel-cell">游戏名称</div>
                 <div className="channel-cell channel-cell--num">后台流水</div>
                 <div className="channel-cell channel-cell--num">折扣</div>
@@ -504,6 +492,20 @@ function ReconciliationLineItemsForm({
                 const settlement = calculateSettlementAmount(payload)
                 return (
                   <div key={line.id} className="rd-line-items-grid-row">
+                    <div className="channel-cell">
+                      <select
+                        className="admin-input"
+                        value={toMonthInputValue(line.settlementCycle || header.settlementMonth)}
+                        onChange={(e) => updateLine(index, 'settlementCycle', monthInputToCn(e.target.value))}
+                      >
+                        <option value="">请选择周期</option>
+                        {cycleOptions.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                     <div className="channel-cell">
                       <input
                         type="text"
