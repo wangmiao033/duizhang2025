@@ -51,40 +51,15 @@ function cloneItemsFromRecord(record) {
   return [createEmptyRdLine(0, record?.settlementMonth != null ? String(record.settlementMonth) : '')]
 }
 
-function toMonthInputValue(raw) {
-  if (!raw) return ''
-  const text = String(raw).trim()
-  const ym = text.match(/^(\d{4})-(\d{1,2})$/)
-  if (ym) {
-    const month = String(Math.min(Math.max(Number(ym[2]), 1), 12)).padStart(2, '0')
-    return `${ym[1]}-${month}`
-  }
-  const cn = text.match(/^(\d{4})年(\d{1,2})月$/)
-  if (cn) {
-    const month = String(Math.min(Math.max(Number(cn[2]), 1), 12)).padStart(2, '0')
-    return `${cn[1]}-${month}`
-  }
-  const compact = text.match(/^(\d{4})(\d{2})$/)
-  if (compact) {
-    const month = String(Math.min(Math.max(Number(compact[2]), 1), 12)).padStart(2, '0')
-    return `${compact[1]}-${month}`
-  }
-  return ''
+function getCurrentCycleLabel() {
+  const now = new Date()
+  return `${now.getFullYear()}年${now.getMonth() + 1}月`
 }
 
-function monthInputToCn(value) {
-  const m = String(value || '').match(/^(\d{4})-(\d{2})$/)
-  if (!m) return ''
-  return `${m[1]}年${Number(m[2])}月`
-}
-
-function normalizeCycleOption(value) {
-  const normalized = toMonthInputValue(value)
-  if (!normalized) return null
-  return {
-    value: normalized,
-    label: monthInputToCn(normalized)
-  }
+function formatIssueDateLabel(raw) {
+  const d = raw ? new Date(raw) : new Date()
+  const date = Number.isNaN(d.getTime()) ? new Date() : d
+  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
 }
 
 /**
@@ -102,42 +77,30 @@ function ReconciliationLineItemsForm({
   onError,
   quickFillData,
   partners = [],
-  settlementCycles = [],
   onAddPartner,
   onSubmitted,
   onPreviewChange,
   submitIntentRef
 }) {
   const partnerListId = `${formId || 'rd'}-partner-list`
+  const initialCycle = settlementMonth || getCurrentCycleLabel()
 
   const [header, setHeader] = useState({
-    settlementMonth: settlementMonth || '',
+    settlementMonth: initialCycle,
+    issueDate: formatIssueDateLabel(),
     settlementNumber: '',
     partner: '',
     channelFeeRate: '0',
     memo: '',
     status: 'pending'
   })
-  const [lines, setLines] = useState([createEmptyRdLine(0, settlementMonth || '')])
-  const cycleOptions = useMemo(() => {
-    const map = new Map()
-    for (const raw of settlementCycles) {
-      const item = normalizeCycleOption(raw)
-      if (item && !map.has(item.value)) {
-        map.set(item.value, item)
-      }
-    }
-    const current = normalizeCycleOption(header.settlementMonth)
-    if (current && !map.has(current.value)) {
-      map.set(current.value, current)
-    }
-    return Array.from(map.values()).sort((a, b) => b.value.localeCompare(a.value))
-  }, [settlementCycles, header.settlementMonth])
+  const [lines, setLines] = useState([createEmptyRdLine(0, initialCycle)])
 
   useEffect(() => {
     if (mode === 'edit' && editRecord) {
       setHeader({
-        settlementMonth: editRecord.settlementMonth ?? settlementMonth ?? '',
+        settlementMonth: editRecord.settlementMonth ?? initialCycle,
+        issueDate: formatIssueDateLabel(editRecord.createdAt ?? editRecord.created_at),
         settlementNumber: editRecord.settlementNumber != null ? String(editRecord.settlementNumber) : '',
         partner: editRecord.partner != null ? String(editRecord.partner) : '',
         channelFeeRate: editRecord.channelFeeRate != null ? String(editRecord.channelFeeRate) : '0',
@@ -147,9 +110,13 @@ function ReconciliationLineItemsForm({
       setLines(cloneItemsFromRecord(editRecord))
       return
     }
-    setHeader((h) => ({ ...h, settlementMonth: settlementMonth || '' }))
-    setLines([createEmptyRdLine(0, settlementMonth || '')])
-  }, [mode, editRecord, settlementMonth])
+    setHeader((h) => ({
+      ...h,
+      settlementMonth: settlementMonth || getCurrentCycleLabel(),
+      issueDate: formatIssueDateLabel()
+    }))
+    setLines([createEmptyRdLine(0, settlementMonth || getCurrentCycleLabel())])
+  }, [mode, editRecord, settlementMonth, initialCycle])
 
   useEffect(() => {
     if (!quickFillData) return
@@ -216,7 +183,11 @@ function ReconciliationLineItemsForm({
       voucher: String(lines.reduce((s, l) => s + (parseFloat(l.couponAmount || 0) || 0), 0)),
       refund: String(lines.reduce((s, l) => s + (parseFloat(l.extraFee || 0) || 0), 0)),
       settlementAmount: totals.sumSettlement.toFixed(2),
-      items: lines.map((row, idx) => ({ ...row, sortOrder: idx })),
+      items: lines.map((row, idx) => ({
+        ...row,
+        settlementCycle: row.settlementCycle || header.settlementMonth,
+        sortOrder: idx
+      })),
       status: header.status,
       memo: header.memo
     }
@@ -282,14 +253,15 @@ function ReconciliationLineItemsForm({
       return
     }
     setHeader({
-      settlementMonth: settlementMonth || '',
+      settlementMonth: settlementMonth || getCurrentCycleLabel(),
+      issueDate: formatIssueDateLabel(),
       settlementNumber: '',
       partner: '',
       channelFeeRate: '0',
       memo: '',
       status: 'pending'
     })
-    setLines([createEmptyRdLine(0)])
+    setLines([createEmptyRdLine(0, settlementMonth || getCurrentCycleLabel())])
     const intent = submitIntentRef?.current === 'continue' ? 'continue' : 'back'
     if (submitIntentRef) submitIntentRef.current = 'back'
     onSubmitted?.(intent)
@@ -387,19 +359,14 @@ function ReconciliationLineItemsForm({
               </div>
             )}
             <div className="form-group">
-              <label>结算月份 *</label>
+              <label>出单日期</label>
               <input
-                type="month"
+                type="text"
                 className="admin-input"
-                value={toMonthInputValue(header.settlementMonth)}
-                onChange={(e) =>
-                  setHeader((h) => ({
-                    ...h,
-                    settlementMonth: monthInputToCn(e.target.value)
-                  }))
-                }
-                required
-                title="请选择结算月份"
+                value={header.issueDate}
+                readOnly
+                disabled
+                title="系统自动生成出单日期"
               />
             </div>
             <div className="form-group">
@@ -493,18 +460,14 @@ function ReconciliationLineItemsForm({
                 return (
                   <div key={line.id} className="rd-line-items-grid-row">
                     <div className="channel-cell">
-                      <select
+                      <input
+                        type="text"
                         className="admin-input"
-                        value={toMonthInputValue(line.settlementCycle || header.settlementMonth)}
-                        onChange={(e) => updateLine(index, 'settlementCycle', monthInputToCn(e.target.value))}
-                      >
-                        <option value="">请选择周期</option>
-                        {cycleOptions.map((item) => (
-                          <option key={item.value} value={item.value}>
-                            {item.label}
-                          </option>
-                        ))}
-                      </select>
+                        value={line.settlementCycle || header.settlementMonth}
+                        readOnly
+                        disabled
+                        title="结算周期自动录入"
+                      />
                     </div>
                     <div className="channel-cell">
                       <input
