@@ -1,6 +1,18 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { ApiError } from '@/lib/api/client'
 import { useAuth } from '@/features/auth/AuthContext.jsx'
+
+const OTP_RESEND_SECONDS = 60
+
+function normalizeAuthError(err, fallback = '操作失败') {
+  if (!(err instanceof ApiError)) return fallback
+  const msg = String(err.message || fallback)
+  if (msg.includes('验证码已失效')) return '验证码已失效，请点击“发送验证码”获取最新验证码。'
+  if (msg.includes('账号或验证码错误')) return '验证码错误，请确认输入的是最新 6 位验证码。'
+  if (msg.includes('登录已锁定')) return '尝试次数过多，账号已临时锁定，请稍后再试。'
+  if (msg.includes('发送过于频繁')) return '发送过于频繁，请稍候再试。'
+  return msg
+}
 
 function LoginPage() {
   const { requestOtp, signInWithOtp, signInWithPassword, resetPasswordByOtp } = useAuth()
@@ -11,27 +23,37 @@ function LoginPage() {
   const [newPassword, setNewPassword] = useState('')
   const [sendingOtp, setSendingOtp] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [otpCooldown, setOtpCooldown] = useState(0)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (otpCooldown <= 0) return undefined
+    const timer = window.setInterval(() => {
+      setOtpCooldown((s) => (s > 0 ? s - 1 : 0))
+    }, 1000)
+    return () => window.clearInterval(timer)
+  }, [otpCooldown])
 
   const canSubmit = useMemo(() => {
     const e = email.trim()
     if (!e) return false
-    if (tab === 'otp') return otpCode.trim().length >= 4
-    if (tab === 'reset') return otpCode.trim().length >= 4 && newPassword.trim().length >= 6
+    if (tab === 'otp') return otpCode.trim().length === 6
+    if (tab === 'reset') return otpCode.trim().length === 6 && newPassword.trim().length >= 6
     return password.trim().length >= 6
   }, [email, otpCode, password, newPassword, tab])
 
   const handleSendOtp = async () => {
+    if (otpCooldown > 0) return
     setError('')
     setMessage('')
     setSendingOtp(true)
     try {
       const res = await requestOtp(email.trim())
       setMessage(res.message || '验证码已发送')
+      setOtpCooldown(OTP_RESEND_SECONDS)
     } catch (err) {
-      if (err instanceof ApiError) setError(String(err.message || '发送验证码失败'))
-      else setError('发送验证码失败')
+      setError(normalizeAuthError(err, '发送验证码失败'))
     } finally {
       setSendingOtp(false)
     }
@@ -45,15 +67,14 @@ function LoginPage() {
     setSubmitting(true)
     try {
       if (tab === 'otp') {
-        await signInWithOtp(email.trim(), otpCode.trim())
+        await signInWithOtp(email.trim(), otpCode.trim().replace(/\s+/g, ''))
       } else if (tab === 'reset') {
-        await resetPasswordByOtp(email.trim(), otpCode.trim(), newPassword.trim())
+        await resetPasswordByOtp(email.trim(), otpCode.trim().replace(/\s+/g, ''), newPassword.trim())
       } else {
         await signInWithPassword(email.trim(), password)
       }
     } catch (err) {
-      if (err instanceof ApiError) setError(String(err.message || '操作失败'))
-      else setError('操作失败')
+      setError(normalizeAuthError(err, '操作失败'))
     } finally {
       setSubmitting(false)
     }
@@ -78,7 +99,16 @@ function LoginPage() {
             <>
               <label style={{ display: 'grid', gap: 6 }}>
                 <span>验证码</span>
-                <input className="admin-input" type="text" value={otpCode} onChange={(e) => setOtpCode(e.target.value)} placeholder="6位验证码" />
+                <input
+                  className="admin-input"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D+/g, '').slice(0, 6))}
+                  placeholder="6位验证码"
+                />
               </label>
               {tab === 'reset' ? (
                 <label style={{ display: 'grid', gap: 6 }}>
@@ -87,8 +117,13 @@ function LoginPage() {
                 </label>
               ) : null}
               <div>
-                <button type="button" className="rec-btn rec-btn--ghost" onClick={handleSendOtp} disabled={!email.trim() || sendingOtp}>
-                  {sendingOtp ? '发送中...' : '发送验证码'}
+                <button
+                  type="button"
+                  className="rec-btn rec-btn--ghost"
+                  onClick={handleSendOtp}
+                  disabled={!email.trim() || sendingOtp || otpCooldown > 0}
+                >
+                  {sendingOtp ? '发送中...' : otpCooldown > 0 ? `${otpCooldown}s 后可重发` : '发送验证码'}
                 </button>
               </div>
             </>
