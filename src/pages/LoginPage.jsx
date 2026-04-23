@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { ApiError } from '@/lib/api/client'
 import { useAuth } from '@/features/auth/AuthContext.jsx'
+import './LoginPage.css'
 
 const OTP_RESEND_SECONDS = 60
 
@@ -81,63 +82,108 @@ function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#f1f5f9' }}>
-      <div style={{ width: '100%', maxWidth: 460, background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 10px 30px rgba(15,23,42,0.08)' }}>
-        <h2 style={{ margin: 0 }}>对账管理系统登录</h2>
-        <p style={{ margin: '8px 0 16px', color: '#64748b' }}>支持邮箱验证码或密码登录</p>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-          <button type="button" onClick={() => setTab('otp')} className={`rec-btn ${tab === 'otp' ? 'rec-btn--primary' : 'rec-btn--ghost'}`}>验证码登录</button>
-          <button type="button" onClick={() => setTab('password')} className={`rec-btn ${tab === 'password' ? 'rec-btn--primary' : 'rec-btn--ghost'}`}>密码登录</button>
-          <button type="button" onClick={() => setTab('reset')} className={`rec-btn ${tab === 'reset' ? 'rec-btn--primary' : 'rec-btn--ghost'}`}>重置密码</button>
+    <div className="login-page">
+      <div className="login-card">
+        <div className="login-brand-mark" aria-hidden="true">
+          财
         </div>
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 10 }}>
-          <label style={{ display: 'grid', gap: 6 }}>
+        <h2 className="login-title">对账管理系统登录</h2>
+        <p className="login-subtitle">支持邮箱验证码或密码登录</p>
+
+        <div className="login-tabs" role="tablist" aria-label="登录方式">
+          <button
+            type="button"
+            onClick={() => setTab('otp')}
+            className={`login-tab ${tab === 'otp' ? 'active' : ''}`}
+          >
+            验证码登录
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('password')}
+            className={`login-tab ${tab === 'password' ? 'active' : ''}`}
+          >
+            密码登录
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('reset')}
+            className={`login-tab ${tab === 'reset' ? 'active' : ''}`}
+          >
+            重置密码
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="login-form">
+          <label className="login-label">
             <span>邮箱</span>
-            <input className="admin-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="请输入公司邮箱" required />
+            <input
+              className="login-input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="请输入公司邮箱"
+              required
+            />
           </label>
           {tab === 'otp' || tab === 'reset' ? (
             <>
-              <label style={{ display: 'grid', gap: 6 }}>
+              <label className="login-label">
                 <span>验证码</span>
-                <input
-                  className="admin-input"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={6}
-                  value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value.replace(/\D+/g, '').slice(0, 6))}
-                  placeholder="6位验证码"
-                />
+                <div className="login-otp-row">
+                  <input
+                    className="login-input"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D+/g, '').slice(0, 6))}
+                    placeholder="6位验证码"
+                  />
+                  <button
+                    type="button"
+                    className="login-otp-btn"
+                    onClick={handleSendOtp}
+                    disabled={!email.trim() || sendingOtp || otpCooldown > 0}
+                  >
+                    {sendingOtp ? '发送中...' : otpCooldown > 0 ? `${otpCooldown}s 后可重发` : '发送验证码'}
+                  </button>
+                </div>
               </label>
               {tab === 'reset' ? (
-                <label style={{ display: 'grid', gap: 6 }}>
+                <label className="login-label">
                   <span>新密码</span>
-                  <input className="admin-input" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="至少6位新密码" />
+                  <input
+                    className="login-input"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="至少6位新密码"
+                  />
                 </label>
               ) : null}
-              <div>
-                <button
-                  type="button"
-                  className="rec-btn rec-btn--ghost"
-                  onClick={handleSendOtp}
-                  disabled={!email.trim() || sendingOtp || otpCooldown > 0}
-                >
-                  {sendingOtp ? '发送中...' : otpCooldown > 0 ? `${otpCooldown}s 后可重发` : '发送验证码'}
-                </button>
-              </div>
             </>
           ) : (
-            <label style={{ display: 'grid', gap: 6 }}>
+            <label className="login-label">
               <span>密码</span>
-              <input className="admin-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="请输入密码" />
+              <input
+                className="login-input"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="请输入密码"
+              />
             </label>
           )}
-          {message ? <div style={{ color: '#059669', fontSize: 13 }}>{message}</div> : null}
-          {error ? <div style={{ color: '#dc2626', fontSize: 13 }}>{error}</div> : null}
-          <button type="submit" className="rec-btn rec-btn--primary" disabled={!canSubmit || submitting}>
+          {message ? <div className="login-message login-message--success">{message}</div> : null}
+          {error ? <div className="login-message login-message--error">{error}</div> : null}
+
+          <button type="submit" className="login-submit-btn" disabled={!canSubmit || submitting}>
             {submitting ? '提交中...' : tab === 'reset' ? '重置并登录' : '登录'}
           </button>
+
+          <p className="login-footnote">仅限公司授权账号访问</p>
         </form>
       </div>
     </div>
