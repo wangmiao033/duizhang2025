@@ -35,6 +35,7 @@ export const VIEWS = {
   PARTNER_CONTACTS: 'partner-contacts',
   PARTNER_GAMES: 'partner-games',
   PARTNER_COMPANY: 'partner-company',
+  CONTRACT_MANAGEMENT: 'contract-management',
   REPORTS_IMPORT: 'reports-import',
   REPORTS_EXPORT: 'reports-export',
   REPORTS_STATS: 'reports-stats',
@@ -111,6 +112,11 @@ export const SIDEBAR_GROUPS = [
     ]
   },
   {
+    id: 'contract',
+    label: '合同管理',
+    items: [{ view: VIEWS.CONTRACT_MANAGEMENT, label: '合同管理' }]
+  },
+  {
     id: 'data',
     label: '数据中心',
     items: [
@@ -176,6 +182,7 @@ const VIEW_TITLES = {
   [VIEWS.PARTNER_CONTACTS]: '合作方管理',
   [VIEWS.PARTNER_GAMES]: '游戏管理',
   [VIEWS.PARTNER_COMPANY]: '公司信息',
+  [VIEWS.CONTRACT_MANAGEMENT]: '合同管理',
   [VIEWS.REPORTS_IMPORT]: 'Excel导入',
   [VIEWS.REPORTS_EXPORT]: '导出中心',
   [VIEWS.REPORTS_STATS]: '统计分析',
@@ -224,6 +231,7 @@ const VIEW_DESCRIPTIONS = {
   [VIEWS.PARTNER_CONTACTS]: '合作方联系人维护',
   [VIEWS.PARTNER_GAMES]: '游戏/项目主数据',
   [VIEWS.PARTNER_COMPANY]: '本公司信息',
+  [VIEWS.CONTRACT_MANAGEMENT]: '渠道、平台方与分成比例的合同台账',
   [VIEWS.REPORTS_IMPORT]: 'Excel 批量导入',
   [VIEWS.REPORTS_EXPORT]: '导出任务与下载',
   [VIEWS.REPORTS_STATS]: '统计图表与汇总',
@@ -268,6 +276,7 @@ export const VIEW_ICONS = {
   [VIEWS.PARTNER_CONTACTS]: '人',
   [VIEWS.PARTNER_GAMES]: '游',
   [VIEWS.PARTNER_COMPANY]: '司',
+  [VIEWS.CONTRACT_MANAGEMENT]: '合',
   [VIEWS.REPORTS_IMPORT]: '导',
   [VIEWS.REPORTS_EXPORT]: '出',
   [VIEWS.REPORTS_STATS]: '析',

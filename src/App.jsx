@@ -20,6 +20,7 @@ import ExceptionsPage from './pages/ExceptionsPage.jsx'
 import SettlementPage from './pages/SettlementPage.jsx'
 import InvoicePage from './pages/InvoicePage.jsx'
 import PartnerPage from './pages/PartnerPage.jsx'
+import ContractManagementPage from './pages/ContractManagementPage.jsx'
 import ReportsPage from './pages/ReportsPage.jsx'
 import SettingsHubPage from './pages/SettingsHubPage.jsx'
 import RemindersPage from './pages/RemindersPage.jsx'
@@ -226,6 +227,8 @@ function App() {
       case VIEWS.PARTNER_GAMES:
       case VIEWS.PARTNER_COMPANY:
         return <PartnerPage section={activeView} />
+      case VIEWS.CONTRACT_MANAGEMENT:
+        return <ContractManagementPage />
       case VIEWS.REPORTS_IMPORT:
       case VIEWS.REPORTS_EXPORT:
       case VIEWS.REPORTS_STATS:
