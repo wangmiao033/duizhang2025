@@ -10,6 +10,10 @@
 }
 
 .contract-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 10px;
 }
 
@@ -26,13 +30,102 @@
   color: var(--admin-text-tertiary);
 }
 
+.contract-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.contract-search {
+  width: 280px;
+  max-width: 38vw;
+  height: 34px;
+  border: 1px solid var(--admin-border-soft);
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--admin-text-secondary);
+  background: var(--admin-card-bg);
+}
+
+.contract-add-btn {
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--admin-primary);
+  cursor: pointer;
+}
+
+.contract-form-card {
+  margin: 10px 0 14px;
+  border: 1px solid var(--admin-border-soft);
+  border-radius: 10px;
+  background: var(--admin-bg-soft);
+  padding: 12px;
+}
+
+.contract-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  gap: 10px 12px;
+}
+
+.contract-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--admin-text-secondary);
+}
+
+.contract-form-grid input {
+  height: 34px;
+  border: 1px solid var(--admin-border-soft);
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--admin-text-secondary);
+  background: var(--admin-card-bg);
+}
+
+.contract-form-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.contract-save-btn,
+.contract-cancel-btn {
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--admin-border-soft);
+  padding: 0 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.contract-save-btn {
+  border-color: var(--admin-primary);
+  background: var(--admin-primary);
+  color: #fff;
+}
+
+.contract-cancel-btn {
+  background: #fff;
+  color: var(--admin-text-secondary);
+}
+
 .contract-table-wrap {
   overflow-x: auto;
 }
 
 .contract-table {
   width: 100%;
-  min-width: 1080px;
+  min-width: 1240px;
   border-collapse: collapse;
   font-size: 12px;
   color: var(--admin-text-secondary);
@@ -53,4 +146,28 @@
 
 .contract-table tbody tr:hover {
   background: var(--admin-bg-soft);
+}
+
+.contract-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.contract-row-actions button {
+  border: none;
+  background: transparent;
+  color: var(--admin-primary);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+}
+
+.contract-row-actions button.danger {
+  color: #d22b2b;
+}
+
+.contract-empty {
+  text-align: center !important;
+  color: var(--admin-text-tertiary);
 }
