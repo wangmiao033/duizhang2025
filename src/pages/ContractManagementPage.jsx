@@ -832,9 +832,6 @@ function ContractManagementPage() {
                           更多
                         </button>
                       </div>
-                      <button type="button" className="danger" onClick={() => handleDelete(row.id)}>
-                        删除合同
-                      </button>
                     </div>
                   </td>
                 </tr>
