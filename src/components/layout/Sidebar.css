@@ -8,7 +8,7 @@
   align-self: stretch;
   min-height: 100vh;
   background: var(--admin-card-bg);
-  border-right: 1px solid var(--admin-border-soft);
+  border-right: 1px solid var(--admin-border);
   box-sizing: border-box;
 }
 
@@ -45,13 +45,13 @@
 
 /* 极简品牌区（非页面标题，不与内容区重复） */
 .sidebar-brand {
-  padding: var(--admin-sidebar-brand-pad-y) var(--admin-space-sm) calc(var(--admin-space-md) + 2px);
-  margin-bottom: calc(var(--admin-space-sm) + 4px);
-  border-bottom: 1px solid var(--admin-border-soft);
+  padding: 6px var(--admin-space-sm) 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--admin-border);
 }
 
 .sidebar-brand__title {
-  font-size: var(--admin-font-sm);
+  font-size: 12px;
   font-weight: 600;
   color: var(--admin-text-primary);
   letter-spacing: -0.01em;
@@ -271,9 +271,9 @@
 
 /* 分组标题：弱化，区别于菜单项 */
 .sidebar-group-title {
-  font-size: var(--font-size-small);
-  color: var(--admin-text-tertiary);
-  padding: 14px 16px 10px;
+  font-size: 11px;
+  color: var(--admin-text-secondary);
+  padding: 10px 14px 8px;
   margin: 0;
   letter-spacing: 0.04em;
   font-weight: var(--font-weight-menu);
@@ -310,8 +310,8 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-left: 20px;
-  padding-left: 12px;
+  margin-left: 14px;
+  padding-left: 10px;
   border-left: 1px solid var(--admin-border-soft);
 }
 
@@ -329,13 +329,13 @@
   width: 100%;
   min-height: var(--admin-sidebar-item-h-sub);
   height: auto;
-  padding: 10px 16px;
+  padding: 8px 12px;
   text-align: left;
   border: none;
-  border-radius: 10px;
-  margin: 3px 6px;
+  border-radius: 8px;
+  margin: 2px 4px;
   font-size: var(--admin-sidebar-font-level2);
-  font-weight: var(--font-weight-menu);
+  font-weight: 500;
   line-height: var(--line-height-caption);
   color: var(--admin-text-secondary);
   background: transparent;
@@ -348,7 +348,7 @@
 
 .sidebar-group--singleton .sidebar-item {
   min-height: var(--admin-sidebar-item-h);
-  padding: 11px 16px;
+  padding: 9px 12px;
   font-size: var(--admin-sidebar-font-level1);
 }
 
@@ -381,7 +381,7 @@
 }
 
 .sidebar-item:hover {
-  background: var(--admin-bg-soft);
+  background: color-mix(in srgb, var(--admin-primary) 8%, var(--admin-bg-soft));
   color: var(--admin-text-primary);
 }
 
@@ -390,10 +390,10 @@
 }
 
 .sidebar-item.active {
-  background: var(--admin-sidebar-active-bg);
+  background: color-mix(in srgb, var(--admin-primary) 14%, #fff);
   color: var(--admin-primary);
-  font-weight: var(--font-weight-section-title);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--admin-primary) 22%, transparent);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--admin-primary) 28%, transparent);
 }
 
 .sidebar-item.active .sidebar-item-icon {

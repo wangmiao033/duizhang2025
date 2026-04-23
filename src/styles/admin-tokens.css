@@ -45,16 +45,16 @@
   --admin-space-lg: 20px;
   --admin-space-xl: 28px;
   --admin-header-h: 64px;
-  /* 侧栏宽度：在 228px 基础上加宽，缓解中文标签挤压 */
-  --admin-sidebar-w: 256px;
+  /* 侧栏宽度：收窄以提升主内容区可视面积 */
+  --admin-sidebar-w: 228px;
   /* 侧栏导航：一级 / 二级行高与字号略增，重点配合宽度与留白 */
-  --admin-sidebar-item-h: 44px;
-  --admin-sidebar-item-h-sub: 42px;
+  --admin-sidebar-item-h: 40px;
+  --admin-sidebar-item-h-sub: 38px;
   --admin-sidebar-font-level1: calc(var(--font-size-body) + 0.5px);
   --admin-sidebar-font-level2: calc(var(--font-size-body) + 0.25px);
   --admin-sidebar-icon-size: 16px;
   --admin-sidebar-item-gap: 11px;
-  --admin-sidebar-group-gap: 22px;
+  --admin-sidebar-group-gap: 16px;
   --admin-sidebar-active-bg: color-mix(in srgb, var(--admin-primary) 17%, var(--admin-card-bg));
   --admin-sidebar-active-bar-w: 4px;
   --admin-sidebar-brand-pad-y: 6px;
