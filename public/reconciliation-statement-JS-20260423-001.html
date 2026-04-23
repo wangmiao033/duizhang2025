@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>对账单 JS-20260423-001</title>
+    <style>
+      :root {
+        --text: #1a1a1a;
+        --muted: #5c5c5c;
+        --border: #d9d9d9;
+        --bg: #fafafa;
+        --accent: #1677ff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+        color: var(--text);
+        background: #fff;
+        line-height: 1.5;
+      }
+      .sheet {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      h1 {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        margin: 0 0 20px;
+      }
+      .meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 24px;
+        margin-bottom: 20px;
+        padding: 14px 16px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+      .meta div {
+        font-size: 14px;
+      }
+      .meta span.label {
+        color: var(--muted);
+        margin-right: 6px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 8px 10px;
+        text-align: right;
+        vertical-align: middle;
+      }
+      th:first-child,
+      td:first-child,
+      th:nth-child(2),
+      td:nth-child(2) {
+        text-align: left;
+      }
+      thead th {
+        background: #f0f5ff;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      tbody tr:nth-child(even) {
+        background: #fcfcfc;
+      }
+      .num {
+        font-variant-numeric: tabular-nums;
+      }
+      tfoot td {
+        font-weight: 600;
+        background: #f6ffed;
+      }
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 12px;
+        margin-top: 20px;
+      }
+      .summary .card {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: var(--bg);
+      }
+      .summary .card .label {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      .summary .card .value {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--accent);
+      }
+      .actions {
+        margin-top: 24px;
+        text-align: center;
+      }
+      .actions button {
+        padding: 10px 22px;
+        font-size: 14px;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+      }
+      .actions button:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .note {
+        margin-top: 16px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      @media print {
+        body {
+          padding: 12px;
+        }
+        .actions {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sheet">
+      <h1>对账单（研发结算）</h1>
+      <div class="meta">
+        <div><span class="label">结算单编号</span>JS-20260423-001</div>
+        <div><span class="label">出单日期</span>2026年4月23日</div>
+        <div style="grid-column: 1 / -1">
+          <span class="label">合作方</span>深圳龙魂网络科技有限公司
+        </div>
+        <div><span class="label">通道费率</span>0%</div>
+        <div><span class="label">备注</span>内部备注</div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>结算周期</th>
+            <th>游戏名称</th>
+            <th>后台流水</th>
+            <th>折扣</th>
+            <th>总流水</th>
+            <th>代金券</th>
+            <th>测试费</th>
+            <th>额外费用</th>
+            <th>分成%</th>
+            <th>税率%</th>
+            <th>分成金额</th>
+            <th>结算金额</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2026年1月</td>
+            <td>《六界飞仙》(1月)</td>
+            <td class="num">240650</td>
+            <td class="num">0.005</td>
+            <td class="num">1203.25</td>
+            <td class="num">0.00</td>
+            <td class="num">0.09</td>
+            <td class="num">0.00</td>
+            <td class="num">30</td>
+            <td class="num">0</td>
+            <td class="num">360.95</td>
+            <td class="num">360.95</td>
+          </tr>
+          <tr>
+            <td>2026年2月</td>
+            <td>《六界飞仙》(2月)</td>
+            <td class="num">137688</td>
+            <td class="num">0.005</td>
+            <td class="num">688.44</td>
+            <td class="num">0.00</td>
+            <td class="num">0.00</td>
+            <td class="num">0.00</td>
+            <td class="num">30</td>
+            <td class="num">0</td>
+            <td class="num">206.53</td>
+            <td class="num">206.53</td>
+          </tr>
+          <tr>
+            <td>2026年3月</td>
+            <td>《六界飞仙》(3月)</td>
+            <td class="num">56426</td>
+            <td class="num">0.005</td>
+            <td class="num">282.13</td>
+            <td class="num">0.00</td>
+            <td class="num">0.00</td>
+            <td class="num">0.00</td>
+            <td class="num">30</td>
+            <td class="num">0</td>
+            <td class="num">84.64</td>
+            <td class="num">84.64</td>
+          </tr>
+          <tr>
+            <td>2026年2月</td>
+            <td>云上征途代号 M19</td>
+            <td class="num">9069362</td>
+            <td class="num">0.005</td>
+            <td class="num">45346.81</td>
+            <td class="num">2401.36</td>
+            <td class="num">12.61</td>
+            <td class="num">0.00</td>
+            <td class="num">20</td>
+            <td class="num">0</td>
+            <td class="num">8586.57</td>
+            <td class="num">8586.57</td>
+          </tr>
+          <tr>
+            <td>2026年3月</td>
+            <td>云上征途M19</td>
+            <td class="num">2944024</td>
+            <td class="num">0.005</td>
+            <td class="num">14720.12</td>
+            <td class="num">225.96</td>
+            <td class="num">0.00</td>
+            <td class="num">0.00</td>
+            <td class="num">20</td>
+            <td class="num">0</td>
+            <td class="num">2898.83</td>
+            <td class="num">2898.83</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2">合计</td>
+            <td class="num">12471150</td>
+            <td>—</td>
+            <td class="num">62240.75</td>
+            <td class="num">2627.32</td>
+            <td class="num">12.70</td>
+            <td class="num">0.00</td>
+            <td colspan="2">—</td>
+            <td class="num">12137.52</td>
+            <td class="num">12137.52</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="summary">
+        <div class="card">
+          <div class="label">总后台流水</div>
+          <div class="value">¥12,471,150.00</div>
+        </div>
+        <div class="card">
+          <div class="label">折扣后总流水</div>
+          <div class="value">¥62,240.75</div>
+        </div>
+        <div class="card">
+          <div class="label">总代金券</div>
+          <div class="value">¥2,627.32</div>
+        </div>
+        <div class="card">
+          <div class="label">总结算金额</div>
+          <div class="value">¥12,137.52</div>
+        </div>
+      </div>
+
+      <p class="note">
+        本页为按您提供的截图整理的独立对账单样稿；线上数据以系统保存为准。开发环境访问路径示例：<code
+          >/reconciliation-statement-JS-20260423-001.html</code
+        >
+      </p>
+
+      <div class="actions">
+        <button type="button" onclick="window.print()">打印 / 另存为 PDF</button>
+      </div>
+    </div>
+  </body>
+</html>

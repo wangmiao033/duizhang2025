@@ -55,13 +55,18 @@ function expandRdRecordsForSettlementExport(records) {
     const items = r.items
     if (Array.isArray(items) && items.length > 0) {
       for (const line of items) {
+        const cycleFromLine =
+          line.settlementCycle != null && String(line.settlementCycle).trim() !== ''
+            ? String(line.settlementCycle).trim()
+            : null
         const dRaw = parseFloat(line.discountRate)
         const d = Number.isFinite(dRaw) ? dRaw : 1
         const rev = parseFloat(line.revenue || 0)
         const net = (Number.isFinite(rev) ? rev : 0) * d
         const payload = rdLineItemToSettlementPayload(line, r.channelFeeRate)
+        const headerMonth = r.settlementMonth != null ? String(r.settlementMonth) : ''
         out.push({
-          settlementMonth: r.settlementMonth,
+          settlementMonth: cycleFromLine != null ? cycleFromLine : headerMonth,
           game: line.gameName,
           gameFlow: net,
           voucher: line.couponAmount,
