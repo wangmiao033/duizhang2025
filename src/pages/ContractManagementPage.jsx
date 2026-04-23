@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import PageContainer from '@/components/layout/PageContainer.jsx'
+import { createContract, deleteContract, listContracts, updateContract } from '@/lib/api/contract.ts'
 import './contract-management.css'
 
 const STORAGE_KEY = 'contractManagementRecords.v1'
@@ -65,6 +66,49 @@ function ContractManagementPage() {
   const [editingId, setEditingId] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState(createEmptyForm())
+  const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+
+  React.useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      setLoading(true)
+      setErrorMsg('')
+      try {
+        const res = await listContracts({ limit: 1000, offset: 0 })
+        if (cancelled) return
+        const rows = Array.isArray(res.items) ? res.items : []
+        if (rows.length > 0) {
+          const mapped = rows.map((row) => ({
+            id: row.id,
+            signingDate: row.signing_date || '',
+            channel: row.channel || '',
+            platform: row.platform || '',
+            address: row.address || '',
+            validPeriod: row.valid_period || '',
+            game: row.game || '',
+            channelShare: row.channel_share || '',
+            issueShare: row.issue_share || '',
+            channelFee: row.channel_fee || '',
+            remark: row.remark || ''
+          }))
+          setRecords(mapped)
+          writeContractsToStorage(mapped)
+        } else {
+          // 空表时仍保留本地数据，避免首次上线无数据影响演示
+          setRecords((prev) => prev)
+        }
+      } catch (err) {
+        console.error(err)
+        if (!cancelled) setErrorMsg('合同接口暂不可用，已回退到本地缓存模式。')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const filteredRecords = useMemo(() => {
     const keyword = query.trim().toLowerCase()
@@ -111,14 +155,23 @@ function ContractManagementPage() {
     setShowForm(true)
   }
 
-  const handleDelete = (rowId) => {
+  const handleDelete = async (rowId) => {
     if (!window.confirm('确定删除这条合同吗？')) return
-    const next = records.filter((row) => row.id !== rowId)
+    const prev = records
+    const next = prev.filter((row) => row.id !== rowId)
     setRecords(next)
     writeContractsToStorage(next)
+    try {
+      await deleteContract(String(rowId))
+    } catch (err) {
+      console.error(err)
+      setRecords(prev)
+      writeContractsToStorage(prev)
+      window.alert('删除失败：接口异常，已回滚。')
+    }
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.channel.trim() || !formData.platform.trim() || !formData.game.trim()) {
       window.alert('请至少填写：渠道简称、平台方、签约游戏')
       return
@@ -130,14 +183,68 @@ function ContractManagementPage() {
       channelFee: normalizePercentInput(formData.channelFee)
     }
 
-    let next
     if (editingId) {
-      next = records.map((row) => (row.id === editingId ? { ...row, ...nextRecord } : row))
+      const prev = records
+      const optimistic = prev.map((row) => (row.id === editingId ? { ...row, ...nextRecord } : row))
+      setRecords(optimistic)
+      writeContractsToStorage(optimistic)
+      try {
+        await updateContract(String(editingId), {
+          signing_date: nextRecord.signingDate || null,
+          channel: nextRecord.channel || null,
+          platform: nextRecord.platform || null,
+          address: nextRecord.address || null,
+          valid_period: nextRecord.validPeriod || null,
+          game: nextRecord.game || null,
+          channel_share: nextRecord.channelShare || null,
+          issue_share: nextRecord.issueShare || null,
+          channel_fee: nextRecord.channelFee || null,
+          remark: nextRecord.remark || null
+        })
+      } catch (err) {
+        console.error(err)
+        setRecords(prev)
+        writeContractsToStorage(prev)
+        window.alert('更新失败：接口异常，已回滚。')
+        return
+      }
     } else {
-      next = [{ id: String(Date.now()), ...nextRecord }, ...records]
+      const tempId = `temp-${Date.now()}`
+      const optimistic = [{ id: tempId, ...nextRecord }, ...records]
+      setRecords(optimistic)
+      writeContractsToStorage(optimistic)
+      try {
+        const created = await createContract({
+          signing_date: nextRecord.signingDate || null,
+          channel: nextRecord.channel || null,
+          platform: nextRecord.platform || null,
+          address: nextRecord.address || null,
+          valid_period: nextRecord.validPeriod || null,
+          game: nextRecord.game || null,
+          channel_share: nextRecord.channelShare || null,
+          issue_share: nextRecord.issueShare || null,
+          channel_fee: nextRecord.channelFee || null,
+          remark: nextRecord.remark || null
+        })
+        const synced = optimistic.map((row) =>
+          row.id === tempId
+            ? {
+                ...row,
+                id: created.id
+              }
+            : row
+        )
+        setRecords(synced)
+        writeContractsToStorage(synced)
+      } catch (err) {
+        console.error(err)
+        const rollback = records
+        setRecords(rollback)
+        writeContractsToStorage(rollback)
+        window.alert('新增失败：接口异常，已回滚。')
+        return
+      }
     }
-    setRecords(next)
-    writeContractsToStorage(next)
     setShowForm(false)
     setEditingId(null)
     setFormData(createEmptyForm())
@@ -268,6 +375,8 @@ function ContractManagementPage() {
         )}
 
         <div className="contract-table-wrap">
+          {loading && <div className="contract-state">合同数据加载中...</div>}
+          {!loading && errorMsg && <div className="contract-state contract-state--warn">{errorMsg}</div>}
           <table className="contract-table">
             <thead>
               <tr>
