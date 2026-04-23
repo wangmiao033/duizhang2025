@@ -3,6 +3,62 @@
  * 由 App.jsx 引入，选择器带 .app 前缀以覆盖业务页按需加载的局部 CSS。
  */
 
+/* —— 全局字重与控件基线统一 —— */
+.app,
+.app input,
+.app select,
+.app textarea,
+.app button {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-body);
+}
+
+.app h1,
+.app h2,
+.app h3 {
+  color: var(--admin-text-main);
+  letter-spacing: -0.01em;
+}
+
+.app h1 {
+  font-size: var(--font-size-page-title);
+  line-height: var(--line-height-title);
+  font-weight: var(--font-weight-page-title);
+}
+
+.app h2 {
+  font-size: var(--font-size-section-title);
+  line-height: var(--line-height-section);
+  font-weight: var(--font-weight-section-title);
+}
+
+.app h3 {
+  font-size: var(--font-size-card-title);
+  line-height: var(--line-height-section);
+  font-weight: var(--font-weight-card-title);
+}
+
+.app input,
+.app select,
+.app textarea {
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  color: var(--admin-text-main);
+}
+
+.app input::placeholder,
+.app textarea::placeholder {
+  color: var(--admin-text-muted);
+}
+
+.app input:focus,
+.app select:focus,
+.app textarea:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 2px var(--admin-primary-muted);
+}
+
 /* —— 工具栏 / 表单底栏：与 .admin-btn 同高同字重 —— */
 .app .rec-btn,
 .app .rec-create-footer .rec-btn {

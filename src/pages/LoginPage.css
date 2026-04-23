@@ -3,23 +3,23 @@
   display: grid;
   place-items: center;
   padding: 24px;
-  background: linear-gradient(135deg, #f7f9fc 0%, #eef3f9 100%);
+  background: linear-gradient(145deg, #f6f8fc 0%, #eef2f8 100%);
 }
 
 .login-card {
   width: 100%;
   max-width: 440px;
-  border-radius: 18px;
-  border: 1px solid #e5eaf2;
+  border-radius: 12px;
+  border: 1px solid #dbe2ec;
   background: #ffffff;
-  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.09);
   padding: 30px 28px 24px;
 }
 
 .login-brand-mark {
   width: 34px;
   height: 34px;
-  border-radius: 10px;
+  border-radius: 8px;
   background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
   color: #ffffff;
   display: inline-flex;
@@ -32,7 +32,7 @@
 
 .login-title {
   margin: 0;
-  font-size: 29px;
+  font-size: 34px;
   line-height: 1.2;
   color: #0f172a;
   letter-spacing: -0.01em;
@@ -49,14 +49,14 @@
   gap: 8px;
   margin-bottom: 18px;
   padding: 4px;
-  border-radius: 10px;
+  border-radius: 8px;
   background: #f2f5fa;
 }
 
 .login-tab {
   flex: 1;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   background: transparent;
   height: 34px;
   font-size: 13px;
@@ -87,8 +87,8 @@
 .login-input {
   width: 100%;
   height: 42px;
-  border-radius: 10px;
-  border: 1px solid #d9e1ec;
+  border-radius: 8px;
+  border: 1px solid #d3dbe8;
   background: #ffffff;
   color: #0f172a;
   font-size: 14px;
@@ -109,10 +109,10 @@
 }
 
 .login-otp-btn {
-  border: 1px solid #d6deea;
+  border: 1px solid #cfd8e6;
   background: #f8fafc;
   color: #334155;
-  border-radius: 10px;
+  border-radius: 8px;
   height: 42px;
   padding: 0 14px;
   font-size: 13px;
@@ -143,7 +143,7 @@
   width: 100%;
   height: 44px;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #ffffff;
   font-size: 15px;
