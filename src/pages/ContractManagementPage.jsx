@@ -77,6 +77,12 @@ function toDateString(date) {
   return `${y}-${m}-${d}`
 }
 
+function normalizeDateInputValue(value) {
+  const d = parseDate(value)
+  if (!d) return ''
+  return toDateString(d)
+}
+
 function splitValidPeriod(value) {
   const src = String(value || '').trim()
   if (!src) return { startDate: '', endDate: '' }
@@ -393,9 +399,9 @@ function ContractManagementPage() {
       contractNo: row.contractNo || '',
       contractType: row.contractType || '',
       owner: row.owner || '',
-      signingDate: row.signingDate || '',
-      startDate: row.startDate || '',
-      endDate: row.endDate || '',
+      signingDate: normalizeDateInputValue(row.signingDate),
+      startDate: normalizeDateInputValue(row.startDate),
+      endDate: normalizeDateInputValue(row.endDate),
       channel: row.channel || '',
       platform: row.platform || '',
       address: row.address || '',
@@ -864,9 +870,9 @@ function ContractManagementPage() {
               <label>合同编号<input value={formData.contractNo} onChange={(e)=>setFormData((s)=>({...s,contractNo:e.target.value}))} /></label>
               <label>合同类型<input value={formData.contractType} onChange={(e)=>setFormData((s)=>({...s,contractType:e.target.value}))} /></label>
               <label>负责人<input value={formData.owner} onChange={(e)=>setFormData((s)=>({...s,owner:e.target.value}))} /></label>
-              <label>签约日期<input value={formData.signingDate} onChange={(e)=>setFormData((s)=>({...s,signingDate:e.target.value}))} placeholder="YYYY-MM-DD" /></label>
-              <label>开始日期<input value={formData.startDate} onChange={(e)=>setFormData((s)=>({...s,startDate:e.target.value}))} placeholder="YYYY-MM-DD" /></label>
-              <label>结束日期<input value={formData.endDate} onChange={(e)=>setFormData((s)=>({...s,endDate:e.target.value}))} placeholder="YYYY-MM-DD" /></label>
+              <label>签约日期<input type="date" value={formData.signingDate} onChange={(e)=>setFormData((s)=>({...s,signingDate:e.target.value}))} /></label>
+              <label>开始日期<input type="date" value={formData.startDate} onChange={(e)=>setFormData((s)=>({...s,startDate:e.target.value}))} /></label>
+              <label>结束日期<input type="date" value={formData.endDate} onChange={(e)=>setFormData((s)=>({...s,endDate:e.target.value}))} /></label>
               <label>渠道简称 *<input value={formData.channel} onChange={(e)=>setFormData((s)=>({...s,channel:e.target.value}))} /></label>
               <label>平台方 *<input value={formData.platform} onChange={(e)=>setFormData((s)=>({...s,platform:e.target.value}))} /></label>
               <label>签约游戏 *<input value={formData.gamesText} onChange={(e)=>setFormData((s)=>({...s,gamesText:e.target.value, game:e.target.value}))} placeholder="多个游戏用 、 分隔" /></label>
