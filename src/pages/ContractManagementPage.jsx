@@ -182,6 +182,22 @@ function toApiPayload(record) {
   }
 }
 
+function extractStatusCode(err) {
+  const status = err?.status
+  if (typeof status === 'number') return status
+  const raw = err?.message
+  if (typeof raw === 'string') {
+    const m = raw.match(/\b(\d{3})\b/)
+    if (m) return Number(m[1])
+  }
+  return null
+}
+
+function isSampleOrTempId(id) {
+  const sid = String(id || '')
+  return sid.startsWith('sample-') || sid.startsWith('temp-')
+}
+
 function createEmptyForm() {
   return {
     contractNo: '',
@@ -499,14 +515,47 @@ function ContractManagementPage() {
       const optimistic = prev.map((row) => (row.id === editingId ? { ...row, ...nextRecord } : row))
       setRecords(optimistic)
       writeContractsToStorage(optimistic)
+
+      const replaceWithCreated = async () => {
+        const created = await createContract(toApiPayload(nextRecord))
+        const synced = optimistic.map((row) =>
+          row.id === editingId
+            ? {
+                ...row,
+                id: created.id
+              }
+            : row
+        )
+        setRecords(synced)
+        writeContractsToStorage(synced)
+      }
+
       try {
-        await updateContract(String(editingId), toApiPayload(nextRecord))
+        if (isSampleOrTempId(editingId)) {
+          await replaceWithCreated()
+        } else {
+          await updateContract(String(editingId), toApiPayload(nextRecord))
+        }
       } catch (err) {
-        console.error(err)
-        setRecords(prev)
-        writeContractsToStorage(prev)
-        window.alert('更新失败：接口异常，已回滚。')
-        return
+        const statusCode = extractStatusCode(err)
+        // 兼容历史示例记录 / 服务端已删除记录：PUT 404 时自动转为创建新记录
+        if (statusCode === 404) {
+          try {
+            await replaceWithCreated()
+          } catch (fallbackErr) {
+            console.error(fallbackErr)
+            setRecords(prev)
+            writeContractsToStorage(prev)
+            window.alert('更新失败：接口异常（404 后自动转新增也失败），已回滚。')
+            return
+          }
+        } else {
+          console.error(err)
+          setRecords(prev)
+          writeContractsToStorage(prev)
+          window.alert(statusCode ? `更新失败：接口异常（${statusCode}），已回滚。` : '更新失败：接口异常，已回滚。')
+          return
+        }
       }
     } else {
       const tempId = `temp-${Date.now()}`
