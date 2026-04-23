@@ -147,6 +147,7 @@
   font-size: 12px;
   padding: 0;
 }
+.contract-row-actions > button.danger { color: #c62828; }
 .more-wrapper { position: relative; }
 .more-menu {
   position: absolute;
@@ -173,6 +174,16 @@
 }
 .more-menu button:hover { background: var(--admin-bg-soft); }
 .contract-empty { text-align: center !important; color: var(--admin-text-tertiary); }
+
+.contract-generate-btn {
+  margin-top: 4px;
+  height: 28px;
+  border: 1px solid var(--admin-border-soft);
+  border-radius: 6px;
+  background: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
 
 .contract-pagination {
   display: flex;
@@ -284,6 +295,55 @@
   border-radius: 6px;
   padding: 0 10px;
   background: #fff;
+}
+
+.contract-more-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 13, 20, 0.28);
+  z-index: 50;
+  display: grid;
+  place-items: center;
+}
+
+.contract-more-panel {
+  width: min(360px, calc(100vw - 40px));
+  background: #fff;
+  border: 1px solid var(--admin-border-soft);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.contract-more-panel h4 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.contract-more-panel p {
+  margin: 6px 0 10px;
+  font-size: 12px;
+  color: var(--admin-text-tertiary);
+}
+
+.contract-more-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.contract-more-actions button,
+.contract-more-close {
+  height: 30px;
+  border: 1px solid var(--admin-border-soft);
+  border-radius: 6px;
+  background: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.contract-more-close {
+  width: 100%;
+  margin-top: 10px;
 }
 
 @media (max-width: 1200px) {

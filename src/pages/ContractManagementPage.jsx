@@ -188,6 +188,26 @@ function toApiPayload(record) {
   }
 }
 
+function getChannelAbbr(channel) {
+  const src = String(channel || '').trim()
+  if (!src) return 'QD'
+  const letters = src.match(/[A-Za-z0-9]+/g)
+  if (letters && letters.length > 0) {
+    return letters.join('').toUpperCase().slice(0, 8) || 'QD'
+  }
+  return 'QD'
+}
+
+function generateContractNo(channel) {
+  const now = new Date()
+  const pad = (n) => String(n).padStart(2, '0')
+  const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(
+    now.getHours()
+  )}${pad(now.getMinutes())}${pad(now.getSeconds())}`
+  const abbr = getChannelAbbr(channel)
+  return `HT-${abbr}-${stamp}`
+}
+
 function extractStatusCode(err) {
   const status = err?.status
   if (typeof status === 'number') return status
@@ -206,7 +226,7 @@ function isSampleOrTempId(id) {
 
 function createEmptyForm() {
   return {
-    contractNo: '',
+    contractNo: generateContractNo(''),
     contractType: '',
     owner: '',
     signingDate: '',
@@ -242,7 +262,7 @@ function ContractManagementPage() {
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState(createEmptyForm())
   const [selectedRow, setSelectedRow] = useState(null)
-  const [openMoreId, setOpenMoreId] = useState('')
+  const [moreTargetRow, setMoreTargetRow] = useState(null)
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -389,14 +409,14 @@ function ContractManagementPage() {
 
   const openCreateForm = () => {
     setEditingId(null)
-    setFormData(createEmptyForm())
+    setFormData((prev) => ({ ...createEmptyForm(), contractNo: generateContractNo(prev.channel || '') }))
     setShowForm(true)
   }
 
   const openEditForm = (row) => {
     setEditingId(row.id)
     setFormData({
-      contractNo: row.contractNo || '',
+      contractNo: row.contractNo || generateContractNo(row.channel || ''),
       contractType: row.contractType || '',
       owner: row.owner || '',
       signingDate: normalizeDateInputValue(row.signingDate),
@@ -447,7 +467,7 @@ function ContractManagementPage() {
   const handleCopyNew = (row) => {
     setEditingId(null)
     setFormData({
-      contractNo: `${row.contractNo || ''}-COPY`,
+      contractNo: `${row.contractNo || generateContractNo(row.channel || '')}-COPY`,
       contractType: row.contractType || '',
       owner: row.owner || '',
       signingDate: row.signingDate || '',
@@ -610,7 +630,7 @@ function ContractManagementPage() {
     const optimistic = records.map((r) => (r.id === row.id ? next : r))
     setRecords(optimistic)
     writeContractsToStorage(optimistic)
-    setOpenMoreId('')
+    setMoreTargetRow(null)
     try {
       await updateContract(String(row.id), toApiPayload(next))
     } catch (err) {
@@ -808,26 +828,13 @@ function ContractManagementPage() {
                         续签
                       </button>
                       <div className="more-wrapper">
-                        <button type="button" onClick={() => setOpenMoreId((cur) => (cur === row.id ? '' : row.id))}>
+                        <button type="button" onClick={() => setMoreTargetRow(row)}>
                           更多
                         </button>
-                        {openMoreId === row.id && (
-                          <div className="more-menu">
-                            <button type="button" onClick={() => archiveContract(row)}>
-                              归档
-                            </button>
-                            <button type="button" onClick={() => handleDelete(row.id)}>
-                              删除
-                            </button>
-                            <button type="button" onClick={() => window.alert('下载附件：占位功能')}>
-                              下载附件
-                            </button>
-                            <button type="button" onClick={() => handleCopyNew(row)}>
-                              复制新增
-                            </button>
-                          </div>
-                        )}
                       </div>
+                      <button type="button" className="danger" onClick={() => handleDelete(row.id)}>
+                        删除合同
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -868,6 +875,16 @@ function ContractManagementPage() {
             <h3>{editingId ? '编辑合同' : '新增合同'}</h3>
             <div className="contract-form-grid">
               <label>合同编号<input value={formData.contractNo} onChange={(e)=>setFormData((s)=>({...s,contractNo:e.target.value}))} /></label>
+              <label>
+                系统编号
+                <button
+                  type="button"
+                  className="contract-generate-btn"
+                  onClick={() => setFormData((s) => ({ ...s, contractNo: generateContractNo(s.channel) }))}
+                >
+                  重新生成
+                </button>
+              </label>
               <label>合同类型<input value={formData.contractType} onChange={(e)=>setFormData((s)=>({...s,contractType:e.target.value}))} /></label>
               <label>负责人<input value={formData.owner} onChange={(e)=>setFormData((s)=>({...s,owner:e.target.value}))} /></label>
               <label>签约日期<input type="date" value={formData.signingDate} onChange={(e)=>setFormData((s)=>({...s,signingDate:e.target.value}))} /></label>
@@ -914,6 +931,44 @@ function ContractManagementPage() {
           openRenewForm(row)
         }}
       />
+
+      {moreTargetRow && (
+        <div className="contract-more-mask" onClick={() => setMoreTargetRow(null)}>
+          <div className="contract-more-panel" onClick={(e) => e.stopPropagation()}>
+            <h4>更多操作</h4>
+            <p>{moreTargetRow.contractNo || moreTargetRow.channel}</p>
+            <div className="contract-more-actions">
+              <button type="button" onClick={() => archiveContract(moreTargetRow)}>
+                归档
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMoreTargetRow(null)
+                  handleDelete(moreTargetRow.id)
+                }}
+              >
+                删除
+              </button>
+              <button type="button" onClick={() => window.alert('下载附件：占位功能')}>
+                下载附件
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMoreTargetRow(null)
+                  handleCopyNew(moreTargetRow)
+                }}
+              >
+                复制新增
+              </button>
+            </div>
+            <button type="button" className="contract-more-close" onClick={() => setMoreTargetRow(null)}>
+              关闭
+            </button>
+          </div>
+        </div>
+      )}
     </PageContainer>
   )
 }
