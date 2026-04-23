@@ -41,6 +41,28 @@ function syncRdInlineFormToSingleItem(form) {
   }
 }
 
+function parseCycleToSortableValue(cycle) {
+  const text = String(cycle || '').trim()
+  const m = text.match(/^(\d{4})年(\d{1,2})月$/)
+  if (!m) return Number.POSITIVE_INFINITY
+  return Number(m[1]) * 100 + Number(m[2])
+}
+
+function getSettlementMonthDisplay(record) {
+  const fallback = record?.settlementMonth || '-'
+  const rows = Array.isArray(record?.items) ? record.items : []
+  const cycles = rows
+    .map((row) => String(row?.settlementCycle || '').trim())
+    .filter(Boolean)
+  if (cycles.length === 0) return fallback
+
+  const uniq = Array.from(new Set(cycles))
+  if (uniq.length === 1) return uniq[0]
+
+  const sorted = uniq.slice().sort((a, b) => parseCycleToSortableValue(a) - parseCycleToSortableValue(b))
+  return `${sorted[0]}~${sorted[sorted.length - 1]}`
+}
+
 function DataTable({ 
   records, 
   onUpdateRecord, 
@@ -319,7 +341,7 @@ function DataTable({
                             >
                               {displaySettlementNumber(record.settlementNumber)}
                             </td>
-                            <td>{record.settlementMonth || '-'}</td>
+                            <td title={getSettlementMonthDisplay(record)}>{getSettlementMonthDisplay(record)}</td>
                             <td className="game-name-cell">{record.game || '-'}</td>
                             <td className="amount-cell">¥{parseFloat(record.gameFlow || 0).toFixed(2)}</td>
                             <td className="amount-cell">¥{parseFloat(record.testingFee || 0).toFixed(2)}</td>
@@ -647,7 +669,7 @@ function DataTable({
                       >
                         {displaySettlementNumber(record.settlementNumber)}
                       </td>
-                      <td>{record.settlementMonth || '-'}</td>
+                      <td title={getSettlementMonthDisplay(record)}>{getSettlementMonthDisplay(record)}</td>
                       <td>{record.partner || '-'}</td>
                       <td>{record.game || '-'}</td>
                       {compact ? (
