@@ -2,6 +2,7 @@
 CREATE TABLE IF NOT EXISTS reconciliation_line_items (
     id TEXT PRIMARY KEY,
     reconciliation_id TEXT NOT NULL REFERENCES reconciliation_records (id) ON DELETE CASCADE,
+    settlement_cycle TEXT,
     game_name TEXT,
     revenue NUMERIC(18, 2) DEFAULT 0 NOT NULL,
     discount_rate NUMERIC(18, 6) DEFAULT 1 NOT NULL,

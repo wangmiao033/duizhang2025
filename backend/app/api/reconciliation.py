@@ -71,6 +71,7 @@ def _replace_line_items(db: Session, rec: ReconciliationRecord, items_in: list[R
         li = ReconciliationLineItem(
             id=str(uuid4()),
             reconciliation_id=rec.id,
+            settlement_cycle=raw.settlement_cycle or rec.settlement_month,
             game_name=raw.game_name,
             revenue=float(raw.revenue or 0),
             discount_rate=float(raw.discount_rate if raw.discount_rate is not None else 1),

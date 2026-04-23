@@ -15,6 +15,7 @@ import type { BankTransactionRow } from '@/lib/api/bankTransaction.ts'
 export type ApiReconciliationLineItemRow = {
   id: string
   reconciliation_id: string
+  settlement_cycle: string | null
   game_name: string | null
   revenue: number
   discount_rate: number
@@ -129,6 +130,7 @@ export type ReconciliationListResponse = {
 }
 
 export type ReconciliationLineItemPayload = {
+  settlement_cycle?: string | null
   game_name: string | null
   revenue: number
   discount_rate: number
@@ -275,9 +277,13 @@ export function getReconciliationRecordId(
   return String(v)
 }
 
-function apiLineToFrontend(line: ApiReconciliationLineItemRow) {
+function apiLineToFrontend(line: ApiReconciliationLineItemRow, parentSettlementMonth?: string | null) {
   return {
     id: line.id,
+    settlementCycle:
+      line.settlement_cycle != null && String(line.settlement_cycle).trim() !== ''
+        ? String(line.settlement_cycle)
+        : parentSettlementMonth || '',
     gameName: line.game_name != null ? String(line.game_name) : '',
     revenue: String(line.revenue ?? 0),
     discountRate: String(line.discount_rate ?? 1),
@@ -313,7 +319,7 @@ export function apiRowToFrontend(row: ApiReconciliationRow): Record<string, unkn
   const rawItems = row.items
   const items =
     Array.isArray(rawItems) && rawItems.length > 0
-      ? rawItems.map(apiLineToFrontend)
+      ? rawItems.map((line) => apiLineToFrontend(line, row.settlement_month))
       : legacyItemsFromApiRow(row)
   return {
     id: idStr,
@@ -362,6 +368,10 @@ export function frontendRecordToApiPayload(
   const items: ReconciliationLineItemPayload[] | undefined =
     Array.isArray(recItems) && recItems.length > 0
       ? recItems.map((line, idx) => ({
+          settlement_cycle:
+            line.settlementCycle != null && String(line.settlementCycle).trim() !== ''
+              ? String(line.settlementCycle).trim()
+              : (record.settlementMonth as string) || null,
           game_name:
             line.gameName != null && String(line.gameName).trim() !== ''
               ? String(line.gameName).trim()

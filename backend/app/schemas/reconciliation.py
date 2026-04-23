@@ -12,6 +12,7 @@ from app.schemas.bank_transaction import BankTransactionRead
 class ReconciliationLineItemIn(BaseModel):
     """写入明细（服务端重算 net_revenue / share_amount / settlement_amount）。"""
 
+    settlement_cycle: str | None = None
     game_name: str | None = None
     revenue: float = 0
     discount_rate: float = 1
@@ -28,6 +29,7 @@ class ReconciliationLineItemRead(BaseModel):
 
     id: str
     reconciliation_id: str
+    settlement_cycle: str | None
     game_name: str | None
     revenue: float
     discount_rate: float

@@ -54,6 +54,7 @@ class ReconciliationLineItem(Base):
     reconciliation_id: Mapped[str] = mapped_column(
         String, ForeignKey("reconciliation_records.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    settlement_cycle: Mapped[str | None] = mapped_column(String, nullable=True)
     game_name: Mapped[str | None] = mapped_column(String, nullable=True)
     revenue: Mapped[float] = mapped_column(Numeric(18, 2), nullable=False, default=0)
     discount_rate: Mapped[float] = mapped_column(Numeric(18, 6), nullable=False, default=1)
