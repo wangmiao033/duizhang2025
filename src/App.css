@@ -8,8 +8,8 @@
   background: var(--admin-card-bg);
   border-radius: var(--admin-radius);
   padding: var(--admin-space-xl);
-  box-shadow: var(--admin-shadow-sm);
-  border: 1px solid var(--admin-border-soft);
+  box-shadow: none;
+  border: 1px solid var(--admin-border);
   display: flex;
   flex-direction: column;
   gap: var(--admin-space-lg);
@@ -19,7 +19,7 @@
 }
 
 .app-container:hover {
-  box-shadow: var(--admin-shadow-md);
+  box-shadow: none;
 }
 
 [data-theme="dark"] .app-container {
@@ -30,7 +30,7 @@
 
 .save-indicator {
   background: var(--admin-elevated-bg);
-  border: 1px solid var(--admin-border-soft);
+  border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-sm);
   padding: var(--space-2) var(--space-3);
   margin-bottom: 0;
@@ -114,16 +114,16 @@
   background: var(--admin-card-bg);
   border-radius: var(--admin-radius);
   padding: var(--admin-space-md);
-  border: 1px solid var(--admin-border-soft);
-  box-shadow: var(--admin-shadow-sm);
+  border: 1px solid var(--admin-border);
+  box-shadow: none;
   transition:
     box-shadow 0.15s ease,
     border-color 0.15s ease;
 }
 
 .status-summary-card:hover {
-  box-shadow: var(--admin-shadow-md);
-  border-color: var(--admin-border);
+  box-shadow: none;
+  border-color: color-mix(in srgb, var(--admin-primary) 28%, var(--admin-border));
 }
 
 .status-summary-header {

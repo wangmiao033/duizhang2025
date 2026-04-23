@@ -3,8 +3,8 @@
   border-radius: var(--admin-radius);
   padding: var(--admin-space-md);
   margin-bottom: 0;
-  border: 1px solid var(--admin-border-soft);
-  box-shadow: var(--admin-shadow-sm);
+  border: 1px solid var(--admin-border);
+  box-shadow: none;
 }
 
 .data-validator.valid {
@@ -170,8 +170,8 @@
 }
 
 .validator-issue:hover {
-  box-shadow: var(--admin-shadow-sm);
-  border-color: var(--admin-border);
+  box-shadow: none;
+  border-color: color-mix(in srgb, var(--admin-primary) 30%, var(--admin-border));
 }
 
 .validator-issue.error {

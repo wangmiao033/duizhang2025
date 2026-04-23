@@ -1,13 +1,13 @@
 .summary-card {
   background: var(--admin-card-bg);
-  border: 1px solid var(--admin-border-soft);
+  border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);
-  box-shadow: var(--admin-shadow-sm);
-  padding: var(--admin-space-md);
+  box-shadow: none;
+  padding: 10px 12px;
   display: flex;
   align-items: center;
   gap: var(--admin-space-md);
-  min-height: var(--admin-stat-card-min-height);
+  min-height: 76px;
   height: 100%;
   box-sizing: border-box;
   transition:
@@ -16,8 +16,8 @@
 }
 
 .summary-card:hover {
-  box-shadow: var(--admin-shadow-md);
-  border-color: var(--admin-border);
+  box-shadow: none;
+  border-color: color-mix(in srgb, var(--admin-primary) 30%, var(--admin-border));
 }
 
 .summary-card--clickable {
@@ -34,9 +34,9 @@
 }
 
 .card-icon {
-  font-size: 1.5rem;
-  width: 44px;
-  height: 44px;
+  font-size: 1.15rem;
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -70,7 +70,7 @@
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   word-break: break-all;
   line-height: var(--line-height-title);
 }
