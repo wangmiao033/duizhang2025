@@ -83,7 +83,7 @@ function Settings({ onSettingsChange }) {
         onClick={() => setIsOpen(!isOpen)}
         title="系统设置"
       >
-        ⚙️ 设置
+        ⚙
       </button>
 
       {isOpen && (

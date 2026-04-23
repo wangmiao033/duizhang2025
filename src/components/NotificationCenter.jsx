@@ -53,7 +53,8 @@ function NotificationCenter() {
         onClick={() => setIsOpen(!isOpen)}
         title="通知中心"
       >
-        🔔 {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
+        🔔
+        {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
       </button>
 
       {isOpen && (

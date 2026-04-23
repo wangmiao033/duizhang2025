@@ -43,6 +43,10 @@ function DashboardPage() {
 
   return (
     <PageContainer hideHeader>
+      <div className="dashboard-title-block">
+        <h1 className="dashboard-title">工作台</h1>
+        <p className="dashboard-subtitle">快捷入口、待办与常用工具总览</p>
+      </div>
       {lastSaveTime && (
         <div className="save-indicator">
           <span className="save-time">
@@ -107,9 +111,7 @@ function DashboardPage() {
         />
       </div>
       <div className="status-summary-section">
-        <h3 className="status-summary-title">
-          {ICON.chart} 状态统计
-        </h3>
+        <h3 className="status-summary-title">状态统计</h3>
         <div className="status-summary-grid">
           {statusAggregates.map((row) => (
             <div key={row.value} className="status-summary-card" style={{ borderColor: row.color }}>

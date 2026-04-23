@@ -1,7 +1,7 @@
 .data-validator {
   background: var(--admin-card-bg);
   border-radius: var(--admin-radius);
-  padding: var(--admin-space-md);
+  padding: 16px;
   margin-bottom: 0;
   border: 1px solid var(--admin-border);
   box-shadow: none;
@@ -36,19 +36,19 @@
 }
 
 .data-validator.has-issues {
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: #fff;
+  border: 1px solid #e6eaf2;
 }
 
 .validator-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--admin-space-md);
   cursor: pointer;
-  padding: 0 0 var(--admin-space-sm);
-  margin-bottom: var(--admin-space-sm);
-  border-bottom: 1px solid var(--admin-border-soft);
+  padding: 0 0 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #eef1f6;
   border-radius: 0;
   transition: background 0.15s ease;
 }
@@ -60,29 +60,51 @@
 .validator-header-left {
   display: flex;
   align-items: flex-start;
-  gap: var(--admin-space-sm);
+  gap: 10px;
   min-width: 0;
   flex: 1;
 }
 
 .validator-icon {
-  font-size: 1.5rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #e7cfa2;
+  background: #fff8ea;
+  color: #9a6a12;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .validator-icon.warning {
-  font-size: 1.8rem;
+  font-size: 12px;
 }
 
 .validator-title {
   font-weight: 600;
   color: var(--admin-text-main);
-  font-size: var(--admin-font-title);
+  font-size: 14px;
 }
 
 .validator-subtitle {
   color: var(--admin-text-sub);
-  font-size: var(--admin-font-sm);
+  font-size: 12px;
   margin-top: 2px;
+}
+
+.validator-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.validator-top-chips {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .expand-btn {
@@ -90,8 +112,9 @@
   align-self: flex-start;
   background: var(--admin-elevated-bg);
   border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-sm);
-  padding: 6px 10px;
+  border-radius: 10px;
+  padding: 0 12px;
+  height: 36px;
   color: var(--admin-text-main);
   font-size: var(--admin-font-sm);
   cursor: pointer;
@@ -106,7 +129,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--admin-space-sm);
-  margin-bottom: var(--admin-space-md);
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eef1f6;
 }
 
 .filter-group {
@@ -125,9 +150,10 @@
 }
 
 .filter-btn {
-  padding: 6px 12px;
+  padding: 0 12px;
+  height: 34px;
   border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-sm);
+  border-radius: 10px;
   background: var(--admin-card-bg);
   color: var(--admin-text-main);
   font-size: var(--admin-font-sm);
@@ -144,25 +170,25 @@
 }
 
 .filter-btn.active {
-  background: var(--admin-warning);
-  color: #fff;
-  border-color: var(--admin-warning);
+  background: #eef3ff;
+  color: #2246a3;
+  border-color: #c9d8fb;
 }
 
 .validator-issues {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   max-height: 400px;
   overflow-y: auto;
 }
 
 .validator-issue {
-  padding: var(--admin-space-sm) var(--admin-space-md);
-  border-radius: var(--admin-radius-sm);
-  font-size: var(--admin-font-base);
-  background: var(--admin-card-bg);
-  border: 1px solid var(--admin-border-soft);
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  background: #fff;
+  border: 1px solid #e9edf5;
   transition:
     box-shadow 0.15s ease,
     border-color 0.15s ease;
@@ -175,26 +201,26 @@
 }
 
 .validator-issue.error {
-  background: var(--admin-danger-muted);
-  border-left: 3px solid var(--admin-danger);
+  background: #fff;
+  border-left: 3px solid #e19a9a;
   color: var(--admin-text-main);
 }
 
 .validator-issue.warning {
-  background: rgba(245, 158, 11, 0.1);
-  border-left: 3px solid var(--admin-warning);
+  background: #fff;
+  border-left: 3px solid #e7cfa2;
   color: var(--admin-text-main);
 }
 
 .validator-issue.info {
-  background: var(--admin-primary-muted);
-  border-left: 3px solid var(--admin-primary);
+  background: #fff;
+  border-left: 3px solid #aac0f8;
   color: var(--admin-text-main);
 }
 
 .validator-issue.info .issue-type-badge {
-  background: var(--admin-primary);
-  color: #fff;
+  background: #eef3ff;
+  color: #2d5fe3;
 }
 
 .issue-header {
@@ -202,7 +228,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   flex-wrap: wrap;
 }
 
@@ -220,9 +246,9 @@
 }
 
 .issue-type-badge {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -237,13 +263,13 @@
 }
 
 .validator-issue.error .issue-type-badge {
-  background: #ef4444;
-  color: white;
+  background: #fff3f3;
+  color: #b94848;
 }
 
 .validator-issue.warning .issue-type-badge {
-  background: #f59e0b;
-  color: white;
+  background: #fff8ea;
+  color: #9a6a12;
 }
 
 .issue-record {
@@ -261,7 +287,7 @@
 .fixable-badge {
   padding: 2px 8px;
   border-radius: 8px;
-  font-size: 0.7rem;
+  font-size: 11px;
   font-weight: 600;
   background: rgba(59, 130, 246, 0.2);
   color: #1e40af;
@@ -307,12 +333,13 @@
 }
 
 .auto-fix-btn {
-  padding: 4px 12px;
-  background: var(--admin-success);
-  color: #fff;
-  border: 1px solid var(--admin-success);
-  border-radius: var(--admin-radius-sm);
-  font-size: 0.75rem;
+  padding: 0 12px;
+  height: 32px;
+  background: #f7f9fc;
+  color: #334155;
+  border: 1px solid #d6deeb;
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition:
@@ -321,7 +348,7 @@
 }
 
 .auto-fix-btn:hover {
-  filter: brightness(1.05);
+  background: #eef2f9;
 }
 
 .issue-field {
@@ -338,7 +365,7 @@
 
 .no-issues {
   text-align: center;
-  padding: 40px;
+  padding: 28px;
   color: #64748b;
-  font-style: italic;
+  font-style: normal;
 }

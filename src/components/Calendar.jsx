@@ -193,10 +193,7 @@ function Calendar({ onDateSelect, reminders = [], compact = false }) {
           onClick={() => setIsOpen(!isOpen)}
         >
           <span className="trigger-icon">📅</span>
-          <span className="trigger-date">
-            <span className="trigger-day">{dayjs().date()}</span>
-            <span className="trigger-month">{dayjs().format('M月')}</span>
-          </span>
+          <span className="trigger-date-text">{dayjs().format('YYYY-MM-DD')}</span>
           <span className="trigger-weekday">{dayjs().format('ddd')}</span>
           {todayHoliday && (
             <span className={`trigger-badge ${todayHoliday.isHoliday ? 'rest' : 'work'}`}>

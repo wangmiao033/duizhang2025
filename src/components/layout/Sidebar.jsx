@@ -57,6 +57,7 @@ function Sidebar({ activeView, onNavigate }) {
   const [favoriteViews, setFavoriteViews] = useState(() => sanitizeTrackable(readFavoriteViews()))
   /** 最近访问默认收起，避免挤占主导航；展开后最多展示 2 条 */
   const [recentSectionOpen, setRecentSectionOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
 
   useEffect(() => {
     setExpandedId(activeGroupId)
@@ -180,9 +181,12 @@ function Sidebar({ activeView, onNavigate }) {
   }
 
   return (
-    <aside className="app-sidebar" aria-label="主导航">
+    <aside className={`app-sidebar ${collapsed ? 'sidebar-collapsed' : ''}`} aria-label="主导航">
       <div className="app-sidebar-inner">
         <div className="sidebar-brand">
+          <div className="sidebar-brand__logo" aria-hidden>
+            对
+          </div>
           <div className="sidebar-brand__title">对账管理系统</div>
           <div className="sidebar-brand__subtitle">财务后台</div>
         </div>
@@ -230,6 +234,7 @@ function Sidebar({ activeView, onNavigate }) {
             if (isSingleton) {
               return (
                 <div key={group.id} className="sidebar-group sidebar-group--singleton">
+                  <div className="sidebar-group-title sidebar-group-title--static">{group.label}</div>
                   {renderItems(group)}
                 </div>
               )
@@ -251,6 +256,11 @@ function Sidebar({ activeView, onNavigate }) {
             )
           })}
         </nav>
+        <div className="sidebar-footer">
+          <button type="button" className="sidebar-collapse-btn" onClick={() => setCollapsed((v) => !v)}>
+            {collapsed ? '展开侧边栏' : '收起侧边栏'}
+          </button>
+        </div>
       </div>
     </aside>
   )

@@ -3,11 +3,11 @@
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);
   box-shadow: none;
-  padding: 10px 12px;
+  padding: 12px 14px;
   display: flex;
   align-items: center;
   gap: var(--admin-space-md);
-  min-height: 76px;
+  min-height: 88px;
   height: 100%;
   box-sizing: border-box;
   transition:
@@ -34,14 +34,15 @@
 }
 
 .card-icon {
-  font-size: 1.15rem;
-  width: 34px;
-  height: 34px;
+  font-size: 14px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--admin-primary-muted);
-  border-radius: var(--admin-radius-sm);
+  background: #f2f5fb;
+  border: 1px solid #e6eaf2;
+  border-radius: 10px;
   flex-shrink: 0;
   line-height: 1;
 }
@@ -54,7 +55,7 @@
 
 .card-content h3 {
   color: var(--admin-text-sub);
-  font-size: var(--admin-stat-label-size);
+  font-size: 13px;
   margin: 0 0 var(--space-1);
   font-weight: var(--font-weight-table-header);
   line-height: var(--line-height-caption);
@@ -65,13 +66,13 @@
 
 .card-value {
   color: var(--admin-text-main);
-  font-size: var(--admin-stat-value-size);
+  font-size: 17px;
   font-weight: var(--admin-stat-value-weight);
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   margin: 0;
   letter-spacing: -0.01em;
-  word-break: break-all;
+  word-break: break-word;
   line-height: var(--line-height-title);
 }
 

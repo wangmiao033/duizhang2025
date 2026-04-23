@@ -4,18 +4,22 @@
 }
 
 .settings-btn {
-  padding: 10px 20px;
-  background: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: #fff;
+  color: #64748b;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background 0.2s, border-color 0.2s;
 }
 
 .settings-btn:hover {
-  background: #5a6268;
+  background: #f5f7fb;
+  border-color: #cfd8ea;
 }
 
 .settings-dialog-overlay {
@@ -24,7 +28,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(15, 23, 42, 0.42);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -42,15 +46,16 @@
 }
 
 .settings-dialog {
-  background: white;
-  border-radius: 12px;
-  padding: 30px;
+  background: #fff;
+  border: 1px solid #e6eaf2;
+  border-radius: 10px;
+  padding: 18px;
   max-width: 600px;
   width: 90%;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.3s;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  animation: slideUp 0.2s;
 }
 
 @keyframes slideUp {
@@ -68,22 +73,24 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid #e9ecef;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eef1f6;
 }
 
 .settings-header h4 {
   margin: 0;
-  color: #333;
-  font-size: 1.3rem;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .close-settings-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: #999;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #64748b;
   cursor: pointer;
   padding: 0;
   width: 30px;
@@ -95,29 +102,35 @@
 }
 
 .close-settings-btn:hover {
-  color: #333;
+  color: #334155;
+  background: #f8fafc;
 }
 
 .settings-content {
-  margin-bottom: 25px;
+  margin-bottom: 14px;
 }
 
 .settings-section {
-  margin-bottom: 25px;
+  margin-bottom: 14px;
+  border: 1px solid #eef1f6;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fbfcff;
 }
 
 .settings-section h5 {
-  margin: 0 0 15px 0;
-  color: var(--admin-primary);
-  font-size: 1rem;
-  border-bottom: 1px solid #e9ecef;
+  margin: 0 0 10px 0;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px solid #e9eef7;
   padding-bottom: 8px;
 }
 
 .settings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  gap: 10px;
 }
 
 .setting-item {
@@ -127,15 +140,17 @@
 }
 
 .setting-item label {
-  font-size: 0.9rem;
-  color: #495057;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
 }
 
 .format-select {
-  padding: 8px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #dbe3f1;
+  border-radius: 10px;
+  font-size: 13px;
   background: white;
   color: #495057;
   cursor: pointer;
@@ -154,17 +169,18 @@
 
 .format-description {
   margin-top: 6px;
-  font-size: 0.85rem;
-  color: #6c757d;
-  font-style: italic;
-  font-weight: 500;
+  font-size: 12px;
+  color: #7c8798;
+  font-style: normal;
+  font-weight: 400;
 }
 
 .setting-item input {
-  padding: 8px;
-  border: 1px solid #e9ecef;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid #dbe3f1;
+  border-radius: 10px;
+  font-size: 13px;
   transition: border-color 0.3s;
 }
 
@@ -176,7 +192,7 @@
 .settings-switches {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .switch-item label {
@@ -184,8 +200,8 @@
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  font-size: 0.95rem;
-  color: #495057;
+  font-size: 13px;
+  color: #475569;
 }
 
 .switch-item input[type="checkbox"] {
@@ -197,39 +213,43 @@
 .settings-footer {
   display: flex;
   justify-content: space-between;
-  gap: 15px;
-  padding-top: 20px;
-  border-top: 2px solid #e9ecef;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #eef1f6;
 }
 
 .reset-btn,
 .save-settings-btn {
   flex: 1;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
 .reset-btn {
-  background: #dc3545;
-  color: white;
+  background: #fff;
+  color: #b42318;
+  border-color: #f3d2d0;
 }
 
 .reset-btn:hover {
-  background: #c82333;
+  background: #fff3f2;
 }
 
 .save-settings-btn {
-  background: #28a745;
-  color: white;
+  background: var(--admin-primary);
+  color: #fff;
+  border-color: var(--admin-primary);
 }
 
 .save-settings-btn:hover {
-  background: #218838;
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
 }
 
 @media (max-width: 768px) {

@@ -61,7 +61,7 @@ function DataValidator({ records, onIssueClick, calculateSettlementAmount, onAut
     <div className="data-validator has-issues">
       <div className="validator-header" onClick={() => setExpanded(!expanded)}>
         <div className="validator-header-left">
-          <span className="validator-icon warning">⚠️</span>
+          <span className="validator-icon warning">!</span>
           <div>
             <div className="validator-title">
               发现 {statistics.errors} 个错误，{statistics.warnings} 个警告，{statistics.info} 个提示
@@ -71,7 +71,55 @@ function DataValidator({ records, onIssueClick, calculateSettlementAmount, onAut
             </div>
           </div>
         </div>
-        <button className="expand-btn">{expanded ? '▼' : '▶'}</button>
+        <div className="validator-header-actions">
+          <div className="validator-top-chips">
+            <button
+              className={`filter-btn ${filterType === 'all' ? 'active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                setFilterType('all')
+              }}
+            >
+              全部
+            </button>
+            <button
+              className={`filter-btn ${filterType === VALIDATION_TYPES.ERROR ? 'active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                setFilterType(VALIDATION_TYPES.ERROR)
+              }}
+            >
+              错误
+            </button>
+            <button
+              className={`filter-btn ${filterType === VALIDATION_TYPES.WARNING ? 'active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                setFilterType(VALIDATION_TYPES.WARNING)
+              }}
+            >
+              警告
+            </button>
+            <button
+              className={`filter-btn ${filterType === VALIDATION_TYPES.INFO ? 'active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                setFilterType(VALIDATION_TYPES.INFO)
+              }}
+            >
+              提示
+            </button>
+          </div>
+          <button
+            className="expand-btn"
+            onClick={(e) => {
+              e.stopPropagation()
+              setExpanded((v) => !v)
+            }}
+          >
+            {expanded ? '收起' : '查看详情'}
+          </button>
+        </div>
       </div>
 
       {expanded && (

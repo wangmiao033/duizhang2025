@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import Calendar from '@/components/Calendar.jsx'
 import NotificationCenter from '@/components/NotificationCenter.jsx'
 import ThemeToggle from '@/components/ThemeToggle.jsx'
@@ -6,9 +6,8 @@ import UserGuide from '@/components/UserGuide.jsx'
 import Settings from '@/components/Settings.jsx'
 import HelpTooltip from '@/components/HelpTooltip.jsx'
 import MobileMenu from '@/components/MobileMenu.jsx'
-import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb.jsx'
 import ConfirmDialog from '@/components/ConfirmDialog.jsx'
-import { SIDEBAR_GROUPS, getBreadcrumb, getPageMeta } from '@/app/routes.js'
+import { SIDEBAR_GROUPS } from '@/app/routes.js'
 import { useAuth } from '@/features/auth/AuthContext.jsx'
 import './Header.css'
 
@@ -21,9 +20,6 @@ function Header({ activeView, onNavigate, onSettingsChange }) {
   const [newPassword, setNewPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const [submittingPassword, setSubmittingPassword] = useState(false)
-  const breadcrumb = useMemo(() => getBreadcrumb(activeView), [activeView])
-  const meta = useMemo(() => getPageMeta(activeView), [activeView])
-
   const closePasswordDialog = () => {
     setShowPasswordDialog(false)
     setPasswordError('')
@@ -58,13 +54,6 @@ function Header({ activeView, onNavigate, onSettingsChange }) {
   return (
     <header className="app-admin-header">
       <div className="app-admin-header__toolbar">
-        <div className="app-admin-header__left">
-          <AdminBreadcrumb items={breadcrumb} onNavigate={onNavigate} />
-          <div className="app-admin-header__titles">
-            <h1 className="app-admin-header__title">{meta.title}</h1>
-            <p className="app-admin-header__desc">{meta.description}</p>
-          </div>
-        </div>
         <div className="app-admin-header__right">
           <div className="app-admin-header__mobile">
             <MobileMenu>
@@ -104,10 +93,8 @@ function Header({ activeView, onNavigate, onSettingsChange }) {
             />
           </label>
           <NotificationCenter />
-          <Settings onSettingsChange={onSettingsChange} />
           <HelpTooltip />
-          <UserGuide />
-          <ThemeToggle />
+          <Settings onSettingsChange={onSettingsChange} />
           <div className="app-admin-header__user-wrap">
             <button
               type="button"
@@ -144,6 +131,8 @@ function Header({ activeView, onNavigate, onSettingsChange }) {
               </div>
             ) : null}
           </div>
+          <UserGuide />
+          <ThemeToggle />
         </div>
       </div>
       <ConfirmDialog

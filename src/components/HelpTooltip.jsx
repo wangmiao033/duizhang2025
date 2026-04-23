@@ -11,7 +11,7 @@ function HelpTooltip() {
         onClick={() => setIsOpen(!isOpen)}
         title="快捷键帮助"
       >
-        ❓ 帮助
+        ?
       </button>
       
       {isOpen && (

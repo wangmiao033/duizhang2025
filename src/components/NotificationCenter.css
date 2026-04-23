@@ -5,13 +5,14 @@
 }
 
 .notification-btn {
-  padding: 0 10px;
-  min-height: var(--admin-btn-h);
-  background: var(--admin-card-bg);
-  color: var(--admin-primary);
-  border: 1px solid var(--admin-border-strong);
-  border-radius: var(--admin-radius-sm);
-  font-size: var(--admin-font-sm);
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: #fff;
+  color: #64748b;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  font-size: 16px;
   cursor: pointer;
   transition:
     background 0.15s ease,
@@ -20,8 +21,8 @@
 }
 
 .notification-btn:hover {
-  background: var(--admin-primary-muted);
-  border-color: var(--admin-primary);
+  background: #f5f7fb;
+  border-color: #cfd8ea;
 }
 
 .notification-overlay {
@@ -30,7 +31,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.35);
+  background: rgba(15, 23, 42, 0.32);
   z-index: 9998;
   animation: notif-fade 0.2s ease;
 }
@@ -46,29 +47,29 @@
 
 .notification-badge {
   position: absolute;
-  top: -5px;
-  right: -5px;
+  top: -4px;
+  right: -4px;
   background: var(--admin-danger);
   color: #fff;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--admin-font-sm);
+  font-size: 10px;
   font-weight: 600;
 }
 
 .notification-panel {
   position: fixed;
-  top: 80px;
+  top: 74px;
   right: 20px;
   background: var(--admin-card-bg);
   border: 1px solid var(--admin-border-soft);
-  border-radius: var(--admin-radius);
-  box-shadow: var(--admin-shadow-md);
-  width: 360px;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+  width: 340px;
   max-height: 500px;
   z-index: 9999;
   animation: notif-slide 0.2s ease;
@@ -97,9 +98,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--admin-space-md) var(--admin-space-lg);
-  border-bottom: 1px solid var(--admin-border-soft);
-  background: var(--admin-elevated-bg);
+  padding: 12px 14px;
+  border-bottom: 1px solid #eef1f6;
+  background: #fbfcff;
 }
 
 .notification-header-actions {
@@ -115,7 +116,7 @@
 .notification-header h4 {
   margin: 0;
   color: var(--admin-text-main);
-  font-size: var(--admin-font-base);
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -126,12 +127,12 @@
 .clear-all-btn,
 .close-notification-btn {
   padding: 0 10px;
-  min-height: 28px;
+  min-height: 30px;
   background: var(--admin-card-bg);
   color: var(--admin-text-main);
   border: 1px solid var(--admin-border-strong);
-  border-radius: var(--admin-radius-sm);
-  font-size: var(--admin-font-sm);
+  border-radius: 8px;
+  font-size: 12px;
   cursor: pointer;
   transition: background 0.15s ease;
 }
@@ -142,9 +143,9 @@
 }
 
 .close-notification-btn {
-  font-size: 1.2rem;
-  width: 28px;
-  height: 28px;
+  font-size: 14px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -154,14 +155,15 @@
 .notification-list {
   max-height: 400px;
   overflow-y: auto;
-  padding: 10px;
+  padding: 10px 10px 6px;
 }
 
 .empty-notifications {
   text-align: center;
-  padding: 40px;
+  padding: 24px;
   color: var(--admin-text-muted);
-  font-style: italic;
+  font-style: normal;
+  font-size: 12px;
 }
 
 [data-theme='dark'] .empty-notifications {
@@ -169,34 +171,31 @@
 }
 
 .notification-item {
-  padding: var(--admin-space-sm);
-  border-radius: var(--admin-radius-sm);
-  margin-bottom: var(--space-2);
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 8px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 10px;
-  border: 1px solid var(--admin-border-soft);
+  border: 1px solid #e9edf5;
+  background: #fff;
 }
 
 .notification-info {
-  background: rgba(59, 130, 246, 0.08);
-  border-left: 3px solid #2563eb;
+  border-left: 3px solid #aac0f8;
 }
 
 .notification-success {
-  background: var(--admin-success-muted);
-  border-left: 3px solid var(--admin-success);
+  border-left: 3px solid #b7e0c5;
 }
 
 .notification-error {
-  background: var(--admin-danger-muted);
-  border-left: 3px solid var(--admin-danger);
+  border-left: 3px solid #e9b0ab;
 }
 
 .notification-warning {
-  background: rgba(245, 158, 11, 0.1);
-  border-left: 3px solid var(--admin-warning);
+  border-left: 3px solid #e7cfa2;
 }
 
 [data-theme='dark'] .notification-info {
@@ -229,7 +228,7 @@
 
 .notification-message {
   color: var(--admin-text-main);
-  font-size: var(--admin-font-sm);
+  font-size: 13px;
   line-height: 1.4;
 }
 
@@ -238,7 +237,7 @@
 }
 
 .notification-time {
-  font-size: var(--admin-font-sm);
+  font-size: 12px;
   color: var(--admin-text-muted);
 }
 
@@ -249,12 +248,12 @@
 .notification-close {
   background: none;
   border: none;
-  font-size: 1.2rem;
+  font-size: 14px;
   color: var(--admin-text-muted);
   cursor: pointer;
   padding: 0;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,16 +1,19 @@
 .guide-btn {
-  padding: 10px 20px;
-  background: #007bff;
+  height: 44px;
+  padding: 0 14px;
+  background: var(--admin-primary);
   color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  border: 1px solid var(--admin-primary);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background 0.2s, border-color 0.2s;
 }
 
 .guide-btn:hover {
-  background: #0056b3;
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
 }
 
 .guide-overlay {
@@ -19,7 +22,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(15, 23, 42, 0.42);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -37,15 +40,16 @@
 }
 
 .guide-dialog {
-  background: white;
-  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e6eaf2;
+  border-radius: 10px;
   width: 90%;
   max-width: 900px;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.3s;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  animation: slideUp 0.2s;
 }
 
 @keyframes slideUp {
@@ -63,21 +67,23 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 30px;
-  border-bottom: 2px solid #e9ecef;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eef1f6;
 }
 
 .guide-header h3 {
   margin: 0;
-  color: #333;
-  font-size: 1.5rem;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .close-guide-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: #999;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #64748b;
   cursor: pointer;
   padding: 0;
   width: 30px;
@@ -89,7 +95,8 @@
 }
 
 .close-guide-btn:hover {
-  color: #333;
+  color: #334155;
+  background: #f8fafc;
 }
 
 .guide-content {
@@ -100,83 +107,86 @@
 
 .guide-sidebar {
   width: 200px;
-  background: #f8f9fa;
-  border-right: 1px solid #e9ecef;
-  padding: 20px 0;
+  background: #fbfcff;
+  border-right: 1px solid #eef1f6;
+  padding: 10px 0;
   overflow-y: auto;
 }
 
 .guide-nav-btn {
   width: 100%;
-  padding: 12px 20px;
+  padding: 10px 14px;
   background: none;
   border: none;
   text-align: left;
-  color: #495057;
-  font-size: 0.95rem;
+  color: #64748b;
+  font-size: 13px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s, color 0.2s;
   border-left: 3px solid transparent;
 }
 
 .guide-nav-btn:hover {
-  background: #e9ecef;
+  background: #f2f5fb;
   color: var(--admin-primary);
 }
 
 .guide-nav-btn.active {
-  background: white;
+  background: #eef3ff;
   color: var(--admin-primary);
   border-left-color: var(--admin-primary);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .guide-main {
   flex: 1;
-  padding: 30px;
+  padding: 16px 18px;
   overflow-y: auto;
 }
 
 .guide-main h2 {
-  margin: 0 0 20px 0;
-  color: #333;
-  font-size: 1.5rem;
-  border-bottom: 2px solid var(--admin-primary);
+  margin: 0 0 12px 0;
+  color: #0f172a;
+  font-size: 20px;
+  border-bottom: 1px solid #eef1f6;
   padding-bottom: 10px;
 }
 
 .guide-text {
-  color: #495057;
-  line-height: 1.8;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.65;
 }
 
 .guide-text h4 {
-  color: var(--admin-primary);
-  margin-top: 25px;
-  margin-bottom: 10px;
-  font-size: 1.1rem;
+  color: #334155;
+  margin-top: 14px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .guide-text p {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .guide-text ul,
 .guide-text ol {
-  margin-bottom: 20px;
-  padding-left: 25px;
+  margin-bottom: 12px;
+  padding-left: 18px;
 }
 
 .guide-text li {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .guide-text kbd {
-  background: var(--admin-primary);
-  color: white;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 0.85rem;
+  background: #eef3ff;
+  color: #2d5fe3;
+  border: 1px solid #dbe5ff;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 12px;
   font-weight: 600;
   font-family: var(--font-mono);
   margin: 0 2px;

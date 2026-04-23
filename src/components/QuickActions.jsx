@@ -91,13 +91,13 @@ function QuickActions({
   return (
     <div className="quick-actions">
       <div className="quick-actions-header">
-        <h4>⚡ 快速操作</h4>
+        <h4>快捷操作</h4>
         {moreActions.length > 0 && (
           <button 
             className="toggle-more-btn"
             onClick={() => setShowMore(!showMore)}
           >
-            {showMore ? '收起' : '更多'}
+            {showMore ? '收起工具' : '全部工具'}
           </button>
         )}
       </div>
