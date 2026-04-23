@@ -10,7 +10,6 @@
 .app textarea,
 .app button {
   font-family: var(--font-sans);
-  font-size: var(--font-size-body);
 }
 
 .app h1,
