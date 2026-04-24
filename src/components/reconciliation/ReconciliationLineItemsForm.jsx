@@ -4,10 +4,8 @@ import GamePresets from '@/components/GamePresets.jsx'
 import { STATUS_OPTIONS } from '@/components/StatusManager.jsx'
 import LineItemsTable from '@/components/shared/LineItemsTable.jsx'
 import {
-  calculateSettlementAmount,
-  calculateSettlementAmountRaw,
-  calculateSettlementGrossShare,
-  rdLineItemToSettlementPayload
+  calculateRdSettlementAmount,
+  calculateRdSettlementRow
 } from '@/domain/settlement/calculateSettlementAmount.js'
 import '@/components/ChannelBilling.css'
 
@@ -203,8 +201,7 @@ function ReconciliationLineItemsForm({
       sumRevenue += Number.isFinite(rev) ? rev : 0
       sumNet += (Number.isFinite(rev) ? rev : 0) * d
       sumCoupon += parseFloat(line.couponAmount || 0) || 0
-      const payload = rdLineItemToSettlementPayload(line, header.channelFeeRate)
-      sumSettlement += calculateSettlementAmountRaw(payload)
+      sumSettlement += calculateRdSettlementAmount(line, header.channelFeeRate)
     }
     return {
       sumRevenue,
@@ -373,7 +370,7 @@ function ReconciliationLineItemsForm({
                 {mode === 'edit' ? '编辑对账记录' : '添加对账记录'}
               </h3>
               <span className="channel-discount-hint" style={{ display: 'block', marginTop: 4 }}>
-                必填项见标签；税点仅展示，不参与结算公式。
+                必填项见标签；税率与通道费按比例参与结算公式计算。
               </span>
             </div>
             <GamePresets
@@ -506,13 +503,10 @@ function ReconciliationLineItemsForm({
                 <div className="channel-cell channel-cell--actions">操作</div>
               </div>
               {lines.map((line, index) => {
-                const rev = parseFloat(line.revenue || 0)
-                const dRaw = parseFloat(line.discountRate)
-                const d = Number.isFinite(dRaw) ? dRaw : 1
-                const net = (Number.isFinite(rev) ? rev : 0) * d
-                const payload = rdLineItemToSettlementPayload(line, header.channelFeeRate)
-                const gross = calculateSettlementGrossShare(payload)
-                const settlement = calculateSettlementAmount(payload)
+                const calc = calculateRdSettlementRow(line, header.channelFeeRate)
+                const net = calc.totalFlow
+                const gross = calc.shareAmount
+                const settlement = calc.settlementAmount
                 return (
                   <div key={line.id} className="rd-line-items-grid-row">
                     <div className="channel-cell">

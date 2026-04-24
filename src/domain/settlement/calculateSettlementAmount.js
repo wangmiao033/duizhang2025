@@ -74,6 +74,52 @@ export function rdLineItemToSettlementPayload(line, channelFeeRatePercent) {
   }
 }
 
+function toNumberOr(value, fallback = 0) {
+  const n = parseFloat(value)
+  return Number.isFinite(n) ? n : fallback
+}
+
+function round2(value) {
+  if (!Number.isFinite(value)) return 0
+  return Math.round(value * 100) / 100
+}
+
+/**
+ * 研发对账单行统一公式：
+ * 总流水 = 后台流水 × 折扣
+ * 计费基础 = 总流水 - 代金券 - 测试费 - 额外费用
+ * 分成金额 = 计费基础 × (1 - 通道费%/100) × (1 - 税率%/100)
+ * 结算金额 = 分成金额 × 分成%/100
+ */
+export function calculateRdSettlementRow(line, channelFeeRatePercent) {
+  const totalFlow = toNumberOr(line.revenue ?? line.gameFlow ?? 0) * toNumberOr(line.discountRate ?? line.discount, 1)
+  const billingBase =
+    totalFlow -
+    toNumberOr(line.couponAmount ?? line.voucher ?? 0) -
+    toNumberOr(line.testFee ?? line.testingFee ?? 0) -
+    toNumberOr(line.extraFee ?? line.refund ?? 0)
+  const channelFeeRate = toNumberOr(channelFeeRatePercent ?? line.channelFeeRate ?? 0) / 100
+  const taxRate = toNumberOr(line.taxRate ?? line.taxPoint ?? 0) / 100
+  const shareRate = toNumberOr(line.shareRatio ?? line.revenueShareRatio ?? 0) / 100
+  const shareAmount = billingBase * (1 - channelFeeRate) * (1 - taxRate)
+  const settlementAmount = shareAmount * shareRate
+
+  return {
+    totalFlow: round2(totalFlow),
+    billingBase: round2(billingBase),
+    shareAmount: round2(shareAmount),
+    settlementAmount: round2(settlementAmount)
+  }
+}
+
+export function calculateRdSettlementAmount(line, channelFeeRatePercent) {
+  return calculateRdSettlementRow(line, channelFeeRatePercent).settlementAmount
+}
+
+export function calculateRdShareAmount(line, channelFeeRatePercent) {
+  return calculateRdSettlementRow(line, channelFeeRatePercent).shareAmount
+}
+
 /**
  * 多游戏明细时：先求和再四舍五入（与财务 Excel 汇总口径一致）
  * @param {Record<string, unknown>} record
@@ -84,7 +130,7 @@ export function totalReconciliationSettlementAmount(record) {
     const cf = record.channelFeeRate
     let sum = 0
     for (const line of items) {
-      sum += calculateSettlementAmountRaw(rdLineItemToSettlementPayload(line, cf))
+      sum += calculateRdSettlementAmount(line, cf)
     }
     return Math.round(sum * 100) / 100
   }

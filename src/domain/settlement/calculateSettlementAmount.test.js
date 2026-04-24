@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
+  calculateRdSettlementRow,
   calculateSettlementAmount,
   calculateSettlementAmountRaw,
   formatSettlementAmountString,
@@ -174,5 +175,24 @@ describe('calculateSettlementAmount', () => {
     expect(str).toBe(calc.toFixed(2))
     // 186500×0.97×0.6 在 IEEE 浮点下末位略低于 .3，ROUND 到分为 108543.00
     expect(calc).toBe(108543)
+  })
+
+  it('研发对账新公式：通道费和税率从计费基础按比例扣减', () => {
+    const row1 = calculateRdSettlementRow(
+      {
+        revenue: 29276,
+        discountRate: 1,
+        couponAmount: 13497.7,
+        testFee: 0,
+        extraFee: 0,
+        shareRatio: 15,
+        taxRate: 3.36
+      },
+      5
+    )
+    expect(row1.totalFlow).toBe(29276.0)
+    expect(row1.billingBase).toBe(15778.3)
+    expect(row1.shareAmount).toBe(14485.74)
+    expect(row1.settlementAmount).toBe(2172.86)
   })
 })

@@ -1,8 +1,19 @@
-"""研发对账明细行金额计算（与前端 calculateSettlementAmount.js 口径一致）。"""
+"""研发对账明细行金额计算（与前端研发对账公式口径一致）。"""
 
 from __future__ import annotations
 
-import math
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+
+
+def _to_decimal(value, fallback: str = "0") -> Decimal:
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        return Decimal(fallback)
+
+
+def _round2(value: Decimal) -> Decimal:
+    return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
 def compute_rd_line_amounts(
@@ -13,32 +24,28 @@ def compute_rd_line_amounts(
     extra_fee: float,
     channel_fee_rate_pct: float,
     share_ratio_pct: float,
+    tax_rate_pct: float,
 ) -> tuple[float, float, float]:
     """
     返回 (net_revenue, share_amount, settlement_amount)。
-    share_amount 为分成毛额（可负）；settlement_amount = max(0, round(share,2)) 与 JS 一致。
+    公式：
+    总流水 = 后台流水 × 折扣
+    计费基础 = 总流水 - 代金券 - 测试费 - 额外费用
+    分成金额 = 计费基础 × (1 - 通道费%/100) × (1 - 税率%/100)
+    结算金额 = 分成金额 × 分成%/100
     """
-    try:
-        disc = float(discount_rate)
-    except (TypeError, ValueError):
-        disc = 1.0
-    if not math.isfinite(disc):
-        disc = 1.0
-
-    gf = float(revenue or 0)
+    disc = _to_decimal(discount_rate, "1")
+    gf = _to_decimal(revenue, "0")
     discounted_flow = gf * disc
     base = (
         discounted_flow
-        - float(test_fee or 0)
-        - float(coupon_amount or 0)
-        - float(extra_fee or 0)
+        - _to_decimal(coupon_amount, "0")
+        - _to_decimal(test_fee, "0")
+        - _to_decimal(extra_fee, "0")
     )
-    cf = float(channel_fee_rate_pct or 0) / 100.0
-    sr = float(share_ratio_pct or 0) / 100.0
-    raw = base * (1.0 - cf) * sr
-    if not math.isfinite(raw):
-        raw = 0.0
-    share = round(raw, 2)
-    settlement = max(0.0, share)
-    net_rev = round(discounted_flow, 2)
-    return net_rev, share, settlement
+    cf = _to_decimal(channel_fee_rate_pct, "0") / Decimal("100")
+    tr = _to_decimal(tax_rate_pct, "0") / Decimal("100")
+    sr = _to_decimal(share_ratio_pct, "0") / Decimal("100")
+    share = base * (Decimal("1") - cf) * (Decimal("1") - tr)
+    settlement = share * sr
+    return float(_round2(discounted_flow)), float(_round2(share)), float(_round2(settlement))

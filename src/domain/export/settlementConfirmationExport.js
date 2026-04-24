@@ -6,8 +6,8 @@
 import * as XLSX from 'xlsx'
 import dayjs from 'dayjs'
 import {
-  calculateSettlementAmount,
-  rdLineItemToSettlementPayload
+  calculateRdSettlementAmount,
+  calculateRdSettlementRow
 } from '@/domain/settlement/calculateSettlementAmount.js'
 import { isCorruptSettlementNumber } from '@/utils/settlementNumber.js'
 
@@ -59,23 +59,19 @@ function expandRdRecordsForSettlementExport(records) {
           line.settlementCycle != null && String(line.settlementCycle).trim() !== ''
             ? String(line.settlementCycle).trim()
             : null
-        const dRaw = parseFloat(line.discountRate)
-        const d = Number.isFinite(dRaw) ? dRaw : 1
-        const rev = parseFloat(line.revenue || 0)
-        const net = (Number.isFinite(rev) ? rev : 0) * d
-        const payload = rdLineItemToSettlementPayload(line, r.channelFeeRate)
+        const calc = calculateRdSettlementRow(line, r.channelFeeRate)
         const headerMonth = r.settlementMonth != null ? String(r.settlementMonth) : ''
         out.push({
           settlementMonth: cycleFromLine != null ? cycleFromLine : headerMonth,
           game: line.gameName,
-          gameFlow: net,
+          gameFlow: calc.totalFlow,
           voucher: line.couponAmount,
           refund: line.extraFee,
           testingFee: line.testFee,
           revenueShareRatio: line.shareRatio,
           channelFeeRate: r.channelFeeRate,
           taxPoint: line.taxRate,
-          settlementAmount: calculateSettlementAmount(payload)
+          settlementAmount: calculateRdSettlementAmount(line, r.channelFeeRate)
         })
       }
     } else {

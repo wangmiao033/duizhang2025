@@ -66,6 +66,7 @@ def _replace_line_items(db: Session, rec: ReconciliationRecord, items_in: list[R
             float(raw.extra_fee or 0),
             ch,
             float(raw.share_ratio or 0),
+            float(raw.tax_rate or 0),
         )
         sort_o = int(raw.sort_order) if raw.sort_order is not None else idx
         li = ReconciliationLineItem(
