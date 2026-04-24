@@ -596,11 +596,11 @@ function ReconciliationLineItemsForm({
                     </div>
                     <div className="channel-cell channel-cell--num">
                       <input
-                        type="text"
-                        readOnly
-                        disabled
-                        className="admin-input readonly-input channel-input-num"
-                        value={String(header.channelFeeRate || 0)}
+                        type="number"
+                        step="0.01"
+                        className="admin-input channel-input-num"
+                        value={header.channelFeeRate}
+                        onChange={(e) => setHeader((h) => ({ ...h, channelFeeRate: e.target.value }))}
                       />
                     </div>
                     <div className="channel-cell channel-cell--num">
