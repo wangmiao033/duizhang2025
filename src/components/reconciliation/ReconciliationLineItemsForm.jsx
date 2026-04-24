@@ -4,7 +4,6 @@ import GamePresets from '@/components/GamePresets.jsx'
 import { STATUS_OPTIONS } from '@/components/StatusManager.jsx'
 import LineItemsTable from '@/components/shared/LineItemsTable.jsx'
 import {
-  calculateRdSettlementAmount,
   calculateRdSettlementRow
 } from '@/domain/settlement/calculateSettlementAmount.js'
 import '@/components/ChannelBilling.css'
@@ -193,6 +192,7 @@ function ReconciliationLineItemsForm({
     let sumRevenue = 0
     let sumNet = 0
     let sumCoupon = 0
+    let sumShareAmount = 0
     let sumSettlement = 0
     for (const line of lines) {
       const rev = parseFloat(line.revenue || 0)
@@ -201,12 +201,15 @@ function ReconciliationLineItemsForm({
       sumRevenue += Number.isFinite(rev) ? rev : 0
       sumNet += (Number.isFinite(rev) ? rev : 0) * d
       sumCoupon += parseFloat(line.couponAmount || 0) || 0
-      sumSettlement += calculateRdSettlementAmount(line, header.channelFeeRate)
+      const calc = calculateRdSettlementRow(line, header.channelFeeRate)
+      sumShareAmount += calc.shareAmount
+      sumSettlement += calc.settlementAmount
     }
     return {
       sumRevenue,
       sumNet,
       sumCoupon,
+      sumShareAmount: Math.round(sumShareAmount * 100) / 100,
       sumSettlement: Math.round(sumSettlement * 100) / 100
     }
   }, [lines, header.channelFeeRate])
@@ -496,9 +499,10 @@ function ReconciliationLineItemsForm({
                 <div className="channel-cell channel-cell--num">代金券</div>
                 <div className="channel-cell channel-cell--num">测试费</div>
                 <div className="channel-cell channel-cell--num">额外费用</div>
-                <div className="channel-cell channel-cell--num">分成%</div>
+                <div className="channel-cell channel-cell--num">通道费%</div>
                 <div className="channel-cell channel-cell--num">税率%</div>
-                <div className="channel-cell channel-cell--num">分成金额</div>
+                <div className="channel-cell channel-cell--num">分成%</div>
+                <div className="channel-cell channel-cell--num">参与分成金额</div>
                 <div className="channel-cell channel-cell--num">结算金额</div>
                 <div className="channel-cell channel-cell--actions">操作</div>
               </div>
@@ -592,11 +596,11 @@ function ReconciliationLineItemsForm({
                     </div>
                     <div className="channel-cell channel-cell--num">
                       <input
-                        type="number"
-                        step="0.01"
-                        className="admin-input channel-input-num"
-                        value={line.shareRatio}
-                        onChange={(e) => updateLine(index, 'shareRatio', e.target.value)}
+                        type="text"
+                        readOnly
+                        disabled
+                        className="admin-input readonly-input channel-input-num"
+                        value={String(header.channelFeeRate || 0)}
                       />
                     </div>
                     <div className="channel-cell channel-cell--num">
@@ -606,6 +610,15 @@ function ReconciliationLineItemsForm({
                         className="admin-input channel-input-num"
                         value={line.taxRate}
                         onChange={(e) => updateLine(index, 'taxRate', e.target.value)}
+                      />
+                    </div>
+                    <div className="channel-cell channel-cell--num">
+                      <input
+                        type="number"
+                        step="0.01"
+                        className="admin-input channel-input-num"
+                        value={line.shareRatio}
+                        onChange={(e) => updateLine(index, 'shareRatio', e.target.value)}
                       />
                     </div>
                     <div className="channel-cell channel-cell--num">
@@ -662,6 +675,10 @@ function ReconciliationLineItemsForm({
             <div className="summary-item">
               <div className="label">总代金券</div>
               <div className="value">¥{totals.sumCoupon.toFixed(2)}</div>
+            </div>
+            <div className="summary-item">
+              <div className="label">总参与分成金额</div>
+              <div className="value">¥{totals.sumShareAmount.toFixed(2)}</div>
             </div>
             <div className="summary-item summary-item--hero">
               <div className="label">总结算金额</div>

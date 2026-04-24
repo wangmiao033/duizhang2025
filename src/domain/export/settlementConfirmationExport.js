@@ -71,11 +71,31 @@ function expandRdRecordsForSettlementExport(records) {
           revenueShareRatio: line.shareRatio,
           channelFeeRate: r.channelFeeRate,
           taxPoint: line.taxRate,
+          shareAmount: calc.shareAmount,
           settlementAmount: calculateRdSettlementAmount(line, r.channelFeeRate)
         })
       }
     } else {
-      out.push(r)
+      const calc = calculateRdSettlementRow(
+        {
+          revenue: r.gameFlow,
+          discountRate: r.discount,
+          couponAmount: r.voucher,
+          testFee: r.testingFee,
+          extraFee: r.refund,
+          shareRatio: r.revenueShareRatio,
+          taxRate: r.taxPoint
+        },
+        r.channelFeeRate
+      )
+      out.push({
+        ...r,
+        shareAmount: calc.shareAmount,
+        settlementAmount:
+          r.settlementAmount != null && r.settlementAmount !== ''
+            ? r.settlementAmount
+            : calc.settlementAmount
+      })
     }
   }
   return out
@@ -107,7 +127,8 @@ export function buildSettlementSheetAoa(records) {
     '合作方分成比例',
     '通道费率',
     '税率',
-    '合作方分成收入'
+    '参与分成金额',
+    '结算金额'
   ]
   wsData.push(headers)
 
@@ -123,11 +144,16 @@ export function buildSettlementSheetAoa(records) {
     const shareRatio = pctDisplay(record.revenueShareRatio)
     const channel = pctDisplay(record.channelFeeRate)
     const tax = pctDisplay(record.taxPoint)
-    const incRaw = record.settlementAmount
-    const incomeCell =
-      incRaw === null || incRaw === undefined || incRaw === ''
+    const shareRaw = record.shareAmount
+    const shareCell =
+      shareRaw === null || shareRaw === undefined || shareRaw === ''
         ? ''
-        : formatNumber(incRaw).toFixed(2)
+        : formatNumber(shareRaw).toFixed(2)
+    const setRaw = record.settlementAmount
+    const settlementCell =
+      setRaw === null || setRaw === undefined || setRaw === ''
+        ? ''
+        : formatNumber(setRaw).toFixed(2)
 
     wsData.push([
       record.settlementMonth != null ? String(record.settlementMonth) : '',
@@ -139,7 +165,8 @@ export function buildSettlementSheetAoa(records) {
       shareRatio,
       channel,
       tax,
-      incomeCell
+      shareCell,
+      settlementCell
     ])
   })
 
@@ -154,6 +181,7 @@ export function buildSettlementSheetAoa(records) {
   const totalVoucher = sum2((r) => r.voucher)
   const totalRefund = sum2((r) => r.refund)
   const totalPlatform = sum2((r) => r.testingFee)
+  const totalShare = sum2((r) => r.shareAmount)
   const totalIncome = sum2((r) => r.settlementAmount)
 
   wsData.push([
@@ -166,6 +194,7 @@ export function buildSettlementSheetAoa(records) {
     '',
     '',
     '',
+    totalShare.toFixed(2),
     totalIncome.toFixed(2)
   ])
 
@@ -219,14 +248,15 @@ export function applySettlementSheetLayout(ws) {
     { wch: 14 },
     { wch: 12 },
     { wch: 10 },
+    { wch: 16 },
     { wch: 16 }
   ]
   ws['!cols'] = colWidths
   ws['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 9 } },
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } },
     { s: { r: 2, c: 1 }, e: { r: 2, c: 3 } },
-    { s: { r: 2, c: 5 }, e: { r: 2, c: 9 } },
-    { s: { r: 3, c: 1 }, e: { r: 3, c: 9 } }
+    { s: { r: 2, c: 5 }, e: { r: 2, c: 10 } },
+    { s: { r: 3, c: 1 }, e: { r: 3, c: 10 } }
   ]
   ws['!rows'] = []
   ws['!rows'][0] = { hpt: 28 }
