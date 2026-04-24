@@ -9,6 +9,10 @@ const rawBase =
 
 export const API_BASE_URL = rawBase.replace(/\/$/, '')
 
+type ApiRequestOptions = {
+  timeoutMs?: number
+}
+
 export class ApiError extends Error {
   status: number
   body: unknown
@@ -21,13 +25,30 @@ export class ApiError extends Error {
   }
 }
 
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, timeoutMs?: number) {
+  if (!timeoutMs || timeoutMs <= 0) {
+    return fetch(input, init)
+  }
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(input, { ...init, signal: controller.signal })
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 function joinUrl(path: string): string {
   const p = path.startsWith('/') ? path : `/${path}`
   return `${API_BASE_URL}${p}`
 }
 
-export async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetch(joinUrl(path), { method: 'GET', credentials: 'include' })
+export async function apiGet<T>(path: string, options?: ApiRequestOptions): Promise<T> {
+  const res = await fetchWithTimeout(
+    joinUrl(path),
+    { method: 'GET', credentials: 'include' },
+    options?.timeoutMs
+  )
   return parseResponse<T>(res)
 }
 

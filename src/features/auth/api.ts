@@ -23,7 +23,8 @@ export type AuthUser = {
 }
 
 export async function authMe(): Promise<AuthMe> {
-  return apiGet<AuthMe>('/api/auth/me')
+  // 避免登录态探测无限等待，超时后交给上层兜底处理（回到登录页）
+  return apiGet<AuthMe>('/api/auth/me', { timeoutMs: 8000 })
 }
 
 export async function sendOtp(email: string): Promise<{ ok: boolean; message: string }> {
