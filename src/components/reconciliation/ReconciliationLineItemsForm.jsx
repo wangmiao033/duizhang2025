@@ -487,6 +487,7 @@ function ReconciliationLineItemsForm({
           <div className="form-section-title">2）游戏明细</div>
           <LineItemsTable
             onAddRow={addRow}
+            showAddButton={false}
             hint="折扣系数与历史口径一致（如 1 无折扣，0.005 为 0.05 折档）。自动计算列不可编辑。"
           >
             <div className="rd-line-items-grid">

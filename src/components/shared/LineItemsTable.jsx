@@ -15,6 +15,7 @@ export default function LineItemsTable({
   leading = null,
   hint = null,
   onAddRow,
+  showAddButton = true,
   addLabel = '+ 新增一行游戏',
   children
 }) {
@@ -25,13 +26,15 @@ export default function LineItemsTable({
         className={`channel-line-items-toolbar${split ? ' channel-line-items-toolbar--split' : ''}`}
       >
         {split ? <div className="channel-line-items-toolbar-leading">{leading}</div> : null}
-        <button
-          type="button"
-          className="rec-btn rec-btn--secondary channel-line-add"
-          onClick={onAddRow}
-        >
-          {addLabel}
-        </button>
+        {showAddButton ? (
+          <button
+            type="button"
+            className="rec-btn rec-btn--secondary channel-line-add"
+            onClick={onAddRow}
+          >
+            {addLabel}
+          </button>
+        ) : null}
       </div>
       {hint ? <p className="channel-discount-hint">{hint}</p> : null}
       <div className="channel-line-items-table-wrap">{children}</div>
