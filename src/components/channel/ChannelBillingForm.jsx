@@ -256,6 +256,7 @@ function ChannelBillingForm({
       <div className="form-section-title">2）游戏明细（每行独立按原公式计算结算金额）</div>
       <LineItemsTable
         onAddRow={addLine}
+        showAddButton={false}
         hint="折扣系数仅填数字（如 0.005 表示 0.05 折）。结算与导出均以「折算后总流水」为准。"
       >
         <table className="channel-line-items-table">
@@ -402,10 +403,19 @@ function ChannelBillingForm({
                   <button
                     type="button"
                     className="rec-btn rec-btn--ghost rec-btn--small"
+                    onClick={addLine}
+                    title="新增一行游戏"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    className="rec-btn rec-btn--ghost rec-btn--small"
                     onClick={() => removeLine(index)}
                     disabled={lines.length <= 1}
+                    title="删除一行游戏"
                   >
-                    删除
+                    -
                   </button>
                 </td>
               </tr>
