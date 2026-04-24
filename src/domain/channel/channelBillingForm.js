@@ -23,6 +23,7 @@ export const initialHeaderForm = {
 export function initialLineItem() {
   return {
     id: '',
+    settlementCycle: '',
     gameName: '',
     flow: '',
     discountFactor: '1',
@@ -101,6 +102,7 @@ export function buildLineRecordFromForm(fd) {
   const shareAmount = calculateShareAmount(fd)
   const settlementAmount = resolveSettlementAmount(fd)
   return {
+    settlementCycle: fd.settlementCycle != null ? String(fd.settlementCycle) : '',
     gameName: fd.gameName != null ? String(fd.gameName) : '',
     flow: parseFloat(fd.flow || 0),
     discountFactor,
@@ -219,6 +221,10 @@ export function recordToHeaderForm(record) {
 export function recordToLineForms(record) {
   return getChannelLineItems(record).map((line) => ({
     id: line.id != null ? String(line.id) : '',
+    settlementCycle:
+      line.settlementCycle != null && String(line.settlementCycle).trim() !== ''
+        ? String(line.settlementCycle)
+        : record.settlementMonth || '',
     gameName: line.gameName || '',
     flow: String(line.flow ?? ''),
     discountFactor:

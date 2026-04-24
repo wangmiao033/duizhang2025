@@ -30,6 +30,23 @@ const COMMON_CHANNELS = [
   '3387游戏'
 ]
 
+function formatCycleFromMonth(rawMonth) {
+  const text = String(rawMonth || '').trim()
+  const m = text.match(/^(\d{4})-(\d{1,2})$/)
+  if (!m) return text
+  return `${m[1]}年${Number(m[2])}月`
+}
+
+function normalizeCycleLabel(raw) {
+  const text = String(raw || '').trim()
+  if (!text) return ''
+  let m = text.match(/^(\d{4})年(\d{1,2})月$/)
+  if (m) return `${m[1]}年${Math.min(Math.max(Number(m[2]), 1), 12)}月`
+  m = text.match(/^(\d{4})-(\d{1,2})$/)
+  if (m) return `${m[1]}年${Math.min(Math.max(Number(m[2]), 1), 12)}月`
+  return text
+}
+
 function formatMoney(amount) {
   if (amount >= 100000000) {
     return `¥${(amount / 100000000).toFixed(2)}亿`
@@ -113,13 +130,22 @@ function ChannelBillingForm({
 
   useEffect(() => {
     if (mode === 'edit' && sourceRecord) {
-      setHeader(recordToHeaderForm(sourceRecord))
+      const nextHeader = recordToHeaderForm(sourceRecord)
+      setHeader(nextHeader)
       const lf = recordToLineForms(sourceRecord)
-      setLines(lf.length ? lf : [initialLineItem()])
+      const defaultCycle = formatCycleFromMonth(nextHeader.settlementMonth)
+      setLines(
+        lf.length
+          ? lf.map((line) => ({
+              ...line,
+              settlementCycle: line.settlementCycle || defaultCycle
+            }))
+          : [{ ...initialLineItem(), settlementCycle: defaultCycle }]
+      )
     }
     if (mode === 'add') {
       setHeader(initialHeaderForm)
-      setLines([initialLineItem()])
+      setLines([{ ...initialLineItem(), settlementCycle: formatCycleFromMonth(initialHeaderForm.settlementMonth) }])
     }
   }, [mode, sourceRecord?.id])
 
@@ -132,7 +158,8 @@ function ChannelBillingForm({
   }
 
   const addLine = () => {
-    setLines((prev) => [...prev, initialLineItem()])
+    const defaultCycle = formatCycleFromMonth(header.settlementMonth)
+    setLines((prev) => [...prev, { ...initialLineItem(), settlementCycle: defaultCycle }])
   }
 
   const removeLine = (index) => {
@@ -262,6 +289,7 @@ function ChannelBillingForm({
         <table className="channel-line-items-table">
           <thead>
             <tr>
+              <th>结算周期</th>
               <th>游戏名称</th>
               <th>后台流水</th>
               <th>折扣系数</th>
@@ -283,6 +311,16 @@ function ChannelBillingForm({
           <tbody>
             {lines.map((row, index) => (
               <tr key={row.id || `line-${index}`}>
+                <td>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={row.settlementCycle || formatCycleFromMonth(header.settlementMonth)}
+                    onChange={(e) => handleLineChange(index, 'settlementCycle', e.target.value)}
+                    onBlur={(e) => handleLineChange(index, 'settlementCycle', normalizeCycleLabel(e.target.value))}
+                    placeholder="如：2026年4月"
+                  />
+                </td>
                 <td>
                   <input
                     type="text"
