@@ -642,11 +642,20 @@ function ReconciliationLineItemsForm({
                     <div className="channel-cell channel-cell--actions">
                       <button
                         type="button"
+                        className="rec-btn rec-btn--ghost"
+                        onClick={addRow}
+                        title="新增一行"
+                      >
+                        +
+                      </button>
+                      <button
+                        type="button"
                         className="rec-btn rec-btn--danger-outline"
                         disabled={lines.length <= 1}
                         onClick={() => removeRow(index)}
+                        title="删除当前行"
                       >
-                        删除
+                        -
                       </button>
                     </div>
                   </div>
