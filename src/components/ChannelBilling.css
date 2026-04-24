@@ -1353,14 +1353,14 @@
 
 /* 研发对账：游戏明细 grid（列与渠道明细表一致：紧凑、可横向滚动） */
 .rd-line-items-grid {
-  min-width: 1060px;
+  min-width: 1220px;
 }
 
 .rd-line-items-grid-head,
 .rd-line-items-grid-row {
   display: grid;
   grid-template-columns:
-    118px minmax(88px, 1.25fr) 92px 80px 88px 84px 84px 84px 72px 72px 88px 88px 76px;
+    118px minmax(88px, 1.25fr) 92px 80px 88px 84px 84px 84px 72px 72px 72px 96px 88px 76px;
   gap: 8px 10px;
   padding: 10px 12px;
   align-items: center;
@@ -1401,7 +1401,8 @@
 
 .rd-line-items-grid-row .channel-cell--actions {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
+  gap: 6px;
 }
 
 .rec-btn.rec-btn--danger-outline {
