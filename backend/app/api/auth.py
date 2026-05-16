@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -69,10 +72,16 @@ async def send_otp(payload: SendOtpRequest, request: Request, db: Session = Depe
         expires_at=now + timedelta(minutes=5),
         request_ip=get_client_ip(request),
     )
+    try:
+        await send_otp_email(to_email=email, otp_code=code)
+    except Exception:
+        logger.exception("send_otp_email failed email=%s", email)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="验证码邮件发送失败，请稍后重试。若多次失败请联系管理员检查邮件服务（Resend）配置。",
+        )
     db.add(row)
     db.commit()
-
-    await send_otp_email(to_email=email, otp_code=code)
     return AuthMessageResponse(message=f"验证码已发送至 {safe_mask_email(email)}")
 
 

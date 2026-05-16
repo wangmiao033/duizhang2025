@@ -91,7 +91,7 @@ function round2(value) {
  * 分成金额 = 计费基础 × (1 - 通道费%/100) × (1 - 税率%/100)
  * 结算金额 = 分成金额 × 分成%/100
  */
-export function calculateRdSettlementRow(line, channelFeeRatePercent) {
+function rdLineSettlementRaw(line, channelFeeRatePercent) {
   const totalFlow = toNumberOr(line.revenue ?? line.gameFlow ?? 0) * toNumberOr(line.discountRate ?? line.discount, 1)
   const billingBase =
     totalFlow -
@@ -102,13 +102,17 @@ export function calculateRdSettlementRow(line, channelFeeRatePercent) {
   const taxRate = toNumberOr(line.taxRate ?? line.taxPoint ?? 0) / 100
   const shareRate = toNumberOr(line.shareRatio ?? line.revenueShareRatio ?? 0) / 100
   const shareAmount = billingBase * (1 - channelFeeRate) * (1 - taxRate)
-  const settlementAmount = shareAmount * shareRate
+  const settlementRaw = shareAmount * shareRate
+  return { totalFlow, billingBase, shareAmount, settlementRaw }
+}
 
+export function calculateRdSettlementRow(line, channelFeeRatePercent) {
+  const { totalFlow, billingBase, shareAmount, settlementRaw } = rdLineSettlementRaw(line, channelFeeRatePercent)
   return {
     totalFlow: round2(totalFlow),
     billingBase: round2(billingBase),
     shareAmount: round2(shareAmount),
-    settlementAmount: round2(settlementAmount)
+    settlementAmount: round2(settlementRaw)
   }
 }
 
@@ -130,7 +134,7 @@ export function totalReconciliationSettlementAmount(record) {
     const cf = record.channelFeeRate
     let sum = 0
     for (const line of items) {
-      sum += calculateRdSettlementAmount(line, cf)
+      sum += rdLineSettlementRaw(line, cf).settlementRaw
     }
     return Math.round(sum * 100) / 100
   }

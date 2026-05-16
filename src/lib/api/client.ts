@@ -25,14 +25,37 @@ export class ApiError extends Error {
   }
 }
 
+/** 将 fetch 网络层异常转为 ApiError，便于登录页等统一展示中文说明 */
+function toNetworkApiError(err: unknown): ApiError {
+  if (err instanceof ApiError) return err
+  if (err instanceof Error && err.name === 'AbortError') {
+    return new ApiError('请求超时，请稍后重试。', 0, err)
+  }
+  const msg =
+    err instanceof TypeError ||
+    (err instanceof Error &&
+      /fetch|Failed to fetch|NetworkError|Load failed|网络/i.test(err.message))
+      ? '无法连接服务器，请检查网络或稍后再试。'
+      : err instanceof Error
+        ? err.message
+        : '请求失败，请稍后重试。'
+  return new ApiError(msg, 0, err)
+}
+
 async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, timeoutMs?: number) {
   if (!timeoutMs || timeoutMs <= 0) {
-    return fetch(input, init)
+    try {
+      return await fetch(input, init)
+    } catch (e) {
+      throw toNetworkApiError(e)
+    }
   }
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
   try {
     return await fetch(input, { ...init, signal: controller.signal })
+  } catch (e) {
+    throw toNetworkApiError(e)
   } finally {
     clearTimeout(timer)
   }
@@ -53,38 +76,58 @@ export async function apiGet<T>(path: string, options?: ApiRequestOptions): Prom
 }
 
 export async function apiPost<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(joinUrl(path), {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  })
+  let res: Response
+  try {
+    res = await fetch(joinUrl(path), {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+  } catch (e) {
+    throw toNetworkApiError(e)
+  }
   return parseResponse<T>(res)
 }
 
 export async function apiPut<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(joinUrl(path), {
-    method: 'PUT',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  })
+  let res: Response
+  try {
+    res = await fetch(joinUrl(path), {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+  } catch (e) {
+    throw toNetworkApiError(e)
+  }
   return parseResponse<T>(res)
 }
 
 export async function apiDelete(path: string): Promise<void> {
-  const res = await fetch(joinUrl(path), { method: 'DELETE', credentials: 'include' })
+  let res: Response
+  try {
+    res = await fetch(joinUrl(path), { method: 'DELETE', credentials: 'include' })
+  } catch (e) {
+    throw toNetworkApiError(e)
+  }
   if (res.status === 204) return
   await parseResponse<unknown>(res)
 }
 
 /** multipart/form-data（不设置 Content-Type，由浏览器带 boundary） */
 export async function apiPostMultipart<T>(path: string, formData: FormData): Promise<T> {
-  const res = await fetch(joinUrl(path), {
-    method: 'POST',
-    credentials: 'include',
-    body: formData
-  })
+  let res: Response
+  try {
+    res = await fetch(joinUrl(path), {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    })
+  } catch (e) {
+    throw toNetworkApiError(e)
+  }
   return parseResponse<T>(res)
 }
 
