@@ -39,7 +39,7 @@ function AuthUsersPage() {
         <h3 style={{ marginTop: 0 }}>新增账号</h3>
         <div className="form-row">
           <div className="form-group">
-            <label>邮箱</label>
+            <label>账号</label>
             <input className="admin-input" value={form.email} onChange={(e) => setForm((x) => ({ ...x, email: e.target.value }))} />
           </div>
           <div className="form-group">
@@ -86,7 +86,7 @@ function AuthUsersPage() {
           <table className="admin-table" style={{ width: '100%' }}>
             <thead>
               <tr>
-                <th>邮箱</th>
+                <th>账号</th>
                 <th>显示名</th>
                 <th>角色</th>
                 <th>状态</th>

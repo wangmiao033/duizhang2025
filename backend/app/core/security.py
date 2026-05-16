@@ -2,22 +2,18 @@
 
 from __future__ import annotations
 
-import hashlib
-import hmac
 import os
-import random
-import string
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 import jwt
-from fastapi import Cookie, Depends, HTTPException, Request, status
+from fastapi import Cookie, Depends, HTTPException, status
 from passlib.context import CryptContext
-from sqlalchemy import desc, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
-from app.models.user import AuthOtpCode, AuthSession, AuthUser
+from app.models.user import AuthSession, AuthUser
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -86,18 +82,6 @@ def verify_password(plain_password: str, hashed_password: str | None) -> bool:
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
-
-
-def _otp_salt() -> str:
-    return os.environ.get("AUTH_OTP_SALT", "caiwu-otp-salt")
-
-
-def hash_otp(code: str) -> str:
-    return hashlib.sha256(f"{_otp_salt()}::{code}".encode("utf-8")).hexdigest()
-
-
-def generate_otp_code() -> str:
-    return "".join(random.choice(string.digits) for _ in range(6))
 
 
 def create_access_token(*, user_id: str, email: str, role: str, session_id: str, jti: str) -> str:
@@ -171,19 +155,6 @@ def get_user_by_email(db: Session, email: str) -> AuthUser | None:
     return db.execute(select(AuthUser).where(AuthUser.email == normalized)).scalars().first()
 
 
-def get_latest_otp(db: Session, user_id: str) -> AuthOtpCode | None:
-    return (
-        db.execute(
-            select(AuthOtpCode)
-            .where(AuthOtpCode.user_id == user_id)
-            .order_by(desc(AuthOtpCode.created_at))
-            .limit(1)
-        )
-        .scalars()
-        .first()
-    )
-
-
 def is_locked(user: AuthUser) -> bool:
     return user.locked_until is not None and user.locked_until > _utcnow()
 
@@ -199,29 +170,6 @@ def clear_login_fail(user: AuthUser) -> None:
     user.failed_login_count = 0
     user.locked_until = None
     user.last_login_at = _utcnow()
-
-
-def get_client_ip(request: Request) -> str:
-    xff = request.headers.get("x-forwarded-for", "")
-    if xff:
-        return xff.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
-
-
-def safe_mask_email(email: str) -> str:
-    s = email.strip()
-    if "@" not in s:
-        return "***"
-    local, domain = s.split("@", 1)
-    if len(local) <= 2:
-        local_mask = local[0] + "***"
-    else:
-        local_mask = local[:2] + "***"
-    return f"{local_mask}@{domain}"
-
-
-def hmac_equal(a: str, b: str) -> bool:
-    return hmac.compare_digest(a, b)
 
 
 def require_current_user(

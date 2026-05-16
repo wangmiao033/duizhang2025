@@ -27,24 +27,8 @@ export async function authMe(): Promise<AuthMe> {
   return apiGet<AuthMe>('/api/auth/me', { timeoutMs: 8000 })
 }
 
-export async function sendOtp(email: string): Promise<{ ok: boolean; message: string }> {
-  return apiPost('/api/auth/send-otp', { email })
-}
-
-export async function loginOtp(email: string, code: string): Promise<AuthMe> {
-  return apiPost<AuthMe>('/api/auth/login-otp', { email, code })
-}
-
 export async function loginPassword(account: string, password: string): Promise<AuthMe> {
   return apiPost<AuthMe>('/api/auth/login-password', { account, password })
-}
-
-export async function resetPasswordWithOtp(email: string, code: string, newPassword: string): Promise<AuthMe> {
-  return apiPost<AuthMe>('/api/auth/reset-password-otp', {
-    email,
-    code,
-    new_password: newPassword
-  })
 }
 
 export async function logout(): Promise<{ ok: boolean; message: string }> {

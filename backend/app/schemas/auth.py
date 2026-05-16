@@ -4,28 +4,13 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
-
-
-class SendOtpRequest(BaseModel):
-    email: EmailStr
-
-
-class OtpLoginRequest(BaseModel):
-    email: EmailStr
-    code: str = Field(min_length=4, max_length=12)
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PasswordLoginRequest(BaseModel):
     account: str | None = Field(default=None, min_length=1, max_length=128)
     email: str | None = Field(default=None, min_length=1, max_length=128)
     password: str = Field(min_length=6, max_length=128)
-
-
-class OtpResetPasswordRequest(BaseModel):
-    email: EmailStr
-    code: str = Field(min_length=4, max_length=12)
-    new_password: str = Field(min_length=6, max_length=128)
 
 
 class ChangePasswordRequest(BaseModel):
@@ -38,7 +23,7 @@ class AdminResetPasswordRequest(BaseModel):
 
 
 class UserCreateRequest(BaseModel):
-    email: EmailStr
+    email: str = Field(min_length=1, max_length=128)
     display_name: str | None = None
     role: str = "user"
     password: str | None = Field(default=None, min_length=6, max_length=128)

@@ -114,7 +114,7 @@ export function useInvoiceStore({ showToast }) {
         console.error(err)
         if (cancelled) return
         showToastRef.current?.(
-          '发票服务器暂时异常，已回退本地缓存。若列表长期不同步，请检查 API 与 Neon 表 invoice_records。',
+          '发票服务器暂时异常，已回退本地缓存。若列表长期不同步，请检查 API 与 PostgreSQL 表 invoice_records。',
           'error'
         )
         const savedInvoices = storageGet(STORAGE_KEYS.INVOICE_RECORDS)

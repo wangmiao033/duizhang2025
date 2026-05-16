@@ -142,7 +142,7 @@ export function useReconciliationStore(settings, showToast) {
         console.error(err)
         if (cancelled) return
         showToastRef.current?.(
-          '研发对账服务器暂时异常，已回退本地缓存。若列表长期不同步，请检查 API 与 Neon。',
+          '研发对账服务器暂时异常，已回退本地缓存。若列表长期不同步，请检查 API 与 PostgreSQL。',
           'error'
         )
         const savedRecords = storageGet(STORAGE_KEYS.RECONCILIATION_RECORDS)
@@ -169,7 +169,7 @@ export function useReconciliationStore(settings, showToast) {
         console.error(err)
         if (cancelled) return
         showToastRef.current?.(
-          '渠道服务器暂时异常，已回退本地缓存。若列表长期不同步，请检查 API 与 Neon 表 channel_records。',
+          '渠道服务器暂时异常，已回退本地缓存。若列表长期不同步，请检查 API 与 PostgreSQL 表 channel_records。',
           'error'
         )
         const savedChannel = storageGet(STORAGE_KEYS.CHANNEL_RECORDS)

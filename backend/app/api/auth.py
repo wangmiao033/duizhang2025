@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-import logging
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from uuid import uuid4
 
-logger = logging.getLogger(__name__)
-
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -20,21 +17,15 @@ from app.core.security import (
     clear_auth_cookie,
     clear_login_fail,
     create_session,
-    generate_otp_code,
-    get_client_ip,
-    get_latest_otp,
     get_user_by_email,
-    hash_otp,
     hash_password,
-    hmac_equal,
     is_locked,
     register_login_fail,
     require_admin,
     require_current_user,
-    safe_mask_email,
     set_auth_cookie,
 )
-from app.models.user import AuthOtpCode, AuthSession, AuthUser
+from app.models.user import AuthSession, AuthUser
 from app.schemas.auth import (
     AdminResetPasswordRequest,
     AuthMeResponse,
@@ -42,14 +33,10 @@ from app.schemas.auth import (
     AuthUserRead,
     AuthUsersListResponse,
     ChangePasswordRequest,
-    OtpLoginRequest,
-    OtpResetPasswordRequest,
     PasswordLoginRequest,
-    SendOtpRequest,
     UserCreateRequest,
     UserStatusRequest,
 )
-from app.services.otp_mailer import send_otp_email
 
 router = APIRouter()
 
@@ -97,77 +84,6 @@ def _get_or_create_builtin_user(db: Session) -> AuthUser:
     return user
 
 
-@router.post("/send-otp", response_model=AuthMessageResponse)
-async def send_otp(payload: SendOtpRequest, request: Request, db: Session = Depends(get_db)) -> AuthMessageResponse:
-    email = payload.email.strip().lower()
-    user = get_user_by_email(db, email)
-    if user is None or not user.is_active:
-        return AuthMessageResponse(message="验证码已发送（若账号存在）")
-
-    latest = get_latest_otp(db, user.id)
-    now = datetime.now(timezone.utc)
-    if latest is not None and latest.created_at and (latest.created_at + timedelta(seconds=50)) > now:
-        raise HTTPException(status_code=429, detail="发送过于频繁，请稍后再试")
-
-    code = generate_otp_code()
-    row = AuthOtpCode(
-        id=str(uuid4()),
-        user_id=user.id,
-        code_hash=hash_otp(code),
-        expires_at=now + timedelta(minutes=5),
-        request_ip=get_client_ip(request),
-    )
-    try:
-        await send_otp_email(to_email=email, otp_code=code)
-    except Exception:
-        logger.exception("send_otp_email failed email=%s", email)
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="验证码邮件发送失败，请稍后重试。若多次失败请联系管理员检查邮件服务（Resend）配置。",
-        )
-    db.add(row)
-    db.commit()
-    return AuthMessageResponse(message=f"验证码已发送至 {safe_mask_email(email)}")
-
-
-@router.post("/login-otp", response_model=AuthMeResponse)
-def login_otp(payload: OtpLoginRequest, db: Session = Depends(get_db)) -> JSONResponse:
-    email = payload.email.strip().lower()
-    user = get_user_by_email(db, email)
-    if user is None or not user.is_active:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="账号或验证码错误")
-    if is_locked(user):
-        raise HTTPException(status_code=423, detail="登录已锁定，请稍后再试")
-
-    otp = get_latest_otp(db, user.id)
-    now = datetime.now(timezone.utc)
-    if otp is None or otp.consumed_at is not None or otp.expires_at <= now:
-        register_login_fail(user)
-        db.commit()
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="验证码已失效，请重新获取")
-    if not hmac_equal(hash_otp(payload.code.strip()), otp.code_hash):
-        register_login_fail(user)
-        db.commit()
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="账号或验证码错误")
-
-    clear_login_fail(user)
-    otp.consumed_at = now
-    token, _ = create_session(db, user)
-    db.commit()
-
-    body = AuthMeResponse(
-        id=user.id,
-        email=user.email,
-        display_name=user.display_name,
-        role=user.role,
-        is_active=user.is_active,
-        last_login_at=user.last_login_at,
-    ).model_dump(mode="json")
-    resp = JSONResponse(content=body)
-    set_auth_cookie(resp, token)
-    return resp
-
-
 @router.post("/login-password", response_model=AuthMeResponse)
 def login_password(payload: PasswordLoginRequest, db: Session = Depends(get_db)) -> JSONResponse:
     from app.core.security import verify_password
@@ -188,45 +104,6 @@ def login_password(payload: PasswordLoginRequest, db: Session = Depends(get_db))
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="账号或密码错误")
 
     clear_login_fail(user)
-    token, _ = create_session(db, user)
-    db.commit()
-
-    body = AuthMeResponse(
-        id=user.id,
-        email=user.email,
-        display_name=user.display_name,
-        role=user.role,
-        is_active=user.is_active,
-        last_login_at=user.last_login_at,
-    ).model_dump(mode="json")
-    resp = JSONResponse(content=body)
-    set_auth_cookie(resp, token)
-    return resp
-
-
-@router.post("/reset-password-otp", response_model=AuthMeResponse)
-def reset_password_with_otp(payload: OtpResetPasswordRequest, db: Session = Depends(get_db)) -> JSONResponse:
-    email = payload.email.strip().lower()
-    user = get_user_by_email(db, email)
-    if user is None or not user.is_active:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="账号或验证码错误")
-    if is_locked(user):
-        raise HTTPException(status_code=423, detail="登录已锁定，请稍后再试")
-
-    otp = get_latest_otp(db, user.id)
-    now = datetime.now(timezone.utc)
-    if otp is None or otp.consumed_at is not None or otp.expires_at <= now:
-        register_login_fail(user)
-        db.commit()
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="验证码已失效，请重新获取")
-    if not hmac_equal(hash_otp(payload.code.strip()), otp.code_hash):
-        register_login_fail(user)
-        db.commit()
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="账号或验证码错误")
-
-    clear_login_fail(user)
-    user.password_hash = hash_password(payload.new_password)
-    otp.consumed_at = now
     token, _ = create_session(db, user)
     db.commit()
 
@@ -312,7 +189,7 @@ def create_user(
     email = payload.email.strip().lower()
     exists = get_user_by_email(db, email)
     if exists is not None:
-        raise HTTPException(status_code=409, detail="邮箱已存在")
+        raise HTTPException(status_code=409, detail="账号已存在")
     user = AuthUser(
         id=str(uuid4()),
         email=email,

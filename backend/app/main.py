@@ -134,7 +134,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 async def handle_sqlalchemy_error(request: Request, exc: SQLAlchemyError) -> JSONResponse:
     """
     数据库错误时仍返回带 CORS 头的 JSON，避免浏览器误报为纯 CORS 问题。
-    详细栈记录在服务端日志（Koyeb Logs）。
+    详细栈记录在服务端日志（systemd journal）。
     """
     logger.exception("SQLAlchemy error: %s", request.url.path)
     return JSONResponse(
@@ -142,9 +142,8 @@ async def handle_sqlalchemy_error(request: Request, exc: SQLAlchemyError) -> JSO
         content={
             "error": "database_error",
             "message": (
-                "数据库查询失败。请核对 Neon：表是否存在、列是否与 ORM 一致；"
-                "执行 backend/sql/002…015建表与迁移，必要时执行 neon_repair_missing_columns.sql；"
-                "并用 neon_verify_columns.sql 检查列清单。"
+                "数据库查询失败。请检查 PostgreSQL 表结构是否与当前代码一致，"
+                "必要时重新执行 backend/sql 下的迁移脚本。"
             ),
         },
         headers=_cors_headers_for_request(request, _cors_allowed),
