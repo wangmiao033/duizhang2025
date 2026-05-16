@@ -117,23 +117,6 @@ export const SIDEBAR_GROUPS = [
     items: [{ view: VIEWS.CONTRACT_MANAGEMENT, label: '合同管理' }]
   },
   {
-    id: 'data',
-    label: '数据中心',
-    items: [
-      { view: VIEWS.REPORTS_IMPORT, label: 'Excel导入' },
-      { view: VIEWS.REPORTS_EXPORT, label: '导出中心' },
-      { view: VIEWS.DATA_BACKUP_RESTORE, label: '备份恢复' }
-    ]
-  },
-  {
-    id: 'analytics',
-    label: '分析报表',
-    items: [
-      { view: VIEWS.REPORTS_STATS, label: '统计分析' },
-      { view: VIEWS.REPORTS_PROFIT, label: '利润分析' }
-    ]
-  },
-  {
     id: 'system',
     label: '系统设置',
     items: [
@@ -145,15 +128,6 @@ export const SIDEBAR_GROUPS = [
     ]
   }
 ]
-
-/** 出现在侧栏菜单中的 view（用于最近访问：排除编辑页等中间态） */
-export const SIDEBAR_TRACKABLE_VIEWS = new Set(
-  SIDEBAR_GROUPS.flatMap((g) => g.items.map((i) => i.view))
-)
-
-export function isSidebarTrackableView(view) {
-  return typeof view === 'string' && SIDEBAR_TRACKABLE_VIEWS.has(view)
-}
 
 const VIEW_TITLES = {
   [VIEWS.DASHBOARD]: '工作台',

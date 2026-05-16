@@ -86,50 +86,6 @@
   line-height: var(--line-height-caption);
 }
 
-/* 品牌区下方：常用入口 / 最近访问（沿用分组标题与 sidebar-item 视觉） */
-.sidebar-shortcuts {
-  padding-top: 4px;
-  margin-bottom: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.sidebar-shortcuts-block + .sidebar-shortcuts-block {
-  margin-top: 0;
-}
-
-.sidebar-shortcuts-block {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.sidebar-recent-toggle {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  width: 100%;
-  min-height: 32px;
-  padding: 0;
-  margin: 0;
-  border: none;
-  border-radius: var(--admin-radius-sm);
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.15s ease;
-}
-
-.sidebar-recent-toggle:hover {
-  background: var(--admin-bg-soft);
-}
-
-.sidebar-recent-toggle:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--admin-primary-muted);
-}
-
 .sidebar-group-title--static {
   padding: 6px 8px;
   margin: 0;
@@ -140,120 +96,16 @@
   line-height: var(--line-height-title);
 }
 
-.sidebar-group-title--static.sidebar-group-title--in-toggle {
-  padding: 6px 0 6px 8px;
-  flex: 1;
-}
-
-.sidebar-group-chevron--recent {
-  margin-top: 12px;
-  margin-right: 10px;
-}
-
-.sidebar-group-title--static:first-child:not(.sidebar-group-title--in-toggle) {
+.sidebar-group-title--static:first-child {
   padding-top: 4px;
-}
-
-.sidebar-sub-list--shortcuts {
-  margin-left: 0;
-  padding-left: 0;
-  border-left: none;
-  gap: 4px;
-}
-
-.sidebar-item--shortcut {
-  cursor: pointer;
-  outline: none;
-}
-
-.sidebar-item--shortcut:focus-visible {
-  box-shadow: 0 0 0 2px var(--admin-primary-muted);
-}
-
-.sidebar-item-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-.sidebar-shortcut-svg {
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
-  color: var(--admin-text-tertiary);
-  opacity: 0.65;
-}
-
-.sidebar-item--shortcut:hover .sidebar-shortcut-svg:not(.sidebar-shortcut-svg--pinned) {
-  color: var(--admin-text-secondary);
-  opacity: 0.9;
-}
-
-.sidebar-shortcut-svg--pinned {
-  color: var(--admin-primary);
-  opacity: 0.45;
-}
-
-.sidebar-item--shortcut.active .sidebar-shortcut-svg--pinned {
-  opacity: 0.75;
-}
-
-.sidebar-shortcut-add {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  padding: 2px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  opacity: 0.35;
-  transition: opacity 0.15s ease, background 0.15s ease;
-}
-
-.sidebar-item--shortcut:hover .sidebar-shortcut-add {
-  opacity: 0.85;
-}
-
-.sidebar-shortcut-add:hover {
-  background: var(--admin-bg-soft);
-  opacity: 1;
-}
-
-.sidebar-shortcut-remove {
-  margin: 0;
-  padding: 2px 6px;
-  border: none;
-  border-radius: 6px;
-  font-size: var(--font-size-small);
-  font-weight: var(--font-weight-menu);
-  color: var(--admin-text-tertiary);
-  background: transparent;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
-}
-
-.sidebar-item--shortcut:hover .sidebar-shortcut-remove {
-  opacity: 0.75;
-}
-
-.sidebar-shortcut-remove:hover {
-  background: var(--admin-bg-soft);
-  color: var(--admin-text-secondary);
-  opacity: 1;
 }
 
 .sidebar-nav {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding-top: 8px;
-  border-top: 1px solid #eef1f6;
+  padding-top: 0;
+  border-top: none;
 }
 
 .sidebar-group {
@@ -266,6 +118,10 @@
 
 .sidebar-group--singleton {
   margin-bottom: var(--admin-sidebar-group-gap);
+}
+
+.sidebar-group--single-action {
+  margin-top: 2px;
 }
 
 .sidebar-group-toggle {
@@ -419,10 +275,6 @@
   box-shadow: none;
 }
 
-.sidebar-sub-list--shortcuts .sidebar-item.active::before {
-  left: 0;
-}
-
 .sidebar-footer {
   margin-top: 12px;
   padding: 8px;
@@ -446,7 +298,6 @@
 }
 
 .sidebar-collapsed .sidebar-brand,
-.sidebar-collapsed .sidebar-shortcuts,
 .sidebar-collapsed .sidebar-item-label,
 .sidebar-collapsed .sidebar-group-title {
   display: none;

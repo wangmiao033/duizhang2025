@@ -46,12 +46,25 @@
   cursor: pointer;
   transition:
     background 0.15s ease,
-    border-color 0.15s ease;
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 }
 
 .toggle-more-btn:hover {
   background: var(--admin-primary-muted);
   border-color: var(--admin-primary);
+  box-shadow: 0 8px 18px rgba(59, 111, 246, 0.12);
+  transform: translateY(-1px);
+}
+
+.toggle-more-btn:active {
+  transform: translateY(0);
+}
+
+.toggle-more-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 111, 246, 0.18);
 }
 
 .actions-grid {
@@ -68,6 +81,7 @@
 }
 
 .action-btn {
+  position: relative;
   display: inline-flex;
   flex-direction: row;
   align-items: center;
@@ -84,15 +98,52 @@
   transition:
     background 0.15s ease,
     border-color 0.15s ease,
-    color 0.15s ease;
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
   text-align: left;
   background: var(--admin-card-bg);
   color: var(--admin-text-main);
 }
 
+.action-btn::after {
+  content: '›';
+  margin-left: auto;
+  color: var(--admin-text-tertiary);
+  font-size: 20px;
+  line-height: 1;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
 .action-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.action-btn:hover:not(:disabled) {
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.action-btn:hover:not(:disabled)::after {
+  opacity: 0.8;
+  transform: translateX(0);
+}
+
+.action-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.action-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 111, 246, 0.18);
+}
+
+.action-btn:disabled::after {
+  display: none;
 }
 
 .action-icon {
@@ -106,6 +157,13 @@
   justify-content: center;
   font-size: 15px;
   line-height: 1;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.action-btn:hover:not(:disabled) .action-icon {
+  background: #eef4ff;
+  border-color: #c7d8ff;
+  transform: scale(1.03);
 }
 
 .action-label {
@@ -136,6 +194,22 @@
   border-color: var(--admin-border-strong);
 }
 
+.template-btn {
+  background: #18b98e;
+  color: #ffffff;
+  border-color: #18b98e;
+  box-shadow: 0 8px 18px rgba(24, 185, 142, 0.14);
+}
+
+.template-btn .action-icon {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.72);
+}
+
+.template-btn::after {
+  color: rgba(255, 255, 255, 0.86);
+}
+
 .import-btn:hover:not(:disabled),
 .template-btn:hover:not(:disabled),
 .tags-btn:hover:not(:disabled),
@@ -144,6 +218,12 @@
 .refresh-btn:hover:not(:disabled) {
   background: var(--admin-elevated-bg);
   border-color: var(--admin-text-muted);
+}
+
+.template-btn:hover:not(:disabled) {
+  background: #12a77f;
+  border-color: #12a77f;
+  box-shadow: 0 12px 26px rgba(24, 185, 142, 0.22);
 }
 
 .clear-btn {
