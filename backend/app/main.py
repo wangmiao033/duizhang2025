@@ -27,6 +27,7 @@ from app.core.security import require_current_user
 logger = logging.getLogger(__name__)
 
 DEFAULT_CORS_ORIGINS = [
+    "https://cf.hnchpower.cn",
     "https://caiwu2026.hnchpower.cn",
     "https://duizhang2025.vercel.app",
     "https://www.duizhang2025.vercel.app",

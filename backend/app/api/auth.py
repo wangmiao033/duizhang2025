@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
@@ -67,7 +68,7 @@ def _normalize_account(value: str | None) -> str:
 def _get_or_create_builtin_user(db: Session) -> AuthUser:
     from app.core.security import verify_password
 
-    user = get_user_by_email(db, BUILTIN_ACCOUNT)
+    user = db.get(AuthUser, "auth-user-adam") or get_user_by_email(db, BUILTIN_ACCOUNT)
     primary_password = BUILTIN_PASSWORDS[0] if BUILTIN_PASSWORDS else "adam123"
 
     if user is None:
@@ -80,8 +81,13 @@ def _get_or_create_builtin_user(db: Session) -> AuthUser:
             is_active=True,
         )
         db.add(user)
-        db.flush()
-        return user
+        try:
+            db.flush()
+        except IntegrityError:
+            db.rollback()
+            user = db.get(AuthUser, "auth-user-adam") or get_user_by_email(db, BUILTIN_ACCOUNT)
+            if user is None:
+                raise
 
     user.display_name = user.display_name or "adam"
     user.role = "admin"

@@ -5,7 +5,7 @@
 /// <reference types="vite/client" />
 
 const rawBase =
-  (import.meta.env.VITE_API_BASE_URL || '').trim() || 'https://caiwuapi.hnchpower.cn'
+  (import.meta.env.VITE_API_BASE_URL || '').trim()
 
 export const API_BASE_URL = rawBase.replace(/\/$/, '')
 
