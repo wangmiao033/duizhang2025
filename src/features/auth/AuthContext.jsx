@@ -3,11 +3,8 @@ import { ApiError } from '@/lib/api/client'
 import {
   authMe,
   changeMyPassword,
-  loginOtp,
   loginPassword,
   logout as apiLogout,
-  resetPasswordWithOtp,
-  sendOtp
 } from '@/features/auth/api'
 
 const AuthContext = createContext(null)
@@ -35,24 +32,8 @@ export function AuthProvider({ children }) {
     refreshMe()
   }, [refreshMe])
 
-  const requestOtp = useCallback(async (email) => {
-    return sendOtp(email)
-  }, [])
-
-  const signInWithOtp = useCallback(async (email, code) => {
-    const me = await loginOtp(email, code)
-    setUser(me)
-    return me
-  }, [])
-
-  const signInWithPassword = useCallback(async (email, password) => {
-    const me = await loginPassword(email, password)
-    setUser(me)
-    return me
-  }, [])
-
-  const resetPasswordByOtp = useCallback(async (email, code, newPassword) => {
-    const me = await resetPasswordWithOtp(email, code, newPassword)
+  const signInWithPassword = useCallback(async (account, password) => {
+    const me = await loginPassword(account, password)
     setUser(me)
     return me
   }, [])
@@ -78,14 +59,11 @@ export function AuthProvider({ children }) {
       isAuthenticated: !!user,
       isAdmin: user?.role === 'admin',
       refreshMe,
-      requestOtp,
-      signInWithOtp,
       signInWithPassword,
-      resetPasswordByOtp,
       signOut,
       updateMyPassword
     }),
-    [user, loading, refreshMe, requestOtp, signInWithOtp, signInWithPassword, resetPasswordByOtp, signOut, updateMyPassword]
+    [user, loading, refreshMe, signInWithPassword, signOut, updateMyPassword]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

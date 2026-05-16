@@ -35,8 +35,8 @@ export async function loginOtp(email: string, code: string): Promise<AuthMe> {
   return apiPost<AuthMe>('/api/auth/login-otp', { email, code })
 }
 
-export async function loginPassword(email: string, password: string): Promise<AuthMe> {
-  return apiPost<AuthMe>('/api/auth/login-password', { email, password })
+export async function loginPassword(account: string, password: string): Promise<AuthMe> {
+  return apiPost<AuthMe>('/api/auth/login-password', { account, password })
 }
 
 export async function resetPasswordWithOtp(email: string, code: string, newPassword: string): Promise<AuthMe> {

@@ -44,31 +44,17 @@
   font-size: 14px;
 }
 
-.login-tabs {
-  display: flex;
-  gap: 8px;
+.login-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
   margin-bottom: 18px;
-  padding: 4px;
-  border-radius: 8px;
-  background: #f2f5fa;
-}
-
-.login-tab {
-  flex: 1;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  height: 34px;
-  font-size: 13px;
-  color: #475569;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.login-tab.active {
-  background: #ffffff;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
   color: #1d4ed8;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -100,29 +86,6 @@
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-}
-
-.login-otp-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-}
-
-.login-otp-btn {
-  border: 1px solid #cfd8e6;
-  background: #f8fafc;
-  color: #334155;
-  border-radius: 8px;
-  height: 42px;
-  padding: 0 14px;
-  font-size: 13px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.login-otp-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.65;
 }
 
 .login-message {
@@ -182,18 +145,7 @@
     margin-bottom: 14px;
   }
 
-  .login-tabs {
-    gap: 6px;
-    padding: 3px;
-  }
-
-  .login-tab {
-    height: 32px;
-    font-size: 12px;
-  }
-
-  .login-otp-row {
-    grid-template-columns: 1fr;
-    gap: 8px;
+  .login-mode-badge {
+    margin-bottom: 14px;
   }
 }
