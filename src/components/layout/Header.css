@@ -166,13 +166,6 @@
   border-radius: 10px;
 }
 
-.app-admin-header__right .theme-toggle {
-  min-height: 40px;
-  min-width: 40px;
-  height: 40px;
-  border-radius: 10px;
-}
-
 .app-admin-header__right .guide-btn {
   min-height: 44px;
   height: 44px;

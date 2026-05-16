@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import Calendar from '@/components/Calendar.jsx'
 import NotificationCenter from '@/components/NotificationCenter.jsx'
-import ThemeToggle from '@/components/ThemeToggle.jsx'
 import UserGuide from '@/components/UserGuide.jsx'
 import Settings from '@/components/Settings.jsx'
 import HelpTooltip from '@/components/HelpTooltip.jsx'
@@ -132,7 +131,6 @@ function Header({ activeView, onNavigate, onSettingsChange }) {
             ) : null}
           </div>
           <UserGuide />
-          <ThemeToggle />
         </div>
       </div>
       <ConfirmDialog
