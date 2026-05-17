@@ -732,7 +732,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
               className="rec-btn rec-btn--primary"
               onClick={() => setActiveView(VIEWS.CHANNEL_RECON_CREATE)}
             >
-              新增记录
+              新增渠道对账
             </button>
             <button type="button" className="rec-btn rec-btn--secondary" onClick={() => importRef.current?.click()}>
               Excel导入
@@ -812,7 +812,7 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                   title="暂无渠道记录"
                   description="新增一条渠道对账记录，或使用 Excel 导入；也可放宽筛选条件。"
                   primaryAction={{
-                    label: '新增记录',
+                    label: '新增渠道对账',
                     onClick: () => setActiveView(VIEWS.CHANNEL_RECON_CREATE)
                   }}
                 />
@@ -889,9 +889,9 @@ function ChannelBilling({ channelRecords, onAddRecord, onAddRecordsBatch, onUpda
                         <AdminListEmptyState
                           variant="inline"
                           title="暂无渠道记录"
-                          description="新增记录或调整筛选；支持 Excel 导入与导出。"
+                          description="新增渠道对账或调整筛选；支持 Excel 导入与导出。"
                           primaryAction={{
-                            label: '新增记录',
+                            label: '新增渠道对账',
                             onClick: () => setActiveView(VIEWS.CHANNEL_RECON_CREATE)
                           }}
                         />

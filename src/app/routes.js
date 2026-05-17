@@ -16,8 +16,6 @@ export const VIEWS = {
   CHANNEL_RECON_EDIT: 'channel-recon-edit',
   RECON_MASTER: 'recon-master',
   RECON_EXCEPTIONS: 'recon-exceptions',
-  /** 对账操作历史（localStorage operationHistory） */
-  RECON_HISTORY: 'recon-history',
   /** 本地备份 / 导入导出 JSON（DataBackup） */
   DATA_BACKUP_RESTORE: 'data-backup-restore',
   SETTLE_MONTHLY: 'settle-monthly',
@@ -65,12 +63,9 @@ export const SIDEBAR_GROUPS = [
     label: '对账管理',
     items: [
       { view: VIEWS.RECON_RD, label: '研发对账' },
-      { view: VIEWS.RECON_CREATE, label: '新增研发对账记录' },
       { view: VIEWS.RECON_CHANNEL, label: '渠道对账' },
-      { view: VIEWS.CHANNEL_RECON_CREATE, label: '新增渠道对账记录' },
       { view: VIEWS.RECON_MASTER, label: '对账总表' },
-      { view: VIEWS.RECON_EXCEPTIONS, label: '异常中心' },
-      { view: VIEWS.RECON_HISTORY, label: '操作历史' }
+      { view: VIEWS.RECON_EXCEPTIONS, label: '异常中心' }
     ]
   },
   {
@@ -139,7 +134,6 @@ const VIEW_TITLES = {
   [VIEWS.CHANNEL_RECON_EDIT]: '编辑渠道对账记录',
   [VIEWS.RECON_MASTER]: '对账总表',
   [VIEWS.RECON_EXCEPTIONS]: '异常中心',
-  [VIEWS.RECON_HISTORY]: '操作历史',
   [VIEWS.DATA_BACKUP_RESTORE]: '备份恢复',
   [VIEWS.SETTLE_MONTHLY]: '月度结算单',
   [VIEWS.SETTLE_CHANNEL]: '渠道结算单',
@@ -180,15 +174,14 @@ export function getPageTitle(view) {
 /** 页面副标题 / 说明（顶栏与页头共用） */
 const VIEW_DESCRIPTIONS = {
   [VIEWS.DASHBOARD]: '快捷入口、待办与常用工具总览',
-  [VIEWS.RECON_RD]: '研发侧对账记录、筛选、统计与导出',
-  [VIEWS.RECON_CREATE]: '完整表单录入新记录，与编辑页共用同一套 DataForm 与校验',
+  [VIEWS.RECON_RD]: '研发侧对账记录、筛选、统计、导出与新增入口',
+  [VIEWS.RECON_CREATE]: '从研发对账进入的完整录入页，与编辑页共用同一套 DataForm 与校验',
   [VIEWS.RECON_EDIT]: '完整编辑已有记录；保存后返回研发对账列表',
-  [VIEWS.RECON_CHANNEL]: '渠道对账数据维护与核对',
-  [VIEWS.CHANNEL_RECON_CREATE]: '完整表单录入渠道记录，与编辑页共用 ChannelBillingForm',
+  [VIEWS.RECON_CHANNEL]: '渠道对账数据维护、核对、导入导出与新增入口',
+  [VIEWS.CHANNEL_RECON_CREATE]: '从渠道对账进入的完整录入页，与编辑页共用 ChannelBillingForm',
   [VIEWS.CHANNEL_RECON_EDIT]: '完整编辑已有渠道记录；保存后返回渠道对账列表',
   [VIEWS.RECON_MASTER]: '按当前筛选查看全部对账记录（与研发对账共用数据）',
   [VIEWS.RECON_EXCEPTIONS]: '数据诊断、恢复入口与校验异常集中处理',
-  [VIEWS.RECON_HISTORY]: '按时间查看操作快照，可从列表恢复历史数据',
   [VIEWS.DATA_BACKUP_RESTORE]: '本地备份、JSON 导入导出与备份历史',
   [VIEWS.SETTLE_MONTHLY]: '月度结算单生成与查看',
   [VIEWS.SETTLE_CHANNEL]: '渠道维度结算',
@@ -233,7 +226,6 @@ export const VIEW_ICONS = {
   [VIEWS.CHANNEL_RECON_EDIT]: '改',
   [VIEWS.RECON_MASTER]: '总',
   [VIEWS.RECON_EXCEPTIONS]: '异',
-  [VIEWS.RECON_HISTORY]: '史',
   [VIEWS.DATA_BACKUP_RESTORE]: '备',
   [VIEWS.SETTLE_MONTHLY]: '月',
   [VIEWS.SETTLE_CHANNEL]: '结',
@@ -286,12 +278,28 @@ export function getBreadcrumb(view) {
   if (view === VIEWS.DASHBOARD) {
     return [{ label: getPageTitle(view), current: true }]
   }
+  if (view === VIEWS.RECON_CREATE) {
+    return [
+      { label: '工作台', view: VIEWS.DASHBOARD },
+      { label: '对账管理' },
+      { label: getPageTitle(VIEWS.RECON_RD), view: VIEWS.RECON_RD },
+      { label: getPageTitle(VIEWS.RECON_CREATE), current: true }
+    ]
+  }
   if (view === VIEWS.RECON_EDIT) {
     return [
       { label: '工作台', view: VIEWS.DASHBOARD },
       { label: '对账管理' },
       { label: getPageTitle(VIEWS.RECON_RD), view: VIEWS.RECON_RD },
       { label: getPageTitle(VIEWS.RECON_EDIT), current: true }
+    ]
+  }
+  if (view === VIEWS.CHANNEL_RECON_CREATE) {
+    return [
+      { label: '工作台', view: VIEWS.DASHBOARD },
+      { label: '对账管理' },
+      { label: getPageTitle(VIEWS.RECON_CHANNEL), view: VIEWS.RECON_CHANNEL },
+      { label: getPageTitle(VIEWS.CHANNEL_RECON_CREATE), current: true }
     ]
   }
   if (view === VIEWS.CHANNEL_RECON_EDIT) {

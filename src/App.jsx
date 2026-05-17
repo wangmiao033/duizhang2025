@@ -24,7 +24,6 @@ import ContractManagementPage from './pages/ContractManagementPage.jsx'
 import ReportsPage from './pages/ReportsPage.jsx'
 import SettingsHubPage from './pages/SettingsHubPage.jsx'
 import RemindersPage from './pages/RemindersPage.jsx'
-import OperationHistoryPage from './pages/OperationHistoryPage.jsx'
 import BackupRestorePage from './pages/BackupRestorePage.jsx'
 import ReconciliationCreatePage from './pages/ReconciliationCreatePage.jsx'
 import ReconciliationEditPage from './pages/ReconciliationEditPage.jsx'
@@ -191,8 +190,6 @@ function App() {
         return <ChannelReconciliationEditPage />
       case VIEWS.RECON_EXCEPTIONS:
         return <ExceptionsPage />
-      case VIEWS.RECON_HISTORY:
-        return <OperationHistoryPage />
       case VIEWS.DATA_BACKUP_RESTORE:
         return <BackupRestorePage />
       case VIEWS.BANK_TRANSACTIONS_LEDGER:

@@ -28,7 +28,7 @@ function ReconciliationToolbar({
     <div className="rec-toolbar">
       <div className="rec-toolbar__primary">
         <button type="button" className="rec-btn rec-btn--primary" onClick={onNavigateToCreate}>
-          新增记录
+          新增研发对账
         </button>
         <div className="rec-toolbar__excel">
           <ExcelImport onImport={handleExcelImport} />
