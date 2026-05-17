@@ -23,7 +23,7 @@
   font-weight: var(--font-weight-page-title);
   color: var(--admin-text-main);
   line-height: var(--line-height-section);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 [data-theme='dark'] .page-container-title {

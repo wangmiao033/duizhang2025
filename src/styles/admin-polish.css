@@ -16,7 +16,7 @@
 .app h2,
 .app h3 {
   color: var(--admin-text-main);
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .app h1 {
@@ -46,6 +46,7 @@
 .app textarea {
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-sm);
+  background: var(--admin-surface-bg);
   color: var(--admin-text-main);
 }
 
@@ -59,11 +60,11 @@
 .app textarea:focus {
   outline: none;
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 2px var(--admin-primary-muted);
+  box-shadow: 0 0 0 2px var(--admin-focus-ring);
 }
 
 .app button:focus-visible {
-  outline: 2px solid rgba(59, 111, 246, 0.45);
+  outline: 2px solid rgba(22, 100, 255, 0.45);
   outline-offset: 2px;
 }
 
@@ -74,8 +75,33 @@
 .app .config-section,
 .app .invoice-section,
 .app .invoice-list {
-  border-color: #dbe5f1;
+  border-color: var(--admin-border);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.app table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.app thead,
+.app thead tr {
+  background: var(--admin-table-head-bg);
+}
+
+.app thead th {
+  color: var(--admin-text-sub);
+  font-size: var(--admin-table-th-font-size);
+  font-weight: var(--font-weight-table-header);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.app tbody td {
+  border-bottom: 1px solid var(--admin-border-soft);
+}
+
+.app tbody tr:hover {
+  background: var(--admin-table-row-hover);
 }
 
 /* —— 工具栏 / 表单底栏：与 .admin-btn 同高同字重 —— */
@@ -118,13 +144,14 @@
 .app .rec-create-footer .rec-btn--secondary {
   background: var(--admin-card-bg);
   color: var(--admin-text-main);
-  border: 1px solid var(--admin-border-strong);
+  border: 1px solid var(--admin-border);
 }
 
 .app .rec-btn--secondary:hover,
 .app .rec-create-footer .rec-btn--secondary:hover {
   background: var(--admin-elevated-bg);
-  border-color: var(--admin-text-muted);
+  border-color: #a9bee0;
+  color: var(--admin-primary);
 }
 
 .app .rec-btn--ghost,
@@ -190,7 +217,7 @@
   font-size: var(--admin-table-card-title-size);
   font-weight: var(--admin-table-card-title-weight);
   color: var(--admin-text-main);
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 /* —— 侧栏抽屉（完整录入 + 轻量查看）：提高选择器优先级以覆盖各页按需引入的局部样式 —— */

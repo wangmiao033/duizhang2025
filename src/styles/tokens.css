@@ -7,15 +7,15 @@
   --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
 
   /* 字号层级 */
-  --font-size-page-title: 28px;
-  --font-size-section-title: 20px;
+  --font-size-page-title: 24px;
+  --font-size-section-title: 18px;
   --font-size-card-title: 14px;
   --font-size-body: 13px;
   --font-size-caption: 12px;
   --font-size-small: 11px;
   --font-size-button: 13px;
   --font-size-table-header: 12px;
-  --font-size-stat-value: 17px;
+  --font-size-stat-value: 20px;
   /* 空态/装饰性图标字形（如 emoji），避免各处手写 22px */
   --font-size-empty-icon: 22px;
 
@@ -35,31 +35,31 @@
   --line-height-caption: 1.4;
   --line-height-table-cell: 1.4;
 
-  --bg-main: #f6f8fc;
+  --bg-main: #f3f6fb;
   --bg-card: #ffffff;
-  --bg-soft: #f9fafb;
+  --bg-soft: #f7f9fc;
 
-  --primary: #3b6ff6;
-  --primary-hover: #2d5fe3;
-  --primary-soft: rgba(59, 111, 246, 0.12);
+  --primary: #1664ff;
+  --primary-hover: #0f4ed8;
+  --primary-soft: rgba(22, 100, 255, 0.1);
 
   --success: #16a34a;
   --warning: #f59e0b;
   --danger: #ef4444;
 
-  --text-main: #111827;
-  --text-sub: #4b5563;
-  --text-light: #6b7280;
+  --text-main: #0f1f3d;
+  --text-sub: #4d5f7a;
+  --text-light: #7a8799;
 
-  --border: #e2e7f0;
-  --border-soft: #e6eaf2;
+  --border: #d9e3f2;
+  --border-soft: #e5ebf5;
 
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
 
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
+  --shadow-sm: 0 1px 2px rgba(15, 35, 80, 0.04);
+  --shadow-md: 0 6px 16px rgba(15, 35, 80, 0.07);
 
   --space-1: 4px;
   --space-2: 8px;

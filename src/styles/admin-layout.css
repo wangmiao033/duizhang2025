@@ -5,8 +5,8 @@
 .admin-page-header {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: var(--admin-space-sm);
+  gap: 4px;
+  margin-bottom: 8px;
 }
 
 .admin-page-header__title {
@@ -23,7 +23,7 @@
   font-weight: var(--font-weight-body);
   color: var(--admin-text-sub);
   line-height: var(--line-height-caption);
-  max-width: 52rem;
+  max-width: 56rem;
 }
 
 .admin-workspace {
@@ -157,8 +157,8 @@
 }
 
 .admin-filter-bar {
-  padding: var(--admin-space-sm) var(--admin-space-md);
-  background: var(--admin-elevated-bg);
+  padding: 10px 12px;
+  background: var(--admin-toolbar-bg);
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);
 }
@@ -188,7 +188,7 @@
 .admin-table-card {
   background: var(--admin-card-bg);
   border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-lg);
+  border-radius: var(--admin-radius);
   box-shadow: var(--admin-shadow-sm);
   overflow: hidden;
   min-width: 0;
@@ -216,9 +216,9 @@
 /* 通用卡片面（与 token 一致，供页面块复用） */
 .app-card {
   background: var(--admin-card-bg);
-  border: 1px solid var(--admin-border-soft);
+  border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius);
   box-shadow: var(--admin-shadow-sm);
-  padding: var(--admin-space-md);
+  padding: 14px;
   box-sizing: border-box;
 }

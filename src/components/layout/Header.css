@@ -15,8 +15,8 @@
   flex-shrink: 0;
   min-height: var(--admin-header-h);
   box-sizing: border-box;
-  border-bottom: 1px solid #dde6f2;
-  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid var(--admin-border);
+  background: rgba(255, 255, 255, 0.96);
   box-shadow: none;
 }
 
@@ -24,7 +24,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   min-height: var(--admin-header-h);
   padding: 0 var(--admin-workspace-pad-x);
   box-sizing: border-box;
@@ -39,7 +39,7 @@
   flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-start;
-  gap: 8px;
+  gap: 7px;
   width: 100%;
   min-width: 0;
 }
@@ -55,24 +55,24 @@
 }
 
 .app-admin-header__search {
-  width: 300px;
-  height: 38px;
-  min-height: 38px;
-  max-height: 38px;
+  width: 280px;
+  height: var(--admin-input-h);
+  min-height: var(--admin-input-h);
+  max-height: var(--admin-input-h);
   font-size: var(--admin-font-sm);
-  background: #f9fbff;
+  background: var(--admin-surface-subtle);
 }
 
 .app-admin-header__user {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: var(--admin-btn-h);
+  height: var(--admin-btn-h);
   padding: 0;
-  border-radius: 9px;
+  border-radius: var(--admin-radius-sm);
   border: 1px solid var(--admin-border);
-  background: var(--admin-elevated-bg);
+  background: var(--admin-surface-bg);
   cursor: pointer;
   transition:
     background 0.15s ease,
@@ -80,16 +80,16 @@
 }
 
 .app-admin-header__user:hover {
-  background: var(--admin-primary-muted);
+  background: var(--admin-surface-hover);
   border-color: var(--admin-primary);
 }
 
 .app-admin-header__user-dot {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: #dce4f7;
-  border: 1px solid #c8d4ef;
+  background: #dce7ff;
+  border: 1px solid #c5d6fb;
 }
 
 .app-admin-header__user-wrap {
@@ -102,7 +102,7 @@
   right: 0;
   z-index: 20;
   min-width: 188px;
-  border: 1px solid var(--admin-border-soft);
+  border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-sm);
   background: var(--admin-card-bg);
   box-shadow: var(--admin-shadow-sm);
@@ -123,8 +123,8 @@
   border: 1px solid var(--admin-border);
   background: var(--admin-elevated-bg);
   color: var(--admin-text-main);
-  border-radius: var(--admin-radius-xs);
-  min-height: 34px;
+  border-radius: var(--admin-radius-sm);
+  min-height: 32px;
   padding: 0 10px;
   text-align: left;
   cursor: pointer;
@@ -160,20 +160,42 @@
 .app-admin-header__right .help-btn,
 .app-admin-header__right .settings-btn,
 .app-admin-header__right .notification-btn {
-  min-height: 38px;
-  height: 38px;
-  padding: 0 11px;
+  min-height: var(--admin-btn-h);
+  height: var(--admin-btn-h);
+  padding: 0 10px;
   font-size: var(--admin-font-sm);
-  border-radius: 9px;
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-surface-bg);
+  border-color: var(--admin-border);
+  color: var(--admin-text-sub);
+  box-shadow: none;
+}
+
+.app-admin-header__right .calendar-trigger {
+  height: var(--admin-btn-h);
+  min-height: var(--admin-btn-h);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-surface-bg);
+  border-color: var(--admin-border);
+  box-shadow: none;
+}
+
+.app-admin-header__right .calendar-trigger:hover,
+.app-admin-header__right .help-btn:hover,
+.app-admin-header__right .settings-btn:hover,
+.app-admin-header__right .notification-btn:hover {
+  background: var(--admin-surface-hover);
+  border-color: #a9bee0;
+  color: var(--admin-primary);
 }
 
 .app-admin-header__right .guide-btn {
-  min-height: 38px;
-  height: 38px;
+  min-height: var(--admin-btn-h);
+  height: var(--admin-btn-h);
   padding: 0 12px;
   background: #eef4ff;
-  border-color: #cfe0ff;
-  color: #3158c9;
+  border-color: #c9dcff;
+  color: var(--admin-primary);
   box-shadow: none;
 }
 

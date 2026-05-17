@@ -4,9 +4,15 @@
 @import './tokens.css';
 
 :root {
-  --admin-page-bg: #f4f7fb;
+  --admin-page-bg: var(--bg-main);
   --admin-card-bg: var(--bg-card);
   --admin-elevated-bg: var(--bg-soft);
+  --admin-surface-bg: #ffffff;
+  --admin-surface-subtle: #f8faff;
+  --admin-surface-hover: #f2f6ff;
+  --admin-toolbar-bg: #f8faff;
+  --admin-table-head-bg: #f7f9fd;
+  --admin-table-row-hover: #f6f9ff;
   --admin-primary: var(--primary);
   --admin-primary-hover: var(--primary-hover);
   --admin-primary-muted: var(--primary-soft);
@@ -17,7 +23,7 @@
   --admin-warning: var(--warning);
   /* 信息/警告/成功语义底与字色（扁平，无第二套主色体系） */
   --admin-info-bg: #eff6ff;
-  --admin-info-text: #1d4ed8;
+  --admin-info-text: var(--admin-primary);
   --admin-warning-bg: rgba(245, 158, 11, 0.12);
   --admin-warning-text: #b45309;
   --admin-success-bg: #ecfdf5;
@@ -32,7 +38,8 @@
   --admin-bg-soft: var(--admin-elevated-bg);
   --admin-border: var(--border);
   --admin-border-soft: var(--border-soft);
-  --admin-border-strong: #d1d5db;
+  --admin-border-strong: #c7d3e5;
+  --admin-focus-ring: rgba(22, 100, 255, 0.16);
   --admin-radius-sm: var(--radius-sm);
   --admin-radius: var(--radius-md);
   --admin-radius-lg: var(--radius-md);
@@ -40,33 +47,33 @@
   --admin-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
   --admin-shadow-md: var(--shadow-md);
   --admin-space-xs: 6px;
-  --admin-space-sm: 12px;
-  --admin-space-md: 16px;
-  --admin-space-lg: 20px;
-  --admin-space-xl: 24px;
-  --admin-header-h: 58px;
+  --admin-space-sm: 10px;
+  --admin-space-md: 14px;
+  --admin-space-lg: 18px;
+  --admin-space-xl: 22px;
+  --admin-header-h: 56px;
   /* 侧栏宽度：收窄以提升主内容区可视面积 */
-  --admin-sidebar-w: 216px;
+  --admin-sidebar-w: 208px;
   /* 侧栏导航：一级 / 二级行高与字号略增，重点配合宽度与留白 */
-  --admin-sidebar-item-h: 40px;
-  --admin-sidebar-item-h-sub: 38px;
+  --admin-sidebar-item-h: 38px;
+  --admin-sidebar-item-h-sub: 36px;
   --admin-sidebar-font-level1: 14px;
   --admin-sidebar-font-level2: 14px;
   --admin-sidebar-icon-size: 16px;
   --admin-sidebar-item-gap: 10px;
-  --admin-sidebar-group-gap: 12px;
-  --admin-sidebar-active-bg: color-mix(in srgb, var(--admin-primary) 17%, var(--admin-card-bg));
+  --admin-sidebar-group-gap: 10px;
+  --admin-sidebar-active-bg: #edf4ff;
   --admin-sidebar-active-bar-w: 3px;
   --admin-sidebar-brand-pad-y: 6px;
-  --admin-workspace-pad-x: 28px;
+  --admin-workspace-pad-x: 24px;
   --admin-drawer-w: 440px;
   --admin-drawer-w-max: 480px;
-  --admin-input-h: 38px;
-  --admin-btn-h: 38px;
-  --admin-page-stack-gap: 14px;
-  --admin-table-th-py: 10px;
+  --admin-input-h: 36px;
+  --admin-btn-h: 36px;
+  --admin-page-stack-gap: 12px;
+  --admin-table-th-py: 9px;
   --admin-table-th-px: 12px;
-  --admin-table-td-py: 10px;
+  --admin-table-td-py: 9px;
   --admin-table-td-px: 12px;
   --admin-table-th-font-size: var(--font-size-table-header);
   --admin-table-font-size: var(--font-size-body);
@@ -81,7 +88,7 @@
   --admin-font-base: var(--font-size-body);
   --admin-font-title: var(--font-size-section-title);
   --admin-font-page: var(--font-size-page-title);
-  --admin-stat-card-min-height: 88px;
+  --admin-stat-card-min-height: 78px;
   --admin-stat-label-size: var(--font-size-caption);
   --admin-stat-value-size: var(--font-size-stat-value);
   --admin-stat-value-weight: var(--font-weight-page-title);
@@ -104,10 +111,10 @@
   --text-light: #64748b;
   --border: rgba(148, 163, 184, 0.2);
   --border-soft: rgba(148, 163, 184, 0.12);
-  --primary-soft: rgba(108, 92, 231, 0.2);
+  --primary-soft: rgba(22, 100, 255, 0.2);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
-  --admin-primary-muted: rgba(108, 92, 231, 0.22);
+  --admin-primary-muted: rgba(22, 100, 255, 0.22);
   --admin-border-strong: rgba(148, 163, 184, 0.35);
   --admin-success-muted: rgba(22, 163, 74, 0.18);
   --admin-danger-muted: rgba(239, 68, 68, 0.15);
@@ -126,12 +133,13 @@
   justify-content: center;
   gap: 6px;
   min-height: var(--admin-btn-h);
-  padding: 0 14px;
+  padding: 0 12px;
   font-size: var(--admin-font-button);
   font-weight: var(--font-weight-button);
   border-radius: var(--admin-radius-sm);
   border: 1px solid transparent;
   cursor: pointer;
+  box-shadow: none;
   transition:
     background 0.15s ease,
     border-color 0.15s ease,
@@ -149,13 +157,14 @@
 }
 
 .admin-btn--secondary {
-  background: var(--admin-card-bg);
+  background: var(--admin-surface-bg);
   color: var(--admin-text-main);
   border-color: var(--admin-border-strong);
 }
 .admin-btn--secondary:hover {
-  background: var(--admin-elevated-bg);
-  border-color: var(--admin-text-muted);
+  background: var(--admin-surface-hover);
+  border-color: #a9bee0;
+  color: var(--admin-primary);
 }
 
 .admin-btn--danger {
@@ -177,12 +186,13 @@
 }
 
 .admin-btn--ghost {
-  background: transparent;
+  background: var(--admin-surface-bg);
   color: var(--admin-text-sub);
-  border-color: var(--admin-border-strong);
+  border-color: var(--admin-border);
 }
 .admin-btn--ghost:hover {
-  background: var(--admin-elevated-bg);
+  background: var(--admin-surface-hover);
+  color: var(--admin-primary);
 }
 
 .admin-input {
@@ -192,11 +202,11 @@
   font-weight: var(--font-weight-body);
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-sm);
-  background: var(--admin-card-bg);
+  background: var(--admin-surface-bg);
   color: var(--admin-text-main);
 }
 .admin-input:focus {
   outline: none;
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px var(--admin-primary-muted);
+  box-shadow: 0 0 0 3px var(--admin-focus-ring);
 }
