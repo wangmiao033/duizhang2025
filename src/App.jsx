@@ -204,7 +204,6 @@ function App() {
         return <AuthUsersPage />
       case VIEWS.SETTLE_MONTHLY:
       case VIEWS.SETTLE_CHANNEL:
-      case VIEWS.SETTLE_STATUS:
         return <SettlementPage section={activeView} />
       case VIEWS.INVOICE_OUTPUT:
       case VIEWS.INVOICE_INPUT:

@@ -20,7 +20,6 @@ export const VIEWS = {
   DATA_BACKUP_RESTORE: 'data-backup-restore',
   SETTLE_MONTHLY: 'settle-monthly',
   SETTLE_CHANNEL: 'settle-channel',
-  SETTLE_STATUS: 'settle-status',
   INVOICE_OUTPUT: 'invoice-output',
   INVOICE_INPUT: 'invoice-input',
   INVOICE_MANAGE: 'invoice-manage',
@@ -73,8 +72,7 @@ export const SIDEBAR_GROUPS = [
     label: '结算管理',
     items: [
       { view: VIEWS.SETTLE_MONTHLY, label: '月度结算单' },
-      { view: VIEWS.SETTLE_CHANNEL, label: '渠道结算单' },
-      { view: VIEWS.SETTLE_STATUS, label: '结算状态' }
+      { view: VIEWS.SETTLE_CHANNEL, label: '渠道结算单' }
     ]
   },
   {
@@ -137,7 +135,6 @@ const VIEW_TITLES = {
   [VIEWS.DATA_BACKUP_RESTORE]: '备份恢复',
   [VIEWS.SETTLE_MONTHLY]: '月度结算单',
   [VIEWS.SETTLE_CHANNEL]: '渠道结算单',
-  [VIEWS.SETTLE_STATUS]: '结算状态',
   [VIEWS.INVOICE_OUTPUT]: '销项发票',
   [VIEWS.INVOICE_INPUT]: '进项发票',
   [VIEWS.INVOICE_MANAGE]: '发票管理',
@@ -185,7 +182,6 @@ const VIEW_DESCRIPTIONS = {
   [VIEWS.DATA_BACKUP_RESTORE]: '本地备份、JSON 导入导出与备份历史',
   [VIEWS.SETTLE_MONTHLY]: '月度结算单生成与查看',
   [VIEWS.SETTLE_CHANNEL]: '渠道维度结算',
-  [VIEWS.SETTLE_STATUS]: '结算进度与状态跟踪',
   [VIEWS.INVOICE_OUTPUT]: '销项发票开具与台账',
   [VIEWS.INVOICE_INPUT]: '进项发票接收与台账',
   [VIEWS.INVOICE_MANAGE]: '发票开具与台账',
@@ -229,7 +225,6 @@ export const VIEW_ICONS = {
   [VIEWS.DATA_BACKUP_RESTORE]: '备',
   [VIEWS.SETTLE_MONTHLY]: '月',
   [VIEWS.SETTLE_CHANNEL]: '结',
-  [VIEWS.SETTLE_STATUS]: '态',
   [VIEWS.INVOICE_OUTPUT]: '销',
   [VIEWS.INVOICE_INPUT]: '进',
   [VIEWS.INVOICE_MANAGE]: '票',

@@ -9,13 +9,11 @@ import AdminActionBar from '@/components/admin/AdminActionBar.jsx'
 import AdminStatsRow from '@/components/admin/AdminStatsRow.jsx'
 import AdminTableCard from '@/components/admin/AdminTableCard.jsx'
 import ReconciliationStatsCards from '@/components/reconciliation/ReconciliationStatsCards.jsx'
-import { STATUS_OPTIONS } from '@/components/StatusManager.jsx'
-import { computeStatusAggregates } from '@/domain/reconciliation/reconciliationStats.js'
 import { VIEWS } from '@/app/routes.js'
 import '@/components/reconciliation/reconciliation-admin.css'
 
 function SettlementPage({ section }) {
-  const { recon, settings, showToast, setActiveView } = useAppState()
+  const { recon, settings, showToast } = useAppState()
   const {
     records,
     statistics,
@@ -28,8 +26,6 @@ function SettlementPage({ section }) {
     onChannelDeleteRecord
   } = recon
   const { partyA, partyB, settlementMonth } = settings
-
-  const statusAggregates = computeStatusAggregates(records, STATUS_OPTIONS)
 
   if (section === VIEWS.SETTLE_MONTHLY) {
     return (
@@ -114,33 +110,6 @@ function SettlementPage({ section }) {
           onUpdateRecord={onChannelUpdateRecord}
           onDeleteRecord={onChannelDeleteRecord}
         />
-      )}
-
-      {section === VIEWS.SETTLE_STATUS && (
-        <div className="status-summary-section">
-          <h3 className="status-summary-title">各状态金额汇总（研发对账）</h3>
-          <div className="status-summary-grid">
-            {statusAggregates.map((row) => (
-              <div key={row.value} className="status-summary-card" style={{ borderColor: row.color }}>
-                <div className="status-summary-header">
-                  <span className="status-summary-icon">{row.icon}</span>
-                  <span className="status-summary-label">{row.label}</span>
-                </div>
-                <div className="status-summary-content">
-                  <div className="status-summary-count">{row.count} 条</div>
-                  <div className="status-summary-amount">¥{row.amount.toFixed(2)}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <p className="muted" style={{ marginTop: '16px' }}>
-            修改记录状态请前往{' '}
-            <button type="button" className="secondary-btn" onClick={() => setActiveView(VIEWS.RECON_RD)}>
-              研发对账
-            </button>
-            。
-          </p>
-        </div>
       )}
     </PageContainer>
   )
