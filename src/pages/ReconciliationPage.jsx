@@ -20,18 +20,6 @@ import { VIEWS } from '@/app/routes.js'
 import { getReconciliationRecordId } from '@/lib/api/reconciliation.ts'
 import { consumeReconciliationFocus } from '@/lib/exceptions/navFocus.ts'
 
-const RECON_RD_FILTER_PANEL_STORAGE_KEY = 'recon-rd-filter-panel-expanded'
-
-function readStoredFilterPanelExpanded() {
-  try {
-    const v = localStorage.getItem(RECON_RD_FILTER_PANEL_STORAGE_KEY)
-    if (v === null) return false
-    return v === '1' || v === 'true'
-  } catch {
-    return false
-  }
-}
-
 function ReconciliationPage({ variant = 'full' }) {
   const {
     recon,
@@ -83,18 +71,6 @@ function ReconciliationPage({ variant = 'full' }) {
     reconciliationId: '',
     statementNo: ''
   })
-  const [filterPanelExpanded, setFilterPanelExpanded] = useState(readStoredFilterPanelExpanded)
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        RECON_RD_FILTER_PANEL_STORAGE_KEY,
-        filterPanelExpanded ? '1' : '0'
-      )
-    } catch {
-      /* ignore */
-    }
-  }, [filterPanelExpanded])
 
   const cycleBlock = (
     <SettlementCycleManager
@@ -133,80 +109,6 @@ function ReconciliationPage({ variant = 'full' }) {
     return (
       <PageContainer hideHeader className="page-container--recon-rd">
         <div className="reconciliation-rd">
-          <div className="reconciliation-rd__filter-toggle-bar">
-            <button
-              type="button"
-              className="reconciliation-rd__filter-toggle"
-              aria-expanded={filterPanelExpanded}
-              onClick={() => setFilterPanelExpanded((v) => !v)}
-            >
-              {filterPanelExpanded ? '收起筛选' : '显示筛选'}
-            </button>
-            {!filterPanelExpanded && hasActiveFilters && (
-              <>
-                <span className="reconciliation-rd__filter-toggle-hint">当前有条件生效</span>
-                <button
-                  type="button"
-                  className="reconciliation-rd__filter-toggle reconciliation-rd__filter-toggle--inline"
-                  onClick={() => {
-                    setSearchTerm('')
-                    setSelectedCycleKey(null)
-                    setFilterOptions({})
-                    setSortOptions({ field: '', order: 'desc' })
-                    showToast('已清除搜索、周期与筛选', 'info')
-                  }}
-                  title="重置搜索、周期与筛选条件"
-                >
-                  重置筛选
-                </button>
-              </>
-            )}
-          </div>
-
-          {filterPanelExpanded ? (
-            <div className="reconciliation-rd__filter-layer reconciliation-rd__filter-layer--single-row">
-              <div className="reconciliation-rd__filter-strip">
-                {cycleBlock}
-              </div>
-              <div className="reconciliation-rd__filter-row">
-                <div className="reconciliation-rd__search">
-                  <SearchFilter
-                    searchTerm={searchTerm}
-                    onSearchChange={setSearchTerm}
-                    resultCount={filteredRecords.length}
-                    totalCount={records.length}
-                  />
-                </div>
-                <div className="reconciliation-rd__filter-actions">
-                  <FilterSort
-                    variant="inline"
-                    filterValues={filterOptions}
-                    sortField={sortOptions.field}
-                    sortOrder={sortOptions.order}
-                    onFilterChange={setFilterOptions}
-                    onSortChange={(field, order) => setSortOptions({ field, order })}
-                  />
-                  {hasActiveFilters && (
-                    <button
-                      type="button"
-                      className="rec-btn rec-btn--ghost"
-                      onClick={() => {
-                        setSearchTerm('')
-                        setSelectedCycleKey(null)
-                        setFilterOptions({})
-                        setSortOptions({ field: '', order: 'desc' })
-                        showToast('已清除搜索、周期与筛选', 'info')
-                      }}
-                      title="重置搜索、周期与筛选条件"
-                    >
-                      重置
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ) : null}
-
           <div className="reconciliation-rd__action-layer">
             <ReconciliationToolbar
               onNavigateToCreate={() => setActiveView(VIEWS.RECON_CREATE)}
@@ -226,6 +128,25 @@ function ReconciliationPage({ variant = 'full' }) {
               handleBatchStatusUpdate={handleBatchStatusUpdate}
             />
           </div>
+
+          {hasActiveFilters && (
+            <div className="reconciliation-rd__filter-summary" role="status">
+              <span>当前有筛选条件生效，显示 {filteredRecords.length} / {records.length} 条</span>
+              <button
+                type="button"
+                className="reconciliation-rd__filter-summary-clear"
+                onClick={() => {
+                  setSearchTerm('')
+                  setSelectedCycleKey(null)
+                  setFilterOptions({})
+                  setSortOptions({ field: '', order: 'desc' })
+                  showToast('已清除搜索、周期与筛选', 'info')
+                }}
+              >
+                清除筛选
+              </button>
+            </div>
+          )}
 
           <ReconciliationStatsCards filteredRecords={filteredRecords} compact />
 

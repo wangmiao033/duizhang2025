@@ -689,6 +689,34 @@
   box-sizing: border-box;
 }
 
+.reconciliation-rd__filter-summary {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  min-height: 30px;
+  padding: 0 10px;
+  color: var(--admin-text-sub, #64748b);
+  font-size: var(--admin-font-sm, 13px);
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: var(--admin-radius-sm, 8px);
+}
+
+.reconciliation-rd__filter-summary-clear {
+  border: none;
+  padding: 0;
+  color: var(--admin-primary, #1664ff);
+  font-size: var(--admin-font-sm, 13px);
+  font-weight: 600;
+  background: transparent;
+  cursor: pointer;
+}
+
+.reconciliation-rd__filter-summary-clear:hover {
+  color: var(--admin-primary-hover, #0f54d9);
+}
+
 .page-container--recon-rd .page-container-body {
   flex: 1;
   min-height: 0;
