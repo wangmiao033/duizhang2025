@@ -30,9 +30,9 @@ function ExceptionsPage() {
         </section>
 
         <section className="admin-workspace__card">
-          <h3 className="admin-workspace__card-title">数据诊断与恢复</h3>
+          <h3 className="admin-workspace__card-title">本机备份恢复</h3>
           <p className="admin-workspace__card-desc">
-            检查 localStorage 与备份快照，必要时从历史或备份恢复（沿用 DataRecoveryHelper）。
+            查看当前浏览器里的本机备份；正常业务数据以服务器记录为准。
           </p>
           <DataRecoveryHelper
             records={records}
