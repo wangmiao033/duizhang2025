@@ -1,11 +1,11 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import BillExport from '@/components/BillExport.jsx'
-import ExcelImport from '@/components/ExcelImport.jsx'
 import BatchEdit from '@/components/BatchEdit.jsx'
 import { BatchStatusUpdate } from '@/components/StatusManager.jsx'
+import { computeRecordsStatistics } from '@/domain/settlement/settlementSummary.js'
 
 /**
- * 研发对账列表操作栏：主路径为独立新增页；Excel / 导出 / 批量。
+ * 研发对账列表操作栏：主路径为独立新增页；导出 / 批量。
  */
 function ReconciliationToolbar({
   onNavigateToCreate,
@@ -18,56 +18,46 @@ function ReconciliationToolbar({
   statistics,
   onExportSuccess,
   onExportError,
-  handleExportFiltered,
-  handleExportSelected,
-  handleExcelImport,
   handleBatchUpdate,
   handleBatchStatusUpdate
 }) {
+  const selectedRecords =
+    selectedIds.length > 0
+      ? selectedIds
+          .map((id) => records.find((record) => String(record.id) === String(id)))
+          .filter(Boolean)
+      : []
+  const exportRecords = selectedRecords.length > 0 ? selectedRecords : filteredRecords
+  const exportStatistics = useMemo(() => computeRecordsStatistics(exportRecords), [exportRecords])
+  const exportLabel = selectedRecords.length > 0 ? `导出账单 (${selectedRecords.length})` : '导出账单'
+
   return (
     <div className="rec-toolbar">
       <div className="rec-toolbar__primary">
         <button type="button" className="rec-btn rec-btn--primary" onClick={onNavigateToCreate}>
           新增研发对账
         </button>
-        <div className="rec-toolbar__excel">
-          <ExcelImport onImport={handleExcelImport} />
-        </div>
         <BillExport
-          records={records}
+          records={exportRecords}
           partyA={partyA}
           partyB={partyB}
           settlementMonth={settlementMonth}
-          statistics={statistics}
+          statistics={exportStatistics || statistics}
           onExportSuccess={(message) => onExportSuccess(message || '账单导出成功！')}
           onExportError={onExportError}
-          triggerLabel="导出当前页账单"
-          triggerTitle="导出当前列表中的全部记录（Excel / PDF / CSV），与「导出选中账单」不同"
-          excelMenuLabel={'\uD83D\uDCCA \u5bfc\u51fa\u5f53\u524d\u9875\u8d26\u5355'}
-          excelMenuTitle="将当前列表中的全部记录导出为一个 Excel 工作表（单张结算确认单）"
-        />
-        {filteredRecords.length < records.length && (
-          <button
-            type="button"
-            className="rec-btn rec-btn--secondary"
-            onClick={handleExportFiltered}
-            title="导出当前筛选结果"
-          >
-            导出筛选 ({filteredRecords.length})
-          </button>
-        )}
-        <button
-          type="button"
-          className="rec-btn rec-btn--secondary"
-          onClick={handleExportSelected}
-          title={
-            selectedIds.length > 0
-              ? '仅导出当前勾选的研发对账记录（Excel）'
-              : '请先勾选要导出的研发对账记录'
+          triggerLabel={exportLabel}
+          triggerTitle={
+            selectedRecords.length > 0
+              ? '导出当前勾选的研发对账记录'
+              : '导出当前列表中的研发对账记录'
           }
-        >
-          导出选中账单 ({selectedIds.length})
-        </button>
+          excelMenuLabel={selectedRecords.length > 0 ? '📊 导出选中账单' : '📊 导出当前列表'}
+          excelMenuTitle={
+            selectedRecords.length > 0
+              ? '导出当前勾选的研发对账记录'
+              : '导出当前列表中的研发对账记录'
+          }
+        />
         {selectedIds.length > 0 && (
           <div className="rec-toolbar__batch">
             <span className="rec-toolbar__batch-label">批量</span>

@@ -121,9 +121,6 @@ function ReconciliationPage({ variant = 'full' }) {
               statistics={statistics}
               onExportSuccess={(message) => showToast(message || '账单导出成功！', 'success')}
               onExportError={handleExportError}
-              handleExportFiltered={handleExportFiltered}
-              handleExportSelected={handleExportSelected}
-              handleExcelImport={handleExcelImport}
               handleBatchUpdate={handleBatchUpdate}
               handleBatchStatusUpdate={handleBatchStatusUpdate}
             />

@@ -263,7 +263,6 @@
   color: #64748b;
 }
 
-.rec-toolbar__excel .excel-import button,
 .rec-toolbar .bill-export .bill-export-btn {
   font-size: var(--font-size-button);
   padding: 8px 14px;
@@ -274,8 +273,7 @@
   font-weight: var(--font-weight-button);
 }
 
-.rec-toolbar .bill-export .bill-export-btn:not(.disabled):hover,
-.rec-toolbar__excel .excel-import button:hover {
+.rec-toolbar .bill-export .bill-export-btn:not(.disabled):hover {
   border-color: var(--admin-primary);
   color: var(--admin-primary);
   background: var(--admin-primary-muted);
