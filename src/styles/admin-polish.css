@@ -438,3 +438,200 @@
   background: var(--admin-primary-hover);
   border-color: var(--admin-primary-hover);
 }
+
+/* —— 终层主题覆盖：确保子功能页不会把全局主题拉回旧样式 —— */
+.app .app-sidebar .sidebar-item,
+.app .app-sidebar .sidebar-item-label {
+  font-size: var(--admin-sidebar-font-level1);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.app .app-sidebar .sidebar-item {
+  min-height: var(--admin-sidebar-item-h);
+  height: var(--admin-sidebar-item-h);
+  padding: 0 12px;
+  border-radius: var(--admin-radius-sm);
+}
+
+.app .app-sidebar .sidebar-item.active {
+  font-weight: 600;
+}
+
+.app .app-sidebar .sidebar-item-icon {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+  border-radius: 4px;
+  background: transparent;
+}
+
+.app .app-sidebar .sidebar-item.active .sidebar-item-icon {
+  color: var(--admin-primary);
+  background: rgba(22, 100, 255, 0.1);
+}
+
+.app .app-sidebar .sidebar-group-title,
+.app .app-sidebar .sidebar-group-title--static {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.app .rec-btn,
+.app .export-filtered-btn,
+.app .export-selected-btn,
+.app .toolbar-backup-link,
+.app .contract-page .btn-primary,
+.app .contract-page .btn-secondary,
+.app .contract-page .btn-reset {
+  min-height: var(--admin-btn-h);
+  height: var(--admin-btn-h);
+  padding: 0 12px;
+  border-radius: var(--admin-radius-sm);
+  font-size: var(--admin-font-button);
+  font-weight: var(--font-weight-button);
+  line-height: 1;
+  box-shadow: none;
+}
+
+.app .rec-btn--primary,
+.app .contract-page .btn-primary {
+  background: var(--admin-primary);
+  border-color: var(--admin-primary);
+  color: #fff;
+}
+
+.app .rec-btn--primary:hover,
+.app .contract-page .btn-primary:hover {
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
+}
+
+.app .rec-btn--secondary,
+.app .rec-btn--ghost,
+.app .contract-page .btn-secondary,
+.app .contract-page .btn-reset {
+  background: var(--admin-surface-bg);
+  border-color: var(--admin-border);
+  color: var(--admin-text-main);
+}
+
+.app .rec-btn--secondary:hover,
+.app .rec-btn--ghost:hover,
+.app .contract-page .btn-secondary:hover,
+.app .contract-page .btn-reset:hover {
+  background: var(--admin-surface-hover);
+  border-color: #a9bee0;
+  color: var(--admin-primary);
+}
+
+.app .toolbar-section,
+.app .reconciliation-rd__filter-toggle-bar,
+.app .reconciliation-rd__filter-layer,
+.app .reconciliation-rd__table-card,
+.app .contract-toolbar,
+.app .contract-filter-card,
+.app .contract-table-card {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.app .toolbar-section,
+.app .reconciliation-rd__filter-toggle-bar,
+.app .contract-toolbar {
+  min-height: 44px;
+  padding: 8px 10px;
+}
+
+.app .summary-card,
+.app .rec-stat-card,
+.app .contract-stats article {
+  min-height: var(--admin-stat-card-min-height);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card-bg);
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.app .summary-card {
+  padding: 10px 12px;
+}
+
+.app .summary-card--clickable:hover {
+  transform: none;
+  background: var(--admin-table-row-hover);
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.app .summary-card .card-content h3,
+.app .rec-stat-card__label,
+.app .contract-stats span {
+  font-size: var(--admin-stat-label-size);
+  font-weight: var(--admin-filter-label-weight);
+  color: var(--admin-text-sub);
+  line-height: var(--line-height-caption);
+}
+
+.app .summary-card .card-value,
+.app .rec-stat-card__value,
+.app .contract-stats strong {
+  font-family: var(--font-mono);
+  font-size: var(--admin-stat-value-size);
+  font-weight: var(--admin-stat-value-weight);
+  color: var(--admin-text-main);
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.app .rec-stats-cards--compact .rec-stat-card__value {
+  font-size: var(--admin-stat-value-size);
+  font-weight: var(--admin-stat-value-weight);
+}
+
+.app .rec-page-header__title,
+.app .contract-page-title {
+  font-size: var(--admin-font-page);
+  font-weight: var(--font-weight-page-title);
+  color: var(--admin-text-main);
+  letter-spacing: 0;
+}
+
+.app .rec-page-header__desc,
+.app .contract-page-desc {
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-muted);
+}
+
+.app .data-table table,
+.app .contract-table {
+  font-size: var(--admin-table-font-size);
+  color: var(--admin-text-main);
+}
+
+.app .data-table thead th,
+.app .contract-table thead th {
+  background: var(--admin-table-head-bg);
+  color: var(--admin-text-sub);
+  font-size: var(--admin-table-th-font-size);
+  font-weight: var(--font-weight-table-header);
+  padding: var(--admin-table-th-py) var(--admin-table-th-px);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.app .data-table tbody td,
+.app .contract-table tbody td {
+  padding: var(--admin-table-td-py) var(--admin-table-td-px);
+  border-bottom: 1px solid var(--admin-border-soft);
+}
+
+.app .data-table tbody tr:hover,
+.app .contract-table tbody tr:hover {
+  background: var(--admin-table-row-hover);
+}

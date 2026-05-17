@@ -11,7 +11,6 @@ import { useReconciliationStore } from './store/useReconciliationStore.js'
 import { useInvoiceStore } from './store/useInvoiceStore.js'
 import AppShell from './app/AppShell.jsx'
 import { AppStateProvider } from './app/AppStateContext.jsx'
-import '@/styles/admin-polish.css'
 import { VIEWS } from './app/routes.js'
 import DashboardPage from './pages/DashboardPage.jsx'
 import ReconciliationPage from './pages/ReconciliationPage.jsx'
@@ -40,6 +39,7 @@ import BankTransactionsLedgerPage from './pages/BankTransactionsLedgerPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import AuthUsersPage from './pages/AuthUsersPage.jsx'
 import { useAuth } from '@/features/auth/AuthContext.jsx'
+import '@/styles/admin-polish.css'
 
 function App() {
   const { isAuthenticated, loading } = useAuth()
