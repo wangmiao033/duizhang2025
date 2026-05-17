@@ -37,6 +37,10 @@
   font-weight: var(--font-weight-card-title);
 }
 
+.app button {
+  -webkit-font-smoothing: antialiased;
+}
+
 .app input,
 .app select,
 .app textarea {
@@ -56,6 +60,22 @@
   outline: none;
   border-color: var(--admin-primary);
   box-shadow: 0 0 0 2px var(--admin-primary-muted);
+}
+
+.app button:focus-visible {
+  outline: 2px solid rgba(59, 111, 246, 0.45);
+  outline-offset: 2px;
+}
+
+.app .app-container,
+.app .toolbar-section,
+.app .table-section,
+.app .form-section,
+.app .config-section,
+.app .invoice-section,
+.app .invoice-list {
+  border-color: #dbe5f1;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
 }
 
 /* —— 工具栏 / 表单底栏：与 .admin-btn 同高同字重 —— */

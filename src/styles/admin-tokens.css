@@ -4,7 +4,7 @@
 @import './tokens.css';
 
 :root {
-  --admin-page-bg: var(--bg-main);
+  --admin-page-bg: #f4f7fb;
   --admin-card-bg: var(--bg-card);
   --admin-elevated-bg: var(--bg-soft);
   --admin-primary: var(--primary);
@@ -44,26 +44,26 @@
   --admin-space-md: 16px;
   --admin-space-lg: 20px;
   --admin-space-xl: 24px;
-  --admin-header-h: 64px;
+  --admin-header-h: 58px;
   /* 侧栏宽度：收窄以提升主内容区可视面积 */
-  --admin-sidebar-w: 228px;
+  --admin-sidebar-w: 216px;
   /* 侧栏导航：一级 / 二级行高与字号略增，重点配合宽度与留白 */
-  --admin-sidebar-item-h: 44px;
-  --admin-sidebar-item-h-sub: 44px;
-  --admin-sidebar-font-level1: 15px;
-  --admin-sidebar-font-level2: 15px;
-  --admin-sidebar-icon-size: 18px;
-  --admin-sidebar-item-gap: 12px;
-  --admin-sidebar-group-gap: 16px;
+  --admin-sidebar-item-h: 40px;
+  --admin-sidebar-item-h-sub: 38px;
+  --admin-sidebar-font-level1: 14px;
+  --admin-sidebar-font-level2: 14px;
+  --admin-sidebar-icon-size: 16px;
+  --admin-sidebar-item-gap: 10px;
+  --admin-sidebar-group-gap: 12px;
   --admin-sidebar-active-bg: color-mix(in srgb, var(--admin-primary) 17%, var(--admin-card-bg));
   --admin-sidebar-active-bar-w: 3px;
   --admin-sidebar-brand-pad-y: 6px;
-  --admin-workspace-pad-x: 24px;
+  --admin-workspace-pad-x: 28px;
   --admin-drawer-w: 440px;
   --admin-drawer-w-max: 480px;
-  --admin-input-h: 40px;
-  --admin-btn-h: 40px;
-  --admin-page-stack-gap: 16px;
+  --admin-input-h: 38px;
+  --admin-btn-h: 38px;
+  --admin-page-stack-gap: 14px;
   --admin-table-th-py: 10px;
   --admin-table-th-px: 12px;
   --admin-table-td-py: 10px;

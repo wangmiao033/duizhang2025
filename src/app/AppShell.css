@@ -33,7 +33,7 @@
   min-height: 0;
   width: 100%;
   background: var(--admin-page-bg);
-  padding: var(--admin-space-lg) var(--admin-workspace-pad-x) var(--admin-space-lg);
+  padding: 18px var(--admin-workspace-pad-x) 20px;
   overflow: hidden;
   display: flex;
   flex-direction: column;

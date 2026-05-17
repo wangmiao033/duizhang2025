@@ -7,8 +7,8 @@
   min-width: var(--admin-sidebar-w);
   align-self: stretch;
   min-height: 100vh;
-  background: #fff;
-  border-right: 1px solid #e6eaf2;
+  background: #fbfcff;
+  border-right: 1px solid #dde6f2;
   box-sizing: border-box;
   transition: width 0.2s ease;
 }
@@ -19,7 +19,7 @@
   max-height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 8px var(--admin-space-md);
+  padding: 0 8px 14px;
   padding-top: 0;
   background: transparent;
   scrollbar-gutter: stable;
@@ -45,32 +45,32 @@
 }
 
 .sidebar-brand {
-  min-height: 74px;
+  min-height: 66px;
   display: grid;
-  grid-template-columns: 28px 1fr;
+  grid-template-columns: 26px 1fr;
   align-items: center;
-  column-gap: 10px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid #e6eaf2;
+  column-gap: 9px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #e3ebf5;
 }
 
 .sidebar-brand__logo {
   grid-row: 1 / span 2;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: #eef3ff;
   color: var(--admin-primary);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .sidebar-brand__title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #1f2937;
   letter-spacing: -0.01em;
@@ -87,9 +87,9 @@
 }
 
 .sidebar-group-title--static {
-  padding: 6px 8px;
+  padding: 6px 10px;
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   color: #8a94a6;
   letter-spacing: 0.04em;
   font-weight: 500;
@@ -109,7 +109,7 @@
 }
 
 .sidebar-group {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .sidebar-group:last-child {
@@ -145,9 +145,9 @@
 
 /* 分组标题：弱化，区别于菜单项 */
 .sidebar-group-title {
-  font-size: 13px;
+  font-size: 12px;
   color: #8a94a6;
-  padding: 6px 8px;
+  padding: 6px 10px;
   margin: 0;
   letter-spacing: 0.04em;
   font-weight: var(--font-weight-menu);
@@ -195,17 +195,17 @@
   align-items: center;
   gap: var(--admin-sidebar-item-gap);
   width: 100%;
-  min-height: 44px;
-  height: 44px;
-  padding: 0 16px;
+  min-height: var(--admin-sidebar-item-h);
+  height: var(--admin-sidebar-item-h);
+  padding: 0 14px;
   text-align: left;
   border: none;
-  border-radius: 10px;
+  border-radius: 9px;
   margin: 0;
-  font-size: 15px;
+  font-size: var(--admin-sidebar-font-level1);
   font-weight: 500;
   line-height: 1;
-  color: var(--admin-text-secondary);
+  color: #526176;
   background: transparent;
   cursor: pointer;
   transition:
@@ -215,9 +215,9 @@
 }
 
 .sidebar-item-icon {
-  flex: 0 0 22px;
-  width: 22px;
-  height: 22px;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -243,7 +243,7 @@
 }
 
 .sidebar-item:hover {
-  background: #f5f7fb;
+  background: #f1f5fb;
   color: var(--admin-text-primary);
 }
 
@@ -252,10 +252,10 @@
 }
 
 .sidebar-item.active {
-  background: #eef3ff;
-  color: #1f3f8f;
+  background: #eaf2ff;
+  color: #1d4ed8;
   font-weight: 600;
-  box-shadow: inset 0 0 0 1px rgba(59, 111, 246, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(59, 111, 246, 0.18);
 }
 
 .sidebar-item.active .sidebar-item-icon {
@@ -276,17 +276,17 @@
 }
 
 .sidebar-footer {
-  margin-top: 12px;
+  margin-top: 10px;
   padding: 8px;
   border-top: 1px solid #eef1f6;
 }
 
 .sidebar-collapse-btn {
   width: 100%;
-  height: 36px;
+  height: 34px;
   border: 1px solid var(--admin-border);
-  border-radius: 10px;
-  background: #fff;
+  border-radius: 9px;
+  background: #fbfcff;
   color: var(--admin-text-tertiary);
   font-size: 12px;
   font-weight: 500;
