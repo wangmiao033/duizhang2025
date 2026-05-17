@@ -343,6 +343,14 @@
   box-sizing: border-box;
 }
 
+.toolbar-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 420px;
+  min-width: 280px;
+}
+
 .toolbar-buttons {
   display: flex;
   gap: 10px;
@@ -353,7 +361,8 @@
 }
 
 .export-filtered-btn,
-.export-selected-btn {
+.export-selected-btn,
+.toolbar-backup-link {
   padding: 0 16px;
   min-height: var(--admin-btn-h);
   background: var(--admin-primary);
@@ -369,10 +378,22 @@
   white-space: nowrap;
 }
 
+.toolbar-backup-link {
+  background: #fff;
+  color: var(--admin-text-sub);
+  border-color: var(--admin-border);
+}
+
 .export-filtered-btn:hover,
 .export-selected-btn:hover {
   background: var(--admin-primary-hover);
   border-color: var(--admin-primary-hover);
+}
+
+.toolbar-backup-link:hover {
+  background: var(--admin-elevated-bg);
+  color: var(--admin-primary);
+  border-color: var(--admin-primary);
 }
 
 .export-filtered-btn:active,
@@ -868,6 +889,12 @@
   .toolbar-section {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .toolbar-main {
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 0;
   }
   
   .toolbar-buttons {

@@ -6,10 +6,7 @@ import DataTable from '@/components/DataTable.jsx'
 import BillExport from '@/components/BillExport.jsx'
 import FilterSort from '@/components/FilterSort.jsx'
 import BatchEdit from '@/components/BatchEdit.jsx'
-import DataRecoveryHelper from '@/components/DataRecoveryHelper.jsx'
-import HistoryPanel from '@/components/HistoryPanel.jsx'
 import ExcelImport from '@/components/ExcelImport.jsx'
-import DataBackup from '@/components/DataBackup.jsx'
 import SettlementCycleManager from '@/components/SettlementCycleManager.jsx'
 import ReconciliationStatsCards from '@/components/reconciliation/ReconciliationStatsCards.jsx'
 import ReconciliationToolbar from '@/components/reconciliation/ReconciliationToolbar.jsx'
@@ -69,9 +66,7 @@ function ReconciliationPage({ variant = 'full' }) {
     handleExportFiltered,
     handleExportSelected,
     handleExportError,
-    handleRestoreFromHistory,
     handleExcelImport,
-    restoreFullData,
     statistics
   } = recon
 
@@ -80,7 +75,7 @@ function ReconciliationPage({ variant = 'full' }) {
     if (id) setSearchTerm(id)
   }, [setSearchTerm])
 
-  const { settlementMonth, partyA, partyB, partners, deliveries, setPartners } = settings
+  const { settlementMonth, partyA, partyB } = settings
 
   const [lightDrawerRecord, setLightDrawerRecord] = useState(null)
   const [rdPaymentsDrawer, setRdPaymentsDrawer] = useState({
@@ -328,27 +323,29 @@ function ReconciliationPage({ variant = 'full' }) {
       <div className="reconciliation-ledger-page">
       <div className="cycle-manager-section">{cycleBlock}</div>
       <div className="toolbar-section">
-        <SearchFilter
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          resultCount={filteredRecords.length}
-          totalCount={records.length}
-        />
-        {(searchTerm || selectedCycleKey || Object.values(filterOptions).some((v) => v)) && (
-          <button
-            className="clear-filters-btn"
-            type="button"
-            onClick={() => {
-              setSearchTerm('')
-              setSelectedCycleKey(null)
-              setFilterOptions({})
-              showToast('已清除所有筛选条件', 'info')
-            }}
-            title="清除所有筛选条件"
-          >
-            清除筛选
-          </button>
-        )}
+        <div className="toolbar-main">
+          <SearchFilter
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            resultCount={filteredRecords.length}
+            totalCount={records.length}
+          />
+          {(searchTerm || selectedCycleKey || Object.values(filterOptions).some((v) => v)) && (
+            <button
+              className="clear-filters-btn"
+              type="button"
+              onClick={() => {
+                setSearchTerm('')
+                setSelectedCycleKey(null)
+                setFilterOptions({})
+                showToast('已清除所有筛选条件', 'info')
+              }}
+              title="清除所有筛选条件"
+            >
+              清除筛选
+            </button>
+          )}
+        </div>
         <div className="toolbar-buttons">
           <BillExport
             records={records}
@@ -358,7 +355,7 @@ function ReconciliationPage({ variant = 'full' }) {
             statistics={statistics}
             onExportSuccess={(message) => showToast(message || '账单导出成功！', 'success')}
             onExportError={handleExportError}
-            triggerLabel="导出当前页账单"
+            triggerLabel="导出账单"
             triggerTitle="导出当前列表中的全部记录（Excel / PDF / CSV），与「导出选中账单」不同"
             excelMenuLabel={'\uD83D\uDCCA \u5bfc\u51fa\u5f53\u524d\u9875\u8d26\u5355'}
             excelMenuTitle="将当前列表中的全部记录导出为一个 Excel 工作表（单张结算确认单）"
@@ -374,42 +371,28 @@ function ReconciliationPage({ variant = 'full' }) {
               onClick={handleExportFiltered}
               title="导出当前筛选结果"
             >
-              导出筛选结果 ({filteredRecords.length})
+              导出筛选 ({filteredRecords.length})
+            </button>
+          )}
+          <ExcelImport onImport={handleExcelImport} />
+          {selectedIds.length > 0 && (
+            <button
+              type="button"
+              className="export-selected-btn"
+              onClick={handleExportSelected}
+              title="仅导出当前勾选的研发对账记录（Excel）"
+            >
+              导出选中 ({selectedIds.length})
             </button>
           )}
           <button
             type="button"
-            className="export-selected-btn"
-            onClick={handleExportSelected}
-            title={
-              selectedIds.length > 0
-                ? '仅导出当前勾选的研发对账记录（Excel）'
-                : '请先勾选要导出的研发对账记录'
-            }
+            className="toolbar-backup-link"
+            onClick={() => setActiveView(VIEWS.SETTINGS_BACKUP)}
+            title="前往系统设置中的数据备份与恢复"
           >
-            导出选中账单 ({selectedIds.length})
+            备份设置
           </button>
-          <DataRecoveryHelper
-            records={records}
-            onDataRestored={(data) => {
-              restoreFullData(data)
-              showToast('数据已恢复！', 'success')
-            }}
-          />
-          <HistoryPanel onRestore={handleRestoreFromHistory} />
-          <ExcelImport onImport={handleExcelImport} />
-          <DataBackup
-            records={records}
-            partyA={partyA}
-            partyB={partyB}
-            settlementMonth={settlementMonth}
-            partners={partners}
-            deliveries={deliveries}
-            onImport={(data) => {
-              restoreFullData(data)
-              showToast('数据导入成功！', 'success')
-            }}
-          />
         </div>
       </div>
 
