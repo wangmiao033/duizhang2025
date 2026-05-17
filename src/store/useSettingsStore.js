@@ -76,12 +76,8 @@ export function useSettingsStore({ showToast } = {}) {
         if (cancelled) return
         setPaymentApiEnabled(true)
       } catch (err) {
-        console.error(err)
+        console.warn('Payment API unavailable, falling back to local cache.', err)
         if (cancelled) return
-        showToastRef.current?.(
-          '回款服务器暂时异常，已回退本地缓存。若列表长期不同步，请检查 API 与 PostgreSQL 表 payment_records。',
-          'error'
-        )
         const savedDeliveries = storageGet(STORAGE_KEYS.DELIVERIES)
         if (savedDeliveries?.length) {
           setDeliveries(normalizeLocalDeliveries(savedDeliveries))

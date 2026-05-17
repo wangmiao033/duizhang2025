@@ -139,12 +139,8 @@ export function useReconciliationStore(settings, showToast) {
         setRecords(items.map(apiRowToFrontend))
         setReconciliationApiEnabled(true)
       } catch (err) {
-        console.error(err)
+        console.warn('Reconciliation API unavailable, falling back to local cache.', err)
         if (cancelled) return
-        showToastRef.current?.(
-          '研发对账服务器暂时异常，已回退本地缓存。若列表长期不同步，请检查 API 与 PostgreSQL。',
-          'error'
-        )
         const savedRecords = storageGet(STORAGE_KEYS.RECONCILIATION_RECORDS)
         if (savedRecords) {
           setRecords(normalizeLocalReconciliationRecords(savedRecords))
@@ -166,12 +162,8 @@ export function useReconciliationStore(settings, showToast) {
         setChannelRecords(items.map(apiChannelRowToFrontend))
         setChannelApiEnabled(true)
       } catch (err) {
-        console.error(err)
+        console.warn('Channel API unavailable, falling back to local cache.', err)
         if (cancelled) return
-        showToastRef.current?.(
-          '渠道服务器暂时异常，已回退本地缓存。若列表长期不同步，请检查 API 与 PostgreSQL 表 channel_records。',
-          'error'
-        )
         const savedChannel = storageGet(STORAGE_KEYS.CHANNEL_RECORDS)
         if (savedChannel?.length) {
           setChannelRecords(normalizeLocalChannelRecords(savedChannel))
