@@ -247,7 +247,7 @@ function DashboardPage() {
         {lastSaveTime && (
           <div className="save-indicator dashboard-save-indicator">
             <span className="save-time">已自动保存 {formatTime(lastSaveTime)}</span>
-            <span className="shortcut-hint">Ctrl+F 搜索 · Ctrl+P 打印 · Ctrl+Enter 保存编辑</span>
+            <span className="shortcut-hint">Ctrl+P 打印 · Enter 提交表单 · Esc 关闭弹窗</span>
           </div>
         )}
 

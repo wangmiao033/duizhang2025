@@ -1,7 +1,5 @@
 import React, { useState } from 'react'
-import Calendar from '@/components/Calendar.jsx'
 import NotificationCenter from '@/components/NotificationCenter.jsx'
-import UserGuide from '@/components/UserGuide.jsx'
 import Settings from '@/components/Settings.jsx'
 import HelpTooltip from '@/components/HelpTooltip.jsx'
 import MobileMenu from '@/components/MobileMenu.jsx'
@@ -75,22 +73,6 @@ function Header({ activeView, onNavigate, onSettingsChange }) {
               </nav>
             </MobileMenu>
           </div>
-          <Calendar
-            compact={true}
-            onDateSelect={(_date, dateStr) => {
-              console.log('选择日期:', dateStr)
-            }}
-          />
-          <label className="app-admin-header__search-wrap">
-            <span className="visually-hidden">全局搜索</span>
-            <input
-              id="global-admin-search"
-              type="search"
-              className="admin-input app-admin-header__search"
-              placeholder="全局搜索…"
-              autoComplete="off"
-            />
-          </label>
           <NotificationCenter />
           <HelpTooltip />
           <Settings onSettingsChange={onSettingsChange} />
@@ -130,7 +112,6 @@ function Header({ activeView, onNavigate, onSettingsChange }) {
               </div>
             ) : null}
           </div>
-          <UserGuide />
         </div>
       </div>
       <ConfirmDialog

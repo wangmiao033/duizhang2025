@@ -22,10 +22,6 @@ function HelpTooltip() {
           </div>
           <div className="help-list">
             <div className="help-item">
-              <kbd>Ctrl</kbd> + <kbd>F</kbd>
-              <span>聚焦搜索框</span>
-            </div>
-            <div className="help-item">
               <kbd>Ctrl</kbd> + <kbd>P</kbd>
               <span>打印对账单</span>
             </div>
@@ -42,10 +38,10 @@ function HelpTooltip() {
             <h5>使用提示</h5>
             <ul>
               <li>结算金额会根据公式自动计算</li>
-              <li>支持从Excel导入数据</li>
-              <li>可以保存多个账单模板</li>
-              <li>数据自动保存到本地存储</li>
-              <li>支持批量删除操作</li>
+              <li>研发对账和渠道对账分别从对应模块新增</li>
+              <li>勾选记录后会出现批量编辑和批量状态操作</li>
+              <li>导出账单会优先导出当前勾选记录</li>
+              <li>数据以服务器数据库为主，异常时才回退本地缓存</li>
             </ul>
           </div>
         </div>
@@ -55,4 +51,3 @@ function HelpTooltip() {
 }
 
 export default HelpTooltip
-

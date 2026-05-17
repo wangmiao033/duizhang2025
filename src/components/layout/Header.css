@@ -38,7 +38,7 @@
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-end;
   gap: 7px;
   width: 100%;
   min-width: 0;
@@ -46,21 +46,6 @@
 
 .app-admin-header__mobile {
   display: none;
-}
-
-.app-admin-header__search-wrap {
-  display: flex;
-  align-items: center;
-  margin: 0;
-}
-
-.app-admin-header__search {
-  width: 280px;
-  height: var(--admin-input-h);
-  min-height: var(--admin-input-h);
-  max-height: var(--admin-input-h);
-  font-size: var(--admin-font-sm);
-  background: var(--admin-surface-subtle);
 }
 
 .app-admin-header__user {
@@ -156,7 +141,6 @@
   font-size: var(--admin-font-sm);
 }
 
-.app-admin-header__right .guide-btn,
 .app-admin-header__right .help-btn,
 .app-admin-header__right .settings-btn,
 .app-admin-header__right .notification-btn {
@@ -171,16 +155,6 @@
   box-shadow: none;
 }
 
-.app-admin-header__right .calendar-trigger {
-  height: var(--admin-btn-h);
-  min-height: var(--admin-btn-h);
-  border-radius: var(--admin-radius-sm);
-  background: var(--admin-surface-bg);
-  border-color: var(--admin-border);
-  box-shadow: none;
-}
-
-.app-admin-header__right .calendar-trigger:hover,
 .app-admin-header__right .help-btn:hover,
 .app-admin-header__right .settings-btn:hover,
 .app-admin-header__right .notification-btn:hover {
@@ -189,28 +163,9 @@
   color: var(--admin-primary);
 }
 
-.app-admin-header__right .guide-btn {
-  min-height: var(--admin-btn-h);
-  height: var(--admin-btn-h);
-  padding: 0 12px;
-  background: #eef4ff;
-  border-color: #c9dcff;
-  color: var(--admin-primary);
-  box-shadow: none;
-}
-
-.app-admin-header__right .guide-btn:hover {
-  background: #e3edff;
-  border-color: #bcd2ff;
-}
-
 @media (max-width: 960px) {
   .app-admin-header__mobile {
     display: block;
-  }
-
-  .app-admin-header__search {
-    width: 180px;
   }
 
   .app-admin-header__toolbar {
@@ -221,12 +176,6 @@
     max-height: none;
     padding-top: 6px;
     padding-bottom: 6px;
-  }
-}
-
-@media (max-width: 900px) {
-  .app-admin-header__right .calendar-compact {
-    display: none;
   }
 }
 

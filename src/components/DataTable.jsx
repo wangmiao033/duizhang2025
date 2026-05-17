@@ -276,7 +276,7 @@ function DataTable({
             <div className="data-table__empty-block">
               <AdminListEmptyState
                 title="暂无对账记录"
-                description="新增一条记录、使用 Excel 导入，或调整筛选条件后再试。"
+                description="新增一条记录，或调整筛选条件后再试。"
               />
             </div>
           ) : (
@@ -496,7 +496,7 @@ function DataTable({
                   <AdminListEmptyState
                     variant="inline"
                     title="暂无对账记录"
-                    description="新增一条记录、使用 Excel 导入，或调整筛选条件后再试。"
+                    description="新增一条记录，或调整筛选条件后再试。"
                   />
                 </td>
               </tr>

@@ -101,9 +101,8 @@ function App() {
     },
     'ctrl+f': (e) => {
       e?.preventDefault()
-      const globalSearch = document.querySelector('#global-admin-search')
       const searchInput = document.querySelector('.search-input')
-      ;(globalSearch || searchInput)?.focus()
+      searchInput?.focus()
     },
     'ctrl+p': (e) => {
       e?.preventDefault()
