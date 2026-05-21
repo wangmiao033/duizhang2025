@@ -47,6 +47,64 @@ def _line_reads(row: ReconciliationRecord) -> list[ReconciliationLineItemRead]:
     return [ReconciliationLineItemRead.model_validate(x) for x in lis]
 
 
+def _normalize_settlement_cycle(raw: str | None) -> str | None:
+    if raw is None:
+        return None
+    text = str(raw).strip()
+    if not text:
+        return None
+    match = re.match(r"^(\d{4})年(\d{1,2})月$", text)
+    if match:
+        year = match.group(1)
+        month = min(max(int(match.group(2)), 1), 12)
+        return f"{year}年{month}月"
+    match = re.match(r"^(\d{4})-(\d{1,2})$", text)
+    if match:
+        year = match.group(1)
+        month = min(max(int(match.group(2)), 1), 12)
+        return f"{year}年{month}月"
+    return text
+
+
+def _resolve_record_settlement_month(payload_month: str | None, items_in: list[ReconciliationLineItemIn] | None) -> str | None:
+    normalized_payload = _normalize_settlement_cycle(payload_month)
+    if not items_in:
+        return normalized_payload
+
+    cycles: list[str] = []
+    for item in items_in:
+        game_name = str(item.game_name or "").strip()
+        revenue = float(item.revenue or 0)
+        if not game_name or revenue <= 0:
+            continue
+        cycle = _normalize_settlement_cycle(item.settlement_cycle or normalized_payload)
+        if cycle:
+            cycles.append(cycle)
+
+    unique_cycles = list(dict.fromkeys(cycles))
+    if len(unique_cycles) == 1:
+        return unique_cycles[0]
+    return normalized_payload
+
+
+def _resolve_row_display_settlement_month(row: ReconciliationRecord) -> str | None:
+    normalized_payload = _normalize_settlement_cycle(row.settlement_month)
+    cycles: list[str] = []
+    for item in row.line_items:
+        game_name = str(item.game_name or "").strip()
+        revenue = float(item.revenue or 0)
+        if not game_name or revenue <= 0:
+            continue
+        cycle = _normalize_settlement_cycle(item.settlement_cycle or normalized_payload)
+        if cycle:
+            cycles.append(cycle)
+
+    unique_cycles = list(dict.fromkeys(cycles))
+    if len(unique_cycles) == 1:
+        return unique_cycles[0]
+    return normalized_payload
+
+
 def _replace_line_items(db: Session, rec: ReconciliationRecord, items_in: list[ReconciliationLineItemIn]) -> None:
     db.execute(delete(ReconciliationLineItem).where(ReconciliationLineItem.reconciliation_id == rec.id))
     db.flush()
@@ -72,7 +130,7 @@ def _replace_line_items(db: Session, rec: ReconciliationRecord, items_in: list[R
         li = ReconciliationLineItem(
             id=str(uuid4()),
             reconciliation_id=rec.id,
-            settlement_cycle=raw.settlement_cycle or rec.settlement_month,
+            settlement_cycle=_normalize_settlement_cycle(raw.settlement_cycle or rec.settlement_month),
             game_name=raw.game_name,
             revenue=float(raw.revenue or 0),
             discount_rate=float(raw.discount_rate if raw.discount_rate is not None else 1),
@@ -215,9 +273,11 @@ def list_reconciliation(
         base_read = ReconciliationRead.model_validate(r)
         st = compute_bank_payment_list_status(float(r.settlement_amount or 0), bp_map.get(r.id))
         pay = fill_payable_for_row(agg_map.get(r.id), r.settlement_amount)
+        display_settlement_month = _resolve_row_display_settlement_month(r)
         items.append(
             base_read.model_copy(
                 update={
+                    "settlement_month": display_settlement_month,
                     "items": [],
                     "bank_payment_list_status": st,
                     "paid_amount": float(pay.paid_amount),
@@ -264,10 +324,11 @@ def create_reconciliation(payload: ReconciliationCreate, db: Session = Depends(g
     if _statement_no_is_corrupt(raw_no):
         raw_no = ""
     statement_no = raw_no or f"RD-{uuid4().hex[:12].upper()}"
+    settlement_month = _resolve_record_settlement_month(payload.settlement_month, payload.items)
     row = ReconciliationRecord(
         id=str(uuid4()),
         statement_no=statement_no,
-        settlement_month=payload.settlement_month,
+        settlement_month=settlement_month,
         partner_name=payload.partner_name,
         game_name=payload.game_name,
         game_flow=payload.game_flow,
@@ -307,6 +368,12 @@ def update_reconciliation(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"error": "not_found", "id": record_id})
     data = payload.model_dump(exclude_unset=True)
     items_payload = data.pop("items", None)
+    parsed_items = [ReconciliationLineItemIn.model_validate(x) for x in items_payload] if items_payload is not None else None
+    if "settlement_month" in data or parsed_items is not None:
+        data["settlement_month"] = _resolve_record_settlement_month(
+            data.get("settlement_month", row.settlement_month),
+            parsed_items if parsed_items is not None else _line_reads(row),
+        )
     for key, value in data.items():
         setattr(row, key, value)
     row.updated_at = datetime.now(timezone.utc)
@@ -314,8 +381,7 @@ def update_reconciliation(
         if len(items_payload) == 0:
             db.execute(delete(ReconciliationLineItem).where(ReconciliationLineItem.reconciliation_id == row.id))
         else:
-            parsed = [ReconciliationLineItemIn.model_validate(x) for x in items_payload]
-            _replace_line_items(db, row, parsed)
+            _replace_line_items(db, row, parsed_items)
     try:
         db.commit()
     except IntegrityError:

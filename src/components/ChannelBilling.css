@@ -243,6 +243,62 @@
   color: var(--admin-text-sub);
 }
 
+.rd-recon-defaults-panel {
+  margin-top: 8px;
+  border: 1px dashed var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-elevated-bg);
+  overflow: hidden;
+}
+
+.rd-recon-defaults-panel[open] {
+  border-style: solid;
+}
+
+.rd-recon-defaults-panel__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.rd-recon-defaults-panel__summary::-webkit-details-marker {
+  display: none;
+}
+
+.rd-recon-defaults-panel__summary::after {
+  content: '展开';
+  flex: 0 0 auto;
+  font-size: var(--admin-font-sm);
+  color: var(--admin-primary);
+}
+
+.rd-recon-defaults-panel[open] .rd-recon-defaults-panel__summary::after {
+  content: '收起';
+}
+
+.rd-recon-defaults-panel__title {
+  font-size: var(--admin-font-base);
+  font-weight: 600;
+  color: var(--admin-text-main);
+}
+
+.rd-recon-defaults-panel__meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: right;
+  font-size: var(--admin-font-sm);
+  color: var(--admin-text-sub);
+}
+
+.rd-recon-defaults-panel__body {
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--admin-border-soft);
+}
+
 .form-group input,
 .form-group select {
   padding: 10px 12px;

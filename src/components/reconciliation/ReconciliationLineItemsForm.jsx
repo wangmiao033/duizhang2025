@@ -96,6 +96,42 @@ function formatIssueDateLabel(raw) {
   return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
 }
 
+function isMeaningfulRdLine(line) {
+  return Boolean(
+    line?.gameName &&
+      String(line.gameName).trim() &&
+      Number.parseFloat(line.revenue || 0) > 0
+  )
+}
+
+function resolveCanonicalSettlementMonth(lines, fallbackMonth) {
+  const normalizedFallback = normalizeSettlementCycleLabel(fallbackMonth)
+  const cycles = Array.from(
+    new Set(
+      lines
+        .filter(isMeaningfulRdLine)
+        .map((line) => normalizeSettlementCycleLabel(line.settlementCycle || normalizedFallback))
+        .filter(Boolean)
+    )
+  )
+
+  if (cycles.length === 0) {
+    return {
+      month: normalizedFallback,
+      error: normalizedFallback ? null : '请填写结算月份'
+    }
+  }
+
+  if (cycles.length > 1) {
+    return {
+      month: null,
+      error: '同一张研发对账单的结算周期必须一致，请统一后再保存'
+    }
+  }
+
+  return { month: cycles[0], error: null }
+}
+
 /**
  * 研发对账：布局与渠道 ChannelBillingForm 一致（channel-form-section + LineItemsTable + grid明细）
  */
@@ -220,11 +256,15 @@ function ReconciliationLineItemsForm({
   }, [totals.sumSettlement, onPreviewChange])
 
   const mergedRecordForSubmit = () => {
+    const { month: canonicalSettlementMonth } = resolveCanonicalSettlementMonth(
+      lines,
+      header.settlementMonth
+    )
     const gameLabel = lines.map((l) => l.gameName.trim()).filter(Boolean).join('、')
     const first = lines[0]
     return {
       ...(mode === 'edit' && editRecord ? { id: editRecord.id } : {}),
-      settlementMonth: header.settlementMonth,
+      settlementMonth: canonicalSettlementMonth,
       settlementNumber: header.settlementNumber,
       partner: header.partner,
       channelFeeRate: header.channelFeeRate,
@@ -241,7 +281,9 @@ function ReconciliationLineItemsForm({
       settlementAmount: totals.sumSettlement.toFixed(2),
       items: lines.map((row, idx) => ({
         ...row,
-        settlementCycle: row.settlementCycle || header.settlementMonth,
+        settlementCycle: normalizeSettlementCycleLabel(
+          row.settlementCycle || canonicalSettlementMonth
+        ),
         sortOrder: idx
       })),
       status: header.status,
@@ -250,9 +292,8 @@ function ReconciliationLineItemsForm({
   }
 
   const validate = () => {
-    if (!header.settlementMonth || !String(header.settlementMonth).trim()) {
-      return '请填写结算月份'
-    }
+    const { error: monthError } = resolveCanonicalSettlementMonth(lines, header.settlementMonth)
+    if (monthError) return monthError
     const cf = parseFloat(header.channelFeeRate || 0)
     if (Number.isNaN(cf) || cf < 0 || cf > 100) {
       return '通道费率必须在0-100%之间'
@@ -460,16 +501,6 @@ function ReconciliationLineItemsForm({
             </div>
           </div>
           <div className="form-row">
-            <div className="form-group">
-              <label>通道费率（%）整单共用</label>
-              <input
-                type="number"
-                step="0.01"
-                className="admin-input channel-input-num"
-                value={header.channelFeeRate}
-                onChange={(e) => setHeader((h) => ({ ...h, channelFeeRate: e.target.value }))}
-              />
-            </div>
             <div className="form-group full-width">
               <label>备注</label>
               <input
@@ -481,6 +512,31 @@ function ReconciliationLineItemsForm({
               />
             </div>
           </div>
+          <details className="rd-recon-defaults-panel">
+            <summary className="rd-recon-defaults-panel__summary">
+              <span className="rd-recon-defaults-panel__title">默认整单值</span>
+              <span className="rd-recon-defaults-panel__meta">
+                通道费率 {header.channelFeeRate || '0'}% · 应用到所有明细行
+              </span>
+            </summary>
+            <div className="rd-recon-defaults-panel__body">
+              <div className="form-row">
+                <div className="form-group">
+                  <label>通道费率（%）整单共用</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="admin-input channel-input-num"
+                    value={header.channelFeeRate}
+                    onChange={(e) => setHeader((h) => ({ ...h, channelFeeRate: e.target.value }))}
+                  />
+                  <span className="channel-discount-hint">
+                    这是默认值。下方每行的“通道费%”会同步显示这个整单费率。
+                  </span>
+                </div>
+              </div>
+            </div>
+          </details>
         </div>
 
         <div className="channel-form-section">
