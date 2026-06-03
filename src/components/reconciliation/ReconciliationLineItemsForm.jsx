@@ -6,6 +6,10 @@ import LineItemsTable from '@/components/shared/LineItemsTable.jsx'
 import {
   calculateRdSettlementRow
 } from '@/domain/settlement/calculateSettlementAmount.js'
+import {
+  getQuickSdkGameFlow,
+  listQuickSdkRdLines
+} from '@/lib/api/quicksdk.ts'
 import '@/components/ChannelBilling.css'
 
 export function createEmptyRdLine(sortOrder = 0, settlementCycle = '') {
@@ -90,6 +94,34 @@ function normalizeSettlementCycleLabel(raw) {
   return text
 }
 
+function settlementCycleToQuickSdkMonth(raw) {
+  const text = normalizeSettlementCycleLabel(raw)
+  if (!text) return ''
+  let m = text.match(/^(\d{4})年(\d{1,2})月$/)
+  if (m) return `${m[1]}-${String(Math.min(Math.max(Number(m[2]), 1), 12)).padStart(2, '0')}`
+  m = text.match(/^(\d{4})-(\d{1,2})$/)
+  if (m) return `${m[1]}-${String(Math.min(Math.max(Number(m[2]), 1), 12)).padStart(2, '0')}`
+  return text
+}
+
+function quickSdkMonthToSettlementCycle(raw) {
+  const text = raw == null ? '' : String(raw).trim()
+  const m = text.match(/^(\d{4})-(\d{1,2})$/)
+  if (m) return `${m[1]}年${Number(m[2])}月`
+  return normalizeSettlementCycleLabel(text)
+}
+
+function formatLineNumber(value) {
+  const n = Number(value || 0)
+  if (!Number.isFinite(n)) return '0'
+  return String(Math.round(n * 100) / 100)
+}
+
+function formatMoney(value) {
+  const n = Number(value || 0)
+  return n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
 function formatIssueDateLabel(raw) {
   const d = raw ? new Date(raw) : new Date()
   const date = Number.isNaN(d.getTime()) ? new Date() : d
@@ -167,6 +199,15 @@ function ReconciliationLineItemsForm({
     status: 'pending'
   })
   const [lines, setLines] = useState([createEmptyRdLine(0, initialCycle)])
+  const [quickSdkQuery, setQuickSdkQuery] = useState('')
+  const [quickSdkSuggestions, setQuickSdkSuggestions] = useState([])
+  const [quickSdkLoading, setQuickSdkLoading] = useState(false)
+  const [quickSdkMessage, setQuickSdkMessage] = useState(null)
+  const [quickSdkCheck, setQuickSdkCheck] = useState(null)
+  const quickSdkMonth = useMemo(
+    () => settlementCycleToQuickSdkMonth(header.settlementMonth || lines[0]?.settlementCycle),
+    [header.settlementMonth, lines]
+  )
   const cycleOptions = useMemo(() => {
     const set = new Set()
     for (const recent of buildRecentCycleOptions(12)) {
@@ -399,6 +440,205 @@ function ReconciliationLineItemsForm({
     setLines((prev) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== index)))
   }
 
+  const makeQuickSdkLine = (item, index, baseLine = null) => {
+    const defaults = baseLine || lines[0] || createEmptyRdLine(0, header.settlementMonth || '')
+    const cycle =
+      quickSdkMonthToSettlementCycle(item.settlement_month || quickSdkMonth) ||
+      normalizeSettlementCycleLabel(header.settlementMonth)
+    return {
+      ...createEmptyRdLine(index, cycle),
+      gameName: item.game_name || '',
+      revenue: formatLineNumber(item.total_flow),
+      discountRate: defaults.discountRate || '1',
+      couponAmount: '0',
+      testFee: defaults.testFee || '0',
+      extraFee: '0',
+      shareRatio: defaults.shareRatio || '15',
+      taxRate: defaults.taxRate || '0',
+      sortOrder: index,
+      quicksdkFlow: Number(item.total_flow || 0),
+      quicksdkFlowMonth: item.settlement_month || quickSdkMonth,
+      quicksdkRowCount: item.row_count || 0,
+      quicksdkChannelCount: item.channel_count || 0,
+      quicksdkSourceGameCount: item.source_game_count || 0,
+      quicksdkTopChannel: item.top_channel || ''
+    }
+  }
+
+  const loadQuickSdkSuggestions = async () => {
+    if (!quickSdkMonth) {
+      setQuickSdkMessage({ type: 'warn', text: '请先填写结算周期' })
+      return []
+    }
+    setQuickSdkLoading(true)
+    try {
+      const res = await listQuickSdkRdLines({
+        settlement_month: quickSdkMonth,
+        q: quickSdkQuery,
+        limit: 300
+      })
+      setQuickSdkSuggestions(res.items || [])
+      setQuickSdkMessage({
+        type: 'ok',
+        text: `已读取 ${res.items?.length || 0} 个产品`
+      })
+      return res.items || []
+    } catch (err) {
+      setQuickSdkMessage({
+        type: 'warn',
+        text: err instanceof Error ? err.message : 'QuickSDK 流水读取失败'
+      })
+      return []
+    } finally {
+      setQuickSdkLoading(false)
+    }
+  }
+
+  const applyQuickSdkFlowToSingleLine = async (pickedItem = null) => {
+    if (!quickSdkMonth) {
+      setQuickSdkMessage({ type: 'warn', text: '请先填写结算周期' })
+      return
+    }
+    const fallbackName = lines.find((line) => String(line.gameName || '').trim())?.gameName || ''
+    const targetName = pickedItem?.game_name || quickSdkQuery.trim() || String(fallbackName).trim()
+    if (!targetName) {
+      setQuickSdkMessage({ type: 'warn', text: '请输入或选择产品名称' })
+      return
+    }
+    setQuickSdkLoading(true)
+    try {
+      const item =
+        pickedItem ||
+        (await getQuickSdkGameFlow({
+          settlement_month: quickSdkMonth,
+          game_name: targetName
+        }))
+      if (!item || Number(item.row_count || 0) <= 0 || Number(item.total_flow || 0) <= 0) {
+        setQuickSdkMessage({ type: 'warn', text: `未找到 ${targetName} 的当月流水` })
+        return
+      }
+      setHeader((h) => ({
+        ...h,
+        settlementMonth: quickSdkMonthToSettlementCycle(item.settlement_month || quickSdkMonth) || h.settlementMonth
+      }))
+      setLines((prev) => {
+        const matchIndex = prev.findIndex((line) => {
+          const name = String(line.gameName || '').trim()
+          return !name || name === targetName || name === item.game_name
+        })
+        const index = matchIndex >= 0 ? matchIndex : 0
+        return prev.map((line, i) => (i === index ? makeQuickSdkLine(item, i, line) : line))
+      })
+      setQuickSdkQuery(item.game_name || targetName)
+      setQuickSdkMessage({
+        type: 'ok',
+        text: `${item.game_name || targetName} 已填入 ￥${formatMoney(item.total_flow)}`
+      })
+      setQuickSdkCheck(null)
+    } catch (err) {
+      setQuickSdkMessage({
+        type: 'warn',
+        text: err instanceof Error ? err.message : 'QuickSDK 流水读取失败'
+      })
+    } finally {
+      setQuickSdkLoading(false)
+    }
+  }
+
+  const generateAllQuickSdkLines = async () => {
+    if (!quickSdkMonth) {
+      setQuickSdkMessage({ type: 'warn', text: '请先填写结算周期' })
+      return
+    }
+    const hasMeaningfulLines = lines.some(isMeaningfulRdLine)
+    if (hasMeaningfulLines && !window.confirm('将用 QuickSDK 当月产品流水替换当前游戏明细，是否继续？')) {
+      return
+    }
+    setQuickSdkLoading(true)
+    try {
+      const res = await listQuickSdkRdLines({ settlement_month: quickSdkMonth, limit: 500 })
+      const items = (res.items || []).filter((item) => Number(item.total_flow || 0) > 0)
+      if (items.length === 0) {
+        setQuickSdkMessage({ type: 'warn', text: `${quickSdkMonth} 暂无 QuickSDK 流水` })
+        return
+      }
+      const baseLine = lines[0] || createEmptyRdLine(0, header.settlementMonth || '')
+      setHeader((h) => ({
+        ...h,
+        settlementMonth: quickSdkMonthToSettlementCycle(quickSdkMonth) || h.settlementMonth
+      }))
+      setLines(items.map((item, idx) => makeQuickSdkLine(item, idx, baseLine)))
+      setQuickSdkSuggestions(items)
+      setQuickSdkMessage({
+        type: 'ok',
+        text: `已生成 ${items.length} 行，合计 ￥${formatMoney(
+          items.reduce((sum, item) => sum + Number(item.total_flow || 0), 0)
+        )}`
+      })
+      setQuickSdkCheck(null)
+    } catch (err) {
+      setQuickSdkMessage({
+        type: 'warn',
+        text: err instanceof Error ? err.message : 'QuickSDK 流水读取失败'
+      })
+    } finally {
+      setQuickSdkLoading(false)
+    }
+  }
+
+  const checkCurrentLinesWithQuickSdk = async () => {
+    if (!quickSdkMonth) {
+      setQuickSdkMessage({ type: 'warn', text: '请先填写结算周期' })
+      return
+    }
+    const targets = lines
+      .map((line, index) => ({ line, index }))
+      .filter(({ line }) => String(line.gameName || '').trim())
+    if (targets.length === 0) {
+      setQuickSdkMessage({ type: 'warn', text: '暂无可核对的游戏明细' })
+      return
+    }
+    setQuickSdkLoading(true)
+    try {
+      const results = await Promise.all(
+        targets.map(async ({ line, index }) => {
+          const name = String(line.gameName || '').trim()
+          const remote = await getQuickSdkGameFlow({
+            settlement_month: quickSdkMonth,
+            game_name: name
+          })
+          const current = Number(line.revenue || 0)
+          const expected = Number(remote.total_flow || 0)
+          const diff = Math.round((current - expected) * 100) / 100
+          return {
+            index,
+            name,
+            current,
+            expected,
+            diff,
+            rowCount: remote.row_count || 0,
+            ok: Math.abs(diff) < 0.01 && Number(remote.row_count || 0) > 0
+          }
+        })
+      )
+      const matched = results.filter((item) => item.ok).length
+      const missing = results.filter((item) => item.rowCount <= 0).length
+      const mismatch = results.length - matched - missing
+      setQuickSdkCheck({ matched, missing, mismatch, items: results })
+      setQuickSdkMessage({
+        type: mismatch || missing ? 'warn' : 'ok',
+        text: `核对完成：一致 ${matched}，差异 ${mismatch}，未找到 ${missing}`
+      })
+    } catch (err) {
+      setQuickSdkMessage({
+        type: 'warn',
+        text: err instanceof Error ? err.message : 'QuickSDK 核对失败'
+      })
+    } finally {
+      setQuickSdkLoading(false)
+    }
+  }
+
   const isDrawer = layout === 'drawer'
   const isCreatePage = layout === 'createPage'
 
@@ -541,6 +781,103 @@ function ReconciliationLineItemsForm({
 
         <div className="channel-form-section">
           <div className="form-section-title">2）游戏明细</div>
+          <div className="rd-quicksdk-panel">
+            <div className="rd-quicksdk-panel__head">
+              <div>
+                <strong>QuickSDK 取数</strong>
+                <span>{quickSdkMonth || '未设置月份'}</span>
+              </div>
+              <button
+                type="button"
+                className="rec-btn rec-btn--ghost"
+                onClick={loadQuickSdkSuggestions}
+                disabled={quickSdkLoading}
+              >
+                {quickSdkLoading ? '读取中...' : '刷新产品'}
+              </button>
+            </div>
+            <div className="rd-quicksdk-panel__controls">
+              <input
+                type="text"
+                className="admin-input"
+                list={`${formId || 'rd'}-quicksdk-games`}
+                value={quickSdkQuery}
+                onChange={(e) => setQuickSdkQuery(e.target.value)}
+                placeholder="产品 / 游戏名称"
+              />
+              <datalist id={`${formId || 'rd'}-quicksdk-games`}>
+                {quickSdkSuggestions.map((item) => (
+                  <option key={item.game_name} value={item.game_name} />
+                ))}
+              </datalist>
+              <button
+                type="button"
+                className="rec-btn rec-btn--secondary"
+                onClick={() => applyQuickSdkFlowToSingleLine()}
+                disabled={quickSdkLoading}
+              >
+                填入产品流水
+              </button>
+              <button
+                type="button"
+                className="rec-btn rec-btn--primary"
+                onClick={generateAllQuickSdkLines}
+                disabled={quickSdkLoading}
+              >
+                一键生成本月产品
+              </button>
+              <button
+                type="button"
+                className="rec-btn rec-btn--ghost"
+                onClick={checkCurrentLinesWithQuickSdk}
+                disabled={quickSdkLoading}
+              >
+                核对当前明细
+              </button>
+            </div>
+            {quickSdkSuggestions.length > 0 && (
+              <div className="rd-quicksdk-panel__chips">
+                {quickSdkSuggestions.slice(0, 8).map((item) => (
+                  <button
+                    type="button"
+                    key={item.game_name}
+                    onClick={() => applyQuickSdkFlowToSingleLine(item)}
+                    title={`${item.row_count} 行 / ${item.channel_count} 渠道`}
+                  >
+                    <span>{item.game_name}</span>
+                    <em>￥{formatMoney(item.total_flow)}</em>
+                  </button>
+                ))}
+              </div>
+            )}
+            {quickSdkMessage && (
+              <div className={`rd-quicksdk-panel__message is-${quickSdkMessage.type}`}>
+                {quickSdkMessage.text}
+              </div>
+            )}
+            {quickSdkCheck && (
+              <div className="rd-quicksdk-check">
+                <div className="rd-quicksdk-check__summary">
+                  <span>一致 {quickSdkCheck.matched}</span>
+                  <span>差异 {quickSdkCheck.mismatch}</span>
+                  <span>未找到 {quickSdkCheck.missing}</span>
+                </div>
+                <div className="rd-quicksdk-check__list">
+                  {quickSdkCheck.items.slice(0, 6).map((item) => (
+                    <div
+                      key={`${item.index}-${item.name}`}
+                      className={`rd-quicksdk-check__row ${item.ok ? 'is-ok' : 'is-warn'}`}
+                    >
+                      <strong>{item.name}</strong>
+                      <span>当前 ￥{formatMoney(item.current)}</span>
+                      <span>库内 ￥{formatMoney(item.expected)}</span>
+                      <span>差额 ￥{formatMoney(item.diff)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           <LineItemsTable
             onAddRow={addRow}
             showAddButton={false}

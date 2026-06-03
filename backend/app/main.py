@@ -22,6 +22,7 @@ from app.api.payment import router as payment_router
 from app.api.bank_transaction import router as bank_transaction_router
 from app.api.reconciliation import router as reconciliation_router
 from app.api.contract import router as contract_router
+from app.api.quicksdk import router as quicksdk_router
 from app.core.security import require_current_user
 
 logger = logging.getLogger(__name__)
@@ -123,6 +124,12 @@ app.include_router(
     contract_router,
     prefix="/api/contracts",
     tags=["contracts"],
+    dependencies=[Depends(require_current_user)],
+)
+app.include_router(
+    quicksdk_router,
+    prefix="/api/quicksdk",
+    tags=["quicksdk"],
     dependencies=[Depends(require_current_user)],
 )
 

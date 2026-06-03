@@ -1407,6 +1407,156 @@
   color: var(--admin-success, #16a34a);
 }
 
+.rd-quicksdk-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--admin-border-soft, #e5e7eb);
+  border-radius: 8px;
+  background: var(--admin-elevated-bg, #f8fafc);
+}
+
+.rd-quicksdk-panel__head,
+.rd-quicksdk-panel__controls,
+.rd-quicksdk-panel__chips,
+.rd-quicksdk-check__summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rd-quicksdk-panel__head {
+  justify-content: space-between;
+}
+
+.rd-quicksdk-panel__head > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rd-quicksdk-panel__head strong {
+  color: var(--admin-text, #0f172a);
+}
+
+.rd-quicksdk-panel__head span {
+  color: var(--admin-text-sub, #64748b);
+  font-size: 13px;
+}
+
+.rd-quicksdk-panel__controls {
+  flex-wrap: wrap;
+}
+
+.rd-quicksdk-panel__controls .admin-input {
+  width: min(360px, 100%);
+  flex: 1 1 220px;
+}
+
+.rd-quicksdk-panel__chips {
+  flex-wrap: wrap;
+}
+
+.rd-quicksdk-panel__chips button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  max-width: 260px;
+  padding: 4px 8px;
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  border-radius: 999px;
+  color: var(--admin-primary, #2563eb);
+  background: rgba(37, 99, 235, 0.06);
+  cursor: pointer;
+}
+
+.rd-quicksdk-panel__chips span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-quicksdk-panel__chips em {
+  flex: 0 0 auto;
+  font-style: normal;
+  color: var(--admin-text-sub, #64748b);
+}
+
+.rd-quicksdk-panel__message {
+  font-size: 13px;
+  color: var(--admin-text-sub, #64748b);
+}
+
+.rd-quicksdk-panel__message.is-ok {
+  color: var(--admin-success, #16a34a);
+}
+
+.rd-quicksdk-panel__message.is-warn {
+  color: var(--admin-warning, #d97706);
+}
+
+.rd-quicksdk-check {
+  display: grid;
+  gap: 8px;
+}
+
+.rd-quicksdk-check__summary span {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--admin-bg, #fff);
+  color: var(--admin-text-sub, #64748b);
+  font-size: 12px;
+}
+
+.rd-quicksdk-check__list {
+  display: grid;
+  gap: 6px;
+}
+
+.rd-quicksdk-check__row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) repeat(3, minmax(110px, auto));
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--admin-border-soft, #e5e7eb);
+  border-radius: 6px;
+  background: var(--admin-card-bg, #fff);
+  font-size: 13px;
+}
+
+.rd-quicksdk-check__row strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-quicksdk-check__row span {
+  color: var(--admin-text-sub, #64748b);
+  text-align: right;
+}
+
+.rd-quicksdk-check__row.is-ok {
+  border-color: rgba(22, 163, 74, 0.28);
+}
+
+.rd-quicksdk-check__row.is-warn {
+  border-color: rgba(217, 119, 6, 0.32);
+}
+
+@media (max-width: 860px) {
+  .rd-quicksdk-check__row {
+    grid-template-columns: 1fr;
+  }
+
+  .rd-quicksdk-check__row span {
+    text-align: left;
+  }
+}
+
 /* 研发对账：游戏明细 grid（列与渠道明细表一致：紧凑、可横向滚动） */
 .rd-line-items-grid {
   min-width: 1220px;
