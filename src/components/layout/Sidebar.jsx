@@ -13,7 +13,6 @@ function findGroupIdForView(view) {
 function Sidebar({ activeView, onNavigate }) {
   const activeGroupId = useMemo(() => findGroupIdForView(activeView), [activeView])
   const [expandedId, setExpandedId] = useState(activeGroupId)
-  const [collapsed, setCollapsed] = useState(false)
 
   useEffect(() => {
     setExpandedId(activeGroupId)
@@ -45,7 +44,7 @@ function Sidebar({ activeView, onNavigate }) {
   )
 
   return (
-    <aside className={`app-sidebar ${collapsed ? 'sidebar-collapsed' : ''}`} aria-label="主导航">
+    <aside className="app-sidebar" aria-label="主导航">
       <div className="app-sidebar-inner">
         <div className="sidebar-brand">
           <div className="sidebar-brand__logo" aria-hidden>
@@ -92,11 +91,6 @@ function Sidebar({ activeView, onNavigate }) {
             )
           })}
         </nav>
-        <div className="sidebar-footer">
-          <button type="button" className="sidebar-collapse-btn" onClick={() => setCollapsed((v) => !v)}>
-            {collapsed ? '展开侧边栏' : '收起侧边栏'}
-          </button>
-        </div>
       </div>
     </aside>
   )

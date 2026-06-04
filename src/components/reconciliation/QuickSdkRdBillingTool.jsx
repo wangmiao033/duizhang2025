@@ -128,19 +128,6 @@ function QuickSdkRdBillingTool({ defaultMonth, onCreateBill, onNotify }) {
     }
   }
 
-  const copyRows = async () => {
-    if (visibleItems.length === 0) {
-      setMessage({ type: 'warn', text: '暂无可复制的产品流水' })
-      return
-    }
-    try {
-      await navigator.clipboard.writeText(buildTsv(visibleItems))
-      setMessage({ type: 'ok', text: `已复制 ${visibleItems.length} 行明细` })
-    } catch {
-      setMessage({ type: 'warn', text: '复制失败，请改用导出 CSV' })
-    }
-  }
-
   const createBill = () => {
     if (visibleItems.length === 0) {
       setMessage({ type: 'warn', text: '请先读取有流水的月份' })
@@ -154,61 +141,59 @@ function QuickSdkRdBillingTool({ defaultMonth, onCreateBill, onNotify }) {
 
   return (
     <section className="rd-quicksdk-tool" aria-label="QuickSDK 研发账单取数">
-      <div className="rd-quicksdk-tool__header">
-        <div>
+      <div className="rd-quicksdk-tool__bar">
+        <div className="rd-quicksdk-tool__title">
           <h3>QuickSDK 研发账单取数</h3>
-          <p>按月份汇总已导入的产品流水，作为研发账单明细来源。</p>
+          <p>按月份汇总产品流水。</p>
+        </div>
+        <div className="rd-quicksdk-tool__fields">
+          <label>
+            <span>月份</span>
+            <input
+              type="month"
+              className="admin-input"
+              value={month}
+              onChange={(e) => setMonth(normalizeMonthValue(e.target.value))}
+            />
+          </label>
+          <label>
+            <span>产品</span>
+            <input
+              type="text"
+              className="admin-input"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="游戏名称"
+            />
+          </label>
+        </div>
+        <div className="rd-quicksdk-tool__actions">
+          <button type="button" className="rec-btn rec-btn--secondary" onClick={loadItems} disabled={loading}>
+            {loading ? '读取中' : '读取'}
+          </button>
+          <button
+            type="button"
+            className="rec-btn rec-btn--ghost"
+            onClick={() => {
+              if (visibleItems.length === 0) {
+                setMessage({ type: 'warn', text: '暂无可导出的产品流水' })
+                return
+              }
+              downloadCsv(visibleItems, month)
+              onNotify?.('CSV 已导出', 'success')
+            }}
+            disabled={loading}
+          >
+            导出
+          </button>
+          <button type="button" className="rec-btn rec-btn--primary" onClick={createBill} disabled={loading}>
+            生成账单
+          </button>
         </div>
         <div className="rd-quicksdk-tool__summary">
           <span>{visibleItems.length} 个产品</span>
           <strong>￥{formatMoney(totalFlow)}</strong>
         </div>
-      </div>
-
-      <div className="rd-quicksdk-tool__controls">
-        <label>
-          <span>月份</span>
-          <input
-            type="month"
-            className="admin-input"
-            value={month}
-            onChange={(e) => setMonth(normalizeMonthValue(e.target.value))}
-          />
-        </label>
-        <label>
-          <span>产品搜索</span>
-          <input
-            type="text"
-            className="admin-input"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="输入游戏名称过滤"
-          />
-        </label>
-        <button type="button" className="rec-btn rec-btn--secondary" onClick={loadItems} disabled={loading}>
-          {loading ? '读取中...' : '读取月份'}
-        </button>
-        <button type="button" className="rec-btn rec-btn--ghost" onClick={copyRows} disabled={loading}>
-          复制明细
-        </button>
-        <button
-          type="button"
-          className="rec-btn rec-btn--ghost"
-          onClick={() => {
-            if (visibleItems.length === 0) {
-              setMessage({ type: 'warn', text: '暂无可导出的产品流水' })
-              return
-            }
-            downloadCsv(visibleItems, month)
-            onNotify?.('CSV 已导出', 'success')
-          }}
-          disabled={loading}
-        >
-          导出 CSV
-        </button>
-        <button type="button" className="rec-btn rec-btn--primary" onClick={createBill} disabled={loading}>
-          生成研发账单
-        </button>
       </div>
 
       {message && (

@@ -275,51 +275,6 @@
   box-shadow: none;
 }
 
-.sidebar-footer {
-  margin-top: 8px;
-  padding: 7px;
-  border-top: 1px solid var(--admin-border-soft);
-}
-
-.sidebar-collapse-btn {
-  width: 100%;
-  height: 34px;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-sm);
-  background: #fbfcff;
-  color: var(--admin-text-tertiary);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.sidebar-collapse-btn:hover {
-  background: var(--admin-surface-hover);
-  color: var(--admin-primary);
-  border-color: #a9bee0;
-}
-
-.sidebar-collapsed .sidebar-brand,
-.sidebar-collapsed .sidebar-item-label,
-.sidebar-collapsed .sidebar-group-title {
-  display: none;
-}
-
-.sidebar-collapsed .sidebar-group-chevron {
-  display: none;
-}
-
-.sidebar-collapsed {
-  width: 76px;
-  min-width: 76px;
-  max-width: 76px;
-}
-
-.sidebar-collapsed .sidebar-item {
-  justify-content: center;
-  padding: 0;
-}
-
 [data-theme='dark'] .app-sidebar-inner::-webkit-scrollbar-thumb {
   background: var(--admin-border);
 }
