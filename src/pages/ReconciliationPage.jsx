@@ -12,6 +12,7 @@ import ReconciliationStatsCards from '@/components/reconciliation/Reconciliation
 import ReconciliationToolbar from '@/components/reconciliation/ReconciliationToolbar.jsx'
 import ReconciliationLightDrawer from '@/components/reconciliation/ReconciliationLightDrawer.jsx'
 import ReconciliationRdPaymentsDrawer from '@/components/reconciliation/ReconciliationRdPaymentsDrawer.jsx'
+import QuickSdkRdBillingTool from '@/components/reconciliation/QuickSdkRdBillingTool.jsx'
 import '@/components/reconciliation/reconciliation-admin.css'
 import { BatchStatusUpdate } from '@/components/StatusManager.jsx'
 import { calculateSettlementAmount } from '@/domain/settlement/calculateSettlementAmount.js'
@@ -55,7 +56,8 @@ function ReconciliationPage({ variant = 'full' }) {
     handleExportSelected,
     handleExportError,
     handleExcelImport,
-    statistics
+    statistics,
+    setQuickFillData
   } = recon
 
   useEffect(() => {
@@ -192,6 +194,16 @@ function ReconciliationPage({ variant = 'full' }) {
               onQuickView={(r) => setLightDrawerRecord(r)}
             />
           </div>
+
+          <QuickSdkRdBillingTool
+            defaultMonth={settlementMonth}
+            onNotify={(message, type) => showToast(message, type)}
+            onCreateBill={(payload) => {
+              setQuickFillData?.(payload)
+              setActiveView(VIEWS.RECON_CREATE)
+              showToast(`${payload.settlementMonth} QuickSDK 明细已带入新增账单`, 'success')
+            }}
+          />
         </div>
 
         <ReconciliationLightDrawer
