@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react'
+import React, { lazy, Suspense, useState, useCallback, useEffect, useRef } from 'react'
 import './App.css'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import ConfirmDialog from './components/ConfirmDialog.jsx'
@@ -12,34 +12,43 @@ import { useInvoiceStore } from './store/useInvoiceStore.js'
 import AppShell from './app/AppShell.jsx'
 import { AppStateProvider } from './app/AppStateContext.jsx'
 import { VIEWS } from './app/routes.js'
-import DashboardPage from './pages/DashboardPage.jsx'
-import ReconciliationPage from './pages/ReconciliationPage.jsx'
-import ChannelReconciliationPage from './pages/ChannelReconciliationPage.jsx'
-import ExceptionsPage from './pages/ExceptionsPage.jsx'
-import SettlementPage from './pages/SettlementPage.jsx'
-import InvoicePage from './pages/InvoicePage.jsx'
-import PartnerPage from './pages/PartnerPage.jsx'
-import ContractManagementPage from './pages/ContractManagementPage.jsx'
-import ReportsPage from './pages/ReportsPage.jsx'
-import SettingsHubPage from './pages/SettingsHubPage.jsx'
-import RemindersPage from './pages/RemindersPage.jsx'
-import BackupRestorePage from './pages/BackupRestorePage.jsx'
-import ReconciliationCreatePage from './pages/ReconciliationCreatePage.jsx'
-import ReconciliationEditPage from './pages/ReconciliationEditPage.jsx'
-import ChannelReconciliationCreatePage from './pages/ChannelReconciliationCreatePage.jsx'
-import ChannelReconciliationEditPage from './pages/ChannelReconciliationEditPage.jsx'
-import InvoiceCreatePage from './pages/InvoiceCreatePage.jsx'
-import InvoiceEditPage from './pages/InvoiceEditPage.jsx'
-import PaymentCreatePage from './pages/PaymentCreatePage.jsx'
-import PaymentEditPage from './pages/PaymentEditPage.jsx'
-import BankStatementImportPage from './pages/BankStatementImportPage.jsx'
-import BankPaymentRegisterPage from './pages/BankPaymentRegisterPage.jsx'
-import BankCollectionRegisterPage from './pages/BankCollectionRegisterPage.jsx'
-import BankTransactionsLedgerPage from './pages/BankTransactionsLedgerPage.jsx'
-import LoginPage from './pages/LoginPage.jsx'
-import AuthUsersPage from './pages/AuthUsersPage.jsx'
 import { useAuth } from '@/features/auth/AuthContext.jsx'
 import '@/styles/admin-polish.css'
+
+const DashboardPage = lazy(() => import('./pages/DashboardPage.jsx'))
+const ReconciliationPage = lazy(() => import('./pages/ReconciliationPage.jsx'))
+const ChannelReconciliationPage = lazy(() => import('./pages/ChannelReconciliationPage.jsx'))
+const ExceptionsPage = lazy(() => import('./pages/ExceptionsPage.jsx'))
+const SettlementPage = lazy(() => import('./pages/SettlementPage.jsx'))
+const InvoicePage = lazy(() => import('./pages/InvoicePage.jsx'))
+const PartnerPage = lazy(() => import('./pages/PartnerPage.jsx'))
+const ContractManagementPage = lazy(() => import('./pages/ContractManagementPage.jsx'))
+const ReportsPage = lazy(() => import('./pages/ReportsPage.jsx'))
+const SettingsHubPage = lazy(() => import('./pages/SettingsHubPage.jsx'))
+const RemindersPage = lazy(() => import('./pages/RemindersPage.jsx'))
+const BackupRestorePage = lazy(() => import('./pages/BackupRestorePage.jsx'))
+const ReconciliationCreatePage = lazy(() => import('./pages/ReconciliationCreatePage.jsx'))
+const ReconciliationEditPage = lazy(() => import('./pages/ReconciliationEditPage.jsx'))
+const ChannelReconciliationCreatePage = lazy(() => import('./pages/ChannelReconciliationCreatePage.jsx'))
+const ChannelReconciliationEditPage = lazy(() => import('./pages/ChannelReconciliationEditPage.jsx'))
+const InvoiceCreatePage = lazy(() => import('./pages/InvoiceCreatePage.jsx'))
+const InvoiceEditPage = lazy(() => import('./pages/InvoiceEditPage.jsx'))
+const PaymentCreatePage = lazy(() => import('./pages/PaymentCreatePage.jsx'))
+const PaymentEditPage = lazy(() => import('./pages/PaymentEditPage.jsx'))
+const BankStatementImportPage = lazy(() => import('./pages/BankStatementImportPage.jsx'))
+const BankPaymentRegisterPage = lazy(() => import('./pages/BankPaymentRegisterPage.jsx'))
+const BankCollectionRegisterPage = lazy(() => import('./pages/BankCollectionRegisterPage.jsx'))
+const BankTransactionsLedgerPage = lazy(() => import('./pages/BankTransactionsLedgerPage.jsx'))
+const LoginPage = lazy(() => import('./pages/LoginPage.jsx'))
+const AuthUsersPage = lazy(() => import('./pages/AuthUsersPage.jsx'))
+
+function PageLoading() {
+  return (
+    <div style={{ minHeight: '40vh', display: 'grid', placeItems: 'center' }}>
+      鍔犺浇椤甸潰涓...
+    </div>
+  )
+}
 
 function App() {
   const { isAuthenticated, loading } = useAuth()
@@ -257,7 +266,11 @@ function App() {
   }
 
   if (!isAuthenticated) {
-    return <LoginPage />
+    return (
+      <Suspense fallback={<PageLoading />}>
+        <LoginPage />
+      </Suspense>
+    )
   }
 
   return (
@@ -268,7 +281,7 @@ function App() {
           onNavigate={navigate}
           onSettingsChange={handleHeaderSettingsChange}
         >
-          {renderView()}
+          <Suspense fallback={<PageLoading />}>{renderView()}</Suspense>
         </AppShell>
 
         <ConfirmDialog

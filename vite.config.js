@@ -20,6 +20,21 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html')
+      },
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined
+          if (id.includes('node_modules/xlsx')) return 'xlsx'
+          if (id.includes('node_modules/dayjs')) return 'date'
+          if (
+            id.includes('node_modules/react') ||
+            id.includes('node_modules/react-dom') ||
+            id.includes('node_modules/scheduler')
+          ) {
+            return 'react'
+          }
+          return 'vendor'
+        }
       }
     }
   },

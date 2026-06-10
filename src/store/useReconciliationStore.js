@@ -18,10 +18,6 @@ import {
   downloadJsonBlob
 } from '@/domain/export/exportAdapters.js'
 import {
-  buildSettlementWorkbookFromSelected,
-  writeSettlementWorkbookToFile
-} from '@/domain/export/settlementConfirmationExport.js'
-import {
   listReconciliationRecords,
   createReconciliationRecord,
   updateReconciliationRecord,
@@ -621,7 +617,7 @@ export function useReconciliationStore(settings, showToast) {
     showToast
   ])
 
-  const handleExportSelected = useCallback(() => {
+  const handleExportSelected = useCallback(async () => {
     if (selectedIds.length === 0) {
       showToast('请先勾选要导出的研发对账记录', 'error')
       return
@@ -634,6 +630,10 @@ export function useReconciliationStore(settings, showToast) {
       return
     }
     try {
+      const {
+        buildSettlementWorkbookFromSelected,
+        writeSettlementWorkbookToFile
+      } = await import('@/domain/export/settlementConfirmationExport.js')
       const { wb, fileName } = buildSettlementWorkbookFromSelected(selectedRecords)
       writeSettlementWorkbookToFile(wb, fileName)
       showToast(`已导出 ${selectedRecords.length} 条结算确认单（Excel）`, 'success')
