@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import PageContainer from '@/components/layout/PageContainer.jsx'
 import {
+  getQuickSdkAnalytics,
   getQuickSdkSummary,
   listQuickSdkBatches,
   listQuickSdkRdLines
@@ -27,6 +28,10 @@ function formatDateTime(value) {
 function QuickSdkFlowPage() {
   const [month, setMonth] = useState(currentMonthValue())
   const [query, setQuery] = useState('')
+  const [overallSummary, setOverallSummary] = useState(null)
+  const [monthlyRows, setMonthlyRows] = useState([])
+  const [gameRankings, setGameRankings] = useState([])
+  const [channelRankings, setChannelRankings] = useState([])
   const [summary, setSummary] = useState(null)
   const [batches, setBatches] = useState([])
   const [lines, setLines] = useState([])
@@ -39,19 +44,23 @@ function QuickSdkFlowPage() {
     return lines.filter((item) => String(item.game_name || '').toLowerCase().includes(keyword))
   }, [lines, query])
 
-  const loadData = async () => {
+  const loadData = async (targetMonth = month) => {
     setLoading(true)
     setMessage('')
     try {
-      const [summaryRes, batchesRes, linesRes] = await Promise.all([
-        getQuickSdkSummary({ settlement_month: month }),
-        listQuickSdkBatches({ settlement_month: month, limit: 20 }),
-        listQuickSdkRdLines({ settlement_month: month, limit: 500 })
+      const [summaryRes, batchesRes, linesRes, analyticsRes] = await Promise.all([
+        getQuickSdkSummary({ settlement_month: targetMonth }),
+        listQuickSdkBatches({ settlement_month: targetMonth, limit: 20 }),
+        listQuickSdkRdLines({ settlement_month: targetMonth, limit: 500 }),
+        getQuickSdkAnalytics({ settlement_month: targetMonth })
       ])
+      setMonth(targetMonth)
       setSummary(summaryRes)
       setBatches(batchesRes.items || [])
       setLines(linesRes.items || [])
-      setMessage(`${month} 已读取 ${linesRes.items?.length || 0} 个产品`)
+      setGameRankings(analyticsRes.game_rankings || [])
+      setChannelRankings(analyticsRes.channel_rankings || [])
+      setMessage(`${targetMonth} 已读取 ${linesRes.items?.length || 0} 个产品`)
     } catch (err) {
       setSummary(null)
       setBatches([])
@@ -63,7 +72,25 @@ function QuickSdkFlowPage() {
   }
 
   useEffect(() => {
-    loadData()
+    async function loadInitial() {
+      setLoading(true)
+      setMessage('')
+      try {
+        const [overallRes, analyticsRes] = await Promise.all([
+          getQuickSdkSummary({}),
+          getQuickSdkAnalytics({})
+        ])
+        const months = analyticsRes.monthly || []
+        const latestMonth = months[0]?.settlement_month || currentMonthValue()
+        setOverallSummary(overallRes)
+        setMonthlyRows(months)
+        await loadData(latestMonth)
+      } catch (err) {
+        setMessage(err instanceof Error ? err.message : 'QuickSDK 总览读取失败')
+        setLoading(false)
+      }
+    }
+    loadInitial()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -90,10 +117,46 @@ function QuickSdkFlowPage() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="搜索产品"
             />
-            <button type="button" className="rec-btn rec-btn--primary" onClick={loadData} disabled={loading}>
+            <button type="button" className="rec-btn rec-btn--primary" onClick={() => loadData(month)} disabled={loading}>
               {loading ? '读取中' : '刷新'}
             </button>
           </div>
+        </section>
+
+        <section className="quicksdk-stats quicksdk-stats--overall" aria-label="QuickSDK 全部总览">
+          <div>
+            <span>全部批次</span>
+            <strong>{overallSummary?.batch_count ?? 0}</strong>
+          </div>
+          <div>
+            <span>全部流水行</span>
+            <strong>{overallSummary?.row_count ?? 0}</strong>
+          </div>
+          <div>
+            <span>全部产品 / 渠道</span>
+            <strong>{overallSummary ? `${overallSummary.game_count} / ${overallSummary.channel_count}` : '0 / 0'}</strong>
+          </div>
+          <div>
+            <span>全部流水</span>
+            <strong>￥{formatMoney(overallSummary?.total_flow)}</strong>
+          </div>
+        </section>
+
+        <section className="quicksdk-months" aria-label="QuickSDK 月份总览">
+          {monthlyRows.length === 0 ? (
+            <div className="quicksdk-months__empty">暂无已导入月份</div>
+          ) : monthlyRows.map((row) => (
+            <button
+              type="button"
+              key={row.settlement_month}
+              className={`quicksdk-month-card ${row.settlement_month === month ? 'is-active' : ''}`}
+              onClick={() => loadData(row.settlement_month)}
+            >
+              <span>{row.settlement_month}</span>
+              <strong>￥{formatMoney(row.total_flow)}</strong>
+              <em>{row.row_count} 行 · {row.game_count} 产品 · {row.channel_count} 渠道</em>
+            </button>
+          ))}
         </section>
 
         <section className="quicksdk-stats" aria-label="QuickSDK 汇总">
@@ -116,6 +179,45 @@ function QuickSdkFlowPage() {
         </section>
 
         {message && <div className="quicksdk-message">{message}</div>}
+
+        <section className="quicksdk-rank-grid">
+          <div className="quicksdk-section">
+            <div className="quicksdk-section__head">
+              <h3>游戏流水排行</h3>
+              <span>{gameRankings.length} 个</span>
+            </div>
+            <div className="quicksdk-ranking-list">
+              {gameRankings.length === 0 ? (
+                <div className="quicksdk-empty quicksdk-empty--rank">暂无游戏排行</div>
+              ) : gameRankings.slice(0, 8).map((item, index) => (
+                <div className="quicksdk-ranking-row" key={item.name}>
+                  <b>{index + 1}</b>
+                  <span>{item.name}</span>
+                  <strong>￥{formatMoney(item.total_flow)}</strong>
+                  <em>{Number(item.share_rate || 0).toFixed(1)}%</em>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="quicksdk-section">
+            <div className="quicksdk-section__head">
+              <h3>渠道流水排行</h3>
+              <span>{channelRankings.length} 个</span>
+            </div>
+            <div className="quicksdk-ranking-list">
+              {channelRankings.length === 0 ? (
+                <div className="quicksdk-empty quicksdk-empty--rank">暂无渠道排行</div>
+              ) : channelRankings.slice(0, 8).map((item, index) => (
+                <div className="quicksdk-ranking-row" key={item.name}>
+                  <b>{index + 1}</b>
+                  <span>{item.name}</span>
+                  <strong>￥{formatMoney(item.total_flow)}</strong>
+                  <em>{Number(item.share_rate || 0).toFixed(1)}%</em>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
         <section className="quicksdk-section">
           <div className="quicksdk-section__head">

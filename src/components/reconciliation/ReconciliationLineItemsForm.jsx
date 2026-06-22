@@ -6,6 +6,7 @@ import LineItemsTable from '@/components/shared/LineItemsTable.jsx'
 import {
   calculateRdSettlementRow
 } from '@/domain/settlement/calculateSettlementAmount.js'
+import { getQuickSdkGameFlow } from '@/lib/api/quicksdk.ts'
 import '@/components/ChannelBilling.css'
 
 export function createEmptyRdLine(sortOrder = 0, settlementCycle = '') {
@@ -90,6 +91,22 @@ function normalizeSettlementCycleLabel(raw) {
   return text
 }
 
+function settlementCycleToQuickSdkMonth(raw) {
+  const text = normalizeSettlementCycleLabel(raw)
+  if (!text) return ''
+  let m = text.match(/^(\d{4})年(\d{1,2})月$/)
+  if (m) return `${m[1]}-${String(Math.min(Math.max(Number(m[2]), 1), 12)).padStart(2, '0')}`
+  m = text.match(/^(\d{4})-(\d{1,2})$/)
+  if (m) return `${m[1]}-${String(Math.min(Math.max(Number(m[2]), 1), 12)).padStart(2, '0')}`
+  return text
+}
+
+function formatLineNumber(value) {
+  const n = Number(value || 0)
+  if (!Number.isFinite(n)) return '0'
+  return String(Math.round(n * 100) / 100)
+}
+
 function formatIssueDateLabel(raw) {
   const d = raw ? new Date(raw) : new Date()
   const date = Number.isNaN(d.getTime()) ? new Date() : d
@@ -167,6 +184,7 @@ function ReconciliationLineItemsForm({
     status: 'pending'
   })
   const [lines, setLines] = useState([createEmptyRdLine(0, initialCycle)])
+  const [quickSdkAutoMessage, setQuickSdkAutoMessage] = useState('')
   const cycleOptions = useMemo(() => {
     const set = new Set()
     for (const recent of buildRecentCycleOptions(12)) {
@@ -407,11 +425,60 @@ function ReconciliationLineItemsForm({
     )
   }
 
+  const fillQuickSdkFlowForRow = async (index, name, cycleOverride = '') => {
+    const trimmed = String(name || '').trim()
+    if (!trimmed) return
+    const month = settlementCycleToQuickSdkMonth(
+      cycleOverride || lines[index]?.settlementCycle || header.settlementMonth
+    )
+    if (!month) return
+    try {
+      const item = await getQuickSdkGameFlow({
+        settlement_month: month,
+        game_name: trimmed
+      })
+      const flow = Number(item?.total_flow || 0)
+      const rowCount = Number(item?.row_count || 0)
+      if (!Number.isFinite(flow) || flow <= 0 || rowCount <= 0) {
+        setQuickSdkAutoMessage(`${month} 未找到「${trimmed}」QuickSDK 流水`)
+        return
+      }
+      setLines((prev) =>
+        prev.map((row, i) => {
+          if (i !== index) return row
+          const currentName = String(row.gameName || '').trim()
+          if (currentName && currentName !== trimmed) return row
+          const currentRevenue = Number(row.revenue || 0)
+          return {
+            ...row,
+            gameName: item.game_name || trimmed,
+            revenue:
+              !Number.isFinite(currentRevenue) || currentRevenue <= 0 || row.quicksdkFlow
+                ? formatLineNumber(flow)
+                : row.revenue,
+            quicksdkFlow: flow,
+            quicksdkFlowMonth: item.settlement_month || month,
+            quicksdkRowCount: rowCount,
+            quicksdkChannelCount: item.channel_count || 0,
+            quicksdkSourceGameCount: item.source_game_count || 0,
+            quicksdkTopChannel: item.top_channel || ''
+          }
+        })
+      )
+      setQuickSdkAutoMessage(
+        `已关联 QuickSDK：${item.game_name || trimmed} / ${month} / ￥${formatLineNumber(flow)}`
+      )
+    } catch (err) {
+      setQuickSdkAutoMessage(err instanceof Error ? err.message : 'QuickSDK 流水自动关联失败')
+    }
+  }
+
   const onGameNameBlur = (index, name) => {
     const trimmed = String(name || '').trim()
     if (!trimmed) return
     const preset = findGamePreset(trimmed)
     if (preset) applyGamePresetToRow(index, preset)
+    fillQuickSdkFlowForRow(index, trimmed)
   }
 
   const addRow = () => {
@@ -569,6 +636,9 @@ function ReconciliationLineItemsForm({
             showAddButton={false}
             hint="折扣系数与历史口径一致（如 1 无折扣，0.005 为 0.05 折档）。自动计算列不可编辑。"
           >
+            {quickSdkAutoMessage && (
+              <div className="rd-quicksdk-inline-message">{quickSdkAutoMessage}</div>
+            )}
             <div className="rd-line-items-grid">
               <div className="rd-line-items-grid-head" aria-hidden="true">
                 <div className="channel-cell">结算周期</div>
@@ -600,9 +670,13 @@ function ReconciliationLineItemsForm({
                         className="admin-input"
                         value={line.settlementCycle || header.settlementMonth}
                         onChange={(e) => updateLine(index, 'settlementCycle', e.target.value)}
-                        onBlur={(e) =>
-                          updateLine(index, 'settlementCycle', normalizeSettlementCycleLabel(e.target.value))
-                        }
+                        onBlur={(e) => {
+                          const normalized = normalizeSettlementCycleLabel(e.target.value)
+                          updateLine(index, 'settlementCycle', normalized)
+                          if (line.gameName) {
+                            fillQuickSdkFlowForRow(index, line.gameName, normalized)
+                          }
+                        }}
                         placeholder="如：2025年10月"
                         title="可选历史周期，也支持自定义录入"
                       />

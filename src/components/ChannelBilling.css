@@ -1407,6 +1407,16 @@
   color: var(--admin-success, #16a34a);
 }
 
+.rd-quicksdk-inline-message {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(22, 100, 255, 0.18);
+  border-radius: 8px;
+  color: var(--admin-primary, #1664ff);
+  background: rgba(22, 100, 255, 0.06);
+  font-size: 13px;
+}
+
 /* 研发对账：游戏明细 grid（列与渠道明细表一致：紧凑、可横向滚动） */
 .rd-line-items-grid {
   min-width: 1220px;

@@ -48,6 +48,27 @@ export type QuickSdkBatchListResponse = {
   total: number
 }
 
+export type QuickSdkMonthlySummaryRow = {
+  settlement_month: string
+  row_count: number
+  game_count: number
+  channel_count: number
+  total_flow: number | string
+}
+
+export type QuickSdkRankingRow = {
+  name: string
+  row_count: number
+  total_flow: number | string
+  share_rate: number
+}
+
+export type QuickSdkAnalyticsResponse = {
+  monthly: QuickSdkMonthlySummaryRow[]
+  game_rankings: QuickSdkRankingRow[]
+  channel_rankings: QuickSdkRankingRow[]
+}
+
 type QuickSdkFlowRow = {
   settlement_month?: string | null
   game_name?: string | null
@@ -103,6 +124,12 @@ export function listQuickSdkBatches(params: {
   offset?: number
 }): Promise<QuickSdkBatchListResponse> {
   return apiGet<QuickSdkBatchListResponse>(`${PATH}/batches${queryString(params)}`)
+}
+
+export function getQuickSdkAnalytics(params: {
+  settlement_month?: string
+}): Promise<QuickSdkAnalyticsResponse> {
+  return apiGet<QuickSdkAnalyticsResponse>(`${PATH}/analytics${queryString(params)}`)
 }
 
 async function listQuickSdkRdLinesFromFlows(params: {
