@@ -1,0 +1,183 @@
+.page-container--quicksdk {
+  gap: 0;
+}
+
+.quicksdk-page {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.quicksdk-hero,
+.quicksdk-section,
+.quicksdk-stats > div {
+  border: 1px solid var(--admin-border, #e2e8f0);
+  border-radius: 8px;
+  background: var(--admin-card-bg, #fff);
+  box-shadow: var(--admin-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.04));
+}
+
+.quicksdk-hero {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+}
+
+.quicksdk-hero span {
+  color: var(--admin-primary, #1664ff);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.quicksdk-hero h2 {
+  margin: 4px 0;
+  color: var(--admin-text-main, #0f172a);
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.quicksdk-hero p {
+  margin: 0;
+  color: var(--admin-text-sub, #64748b);
+  font-size: 13px;
+}
+
+.quicksdk-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 1 1 520px;
+  min-width: 0;
+}
+
+.quicksdk-toolbar input[type='month'] {
+  width: 160px;
+  flex: 0 0 160px;
+}
+
+.quicksdk-toolbar__search {
+  flex: 1 1 260px;
+  max-width: 420px;
+}
+
+.quicksdk-toolbar .rec-btn {
+  height: 34px;
+  min-width: 74px;
+}
+
+.quicksdk-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.quicksdk-stats > div {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  min-width: 0;
+}
+
+.quicksdk-stats span,
+.quicksdk-section__head span {
+  color: var(--admin-text-sub, #64748b);
+  font-size: 13px;
+}
+
+.quicksdk-stats strong {
+  color: var(--admin-text-main, #0f172a);
+  font-size: 22px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.quicksdk-message {
+  min-height: 28px;
+  padding: 6px 10px;
+  color: var(--admin-success, #16a34a);
+  font-size: 13px;
+}
+
+.quicksdk-section {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.quicksdk-section__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--admin-border-soft, #e5e7eb);
+}
+
+.quicksdk-section__head h3 {
+  margin: 0;
+  color: var(--admin-text-main, #0f172a);
+  font-size: 16px;
+}
+
+.quicksdk-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.quicksdk-table {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.quicksdk-table th,
+.quicksdk-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--admin-border-soft, #e5e7eb);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.quicksdk-table th {
+  color: var(--admin-text-sub, #64748b);
+  font-weight: 600;
+  background: var(--admin-elevated-bg, #f8fafc);
+}
+
+.quicksdk-table td:nth-child(2),
+.quicksdk-table td:nth-child(6) {
+  font-variant-numeric: tabular-nums;
+}
+
+.quicksdk-empty {
+  height: 72px;
+  color: var(--admin-text-muted, #94a3b8);
+  text-align: center !important;
+}
+
+@media (max-width: 900px) {
+  .quicksdk-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .quicksdk-toolbar {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .quicksdk-toolbar input[type='month'],
+  .quicksdk-toolbar__search,
+  .quicksdk-toolbar .rec-btn {
+    flex: 1 1 100%;
+    max-width: none;
+    width: 100%;
+  }
+
+  .quicksdk-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

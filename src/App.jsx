@@ -39,13 +39,14 @@ const BankStatementImportPage = lazy(() => import('./pages/BankStatementImportPa
 const BankPaymentRegisterPage = lazy(() => import('./pages/BankPaymentRegisterPage.jsx'))
 const BankCollectionRegisterPage = lazy(() => import('./pages/BankCollectionRegisterPage.jsx'))
 const BankTransactionsLedgerPage = lazy(() => import('./pages/BankTransactionsLedgerPage.jsx'))
+const QuickSdkFlowPage = lazy(() => import('./pages/QuickSdkFlowPage.jsx'))
 const LoginPage = lazy(() => import('./pages/LoginPage.jsx'))
 const AuthUsersPage = lazy(() => import('./pages/AuthUsersPage.jsx'))
 
 function PageLoading() {
   return (
     <div style={{ minHeight: '40vh', display: 'grid', placeItems: 'center' }}>
-      鍔犺浇椤甸潰涓...
+      加载页面中...
     </div>
   )
 }
@@ -208,6 +209,8 @@ function App() {
         return <BankPaymentRegisterPage />
       case VIEWS.BANK_COLLECTION_REGISTER:
         return <BankCollectionRegisterPage />
+      case VIEWS.QUICKSDK_FLOWS:
+        return <QuickSdkFlowPage />
       case VIEWS.AUTH_USERS:
         return <AuthUsersPage />
       case VIEWS.SETTLE_MONTHLY:

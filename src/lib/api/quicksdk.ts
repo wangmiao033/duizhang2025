@@ -24,6 +24,30 @@ export type QuickSdkRdLineListResponse = {
 
 export type QuickSdkGameFlowResponse = QuickSdkRdLineSuggestion
 
+export type QuickSdkSummaryResponse = {
+  batch_count: number
+  row_count: number
+  game_count: number
+  channel_count: number
+  total_flow: number | string
+}
+
+export type QuickSdkBatch = {
+  id: string
+  source_file: string
+  settlement_month: string
+  row_count: number
+  game_count: number
+  channel_count: number
+  total_flow: number | string
+  imported_at?: string | null
+}
+
+export type QuickSdkBatchListResponse = {
+  items: QuickSdkBatch[]
+  total: number
+}
+
 type QuickSdkFlowRow = {
   settlement_month?: string | null
   game_name?: string | null
@@ -65,6 +89,20 @@ export function getQuickSdkGameFlow(params: {
   game_name: string
 }): Promise<QuickSdkGameFlowResponse> {
   return apiGet<QuickSdkGameFlowResponse>(`${PATH}/game-flow${queryString(params)}`)
+}
+
+export function getQuickSdkSummary(params: {
+  settlement_month?: string
+}): Promise<QuickSdkSummaryResponse> {
+  return apiGet<QuickSdkSummaryResponse>(`${PATH}/summary${queryString(params)}`)
+}
+
+export function listQuickSdkBatches(params: {
+  settlement_month?: string
+  limit?: number
+  offset?: number
+}): Promise<QuickSdkBatchListResponse> {
+  return apiGet<QuickSdkBatchListResponse>(`${PATH}/batches${queryString(params)}`)
 }
 
 async function listQuickSdkRdLinesFromFlows(params: {

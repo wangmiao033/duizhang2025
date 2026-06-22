@@ -48,7 +48,9 @@ export const VIEWS = {
   BANK_TRANSACTIONS_LEDGER: 'bank-transactions-ledger',
   BANK_STATEMENT_IMPORT: 'bank-statement-import',
   BANK_PAYMENT_REGISTER: 'bank-payment-register',
-  BANK_COLLECTION_REGISTER: 'bank-collection-register'
+  BANK_COLLECTION_REGISTER: 'bank-collection-register',
+  /** 数据中心 */
+  QUICKSDK_FLOWS: 'quicksdk-flows'
 }
 
 export const SIDEBAR_GROUPS = [
@@ -102,6 +104,13 @@ export const SIDEBAR_GROUPS = [
       { view: VIEWS.PARTNER_CONTACTS, label: '合作方管理' },
       { view: VIEWS.PARTNER_GAMES, label: '游戏管理' },
       { view: VIEWS.PARTNER_COMPANY, label: '公司信息' }
+    ]
+  },
+  {
+    id: 'data-center',
+    label: '数据中心',
+    items: [
+      { view: VIEWS.QUICKSDK_FLOWS, label: 'QuickSDK流水库' }
     ]
   },
   {
@@ -161,7 +170,8 @@ const VIEW_TITLES = {
   [VIEWS.BANK_TRANSACTIONS_LEDGER]: '银行流水表',
   [VIEWS.BANK_STATEMENT_IMPORT]: '银行流水导入',
   [VIEWS.BANK_PAYMENT_REGISTER]: '研发对账付款确认',
-  [VIEWS.BANK_COLLECTION_REGISTER]: '银行回款登记'
+  [VIEWS.BANK_COLLECTION_REGISTER]: '银行回款登记',
+  [VIEWS.QUICKSDK_FLOWS]: 'QuickSDK流水库'
 }
 
 export function getPageTitle(view) {
@@ -208,7 +218,8 @@ const VIEW_DESCRIPTIONS = {
   [VIEWS.BANK_TRANSACTIONS_LEDGER]: '流水导入、付款登记、回款登记的统一台账与筛选',
   [VIEWS.BANK_STATEMENT_IMPORT]: '录入或粘贴单条流水，保存后写入服务端统一台账',
   [VIEWS.BANK_PAYMENT_REGISTER]: '关联研发对账、确认付款信息并上传回单，提交后写入付款登记台账',
-  [VIEWS.BANK_COLLECTION_REGISTER]: '登记渠道/项目回款，保存后写入服务端统一台账'
+  [VIEWS.BANK_COLLECTION_REGISTER]: '登记渠道/项目回款，保存后写入服务端统一台账',
+  [VIEWS.QUICKSDK_FLOWS]: 'QuickSDK 导入批次、月份汇总与产品流水库'
 }
 
 /** 侧栏与导航图标（纯文本符号，无额外依赖） */
@@ -251,7 +262,8 @@ export const VIEW_ICONS = {
   [VIEWS.BANK_TRANSACTIONS_LEDGER]: '账',
   [VIEWS.BANK_STATEMENT_IMPORT]: '流',
   [VIEWS.BANK_PAYMENT_REGISTER]: '付',
-  [VIEWS.BANK_COLLECTION_REGISTER]: '回'
+  [VIEWS.BANK_COLLECTION_REGISTER]: '回',
+  [VIEWS.QUICKSDK_FLOWS]: '数'
 }
 
 export function getPageDescription(view) {
