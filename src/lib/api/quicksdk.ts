@@ -109,7 +109,14 @@ export function getQuickSdkGameFlow(params: {
   settlement_month?: string
   game_name: string
 }): Promise<QuickSdkGameFlowResponse> {
-  return apiGet<QuickSdkGameFlowResponse>(`${PATH}/game-flow${queryString(params)}`)
+  return apiGet<QuickSdkGameFlowResponse>(`${PATH}/game-flow${queryString(params)}`).then(
+    async (item) => {
+      const flow = Number(item?.total_flow || 0)
+      const rowCount = Number(item?.row_count || 0)
+      if (Number.isFinite(flow) && flow > 0 && rowCount > 0) return item
+      return getQuickSdkGameFlowFromSuggestions(params)
+    }
+  )
 }
 
 export function getQuickSdkSummary(params: {
@@ -130,6 +137,62 @@ export function getQuickSdkAnalytics(params: {
   settlement_month?: string
 }): Promise<QuickSdkAnalyticsResponse> {
   return apiGet<QuickSdkAnalyticsResponse>(`${PATH}/analytics${queryString(params)}`)
+}
+
+async function getQuickSdkGameFlowFromSuggestions(params: {
+  settlement_month?: string
+  game_name: string
+}): Promise<QuickSdkGameFlowResponse> {
+  const target = String(params.game_name || '').trim()
+  if (!target) {
+    return {
+      game_name: '',
+      settlement_month: params.settlement_month || null,
+      row_count: 0,
+      channel_count: 0,
+      source_game_count: 0,
+      total_flow: 0,
+      top_channel: null,
+      top_channel_flow: 0
+    }
+  }
+  const response = await listQuickSdkRdLines({
+    settlement_month: params.settlement_month,
+    q: target,
+    limit: 500
+  })
+  const matches = (response.items || []).filter((item) => {
+    const name = String(item.game_name || '').trim()
+    return name === target || name.includes(target) || normalizeGameName(name) === target
+  })
+  if (matches.length === 0) {
+    return {
+      game_name: target,
+      settlement_month: params.settlement_month || null,
+      row_count: 0,
+      channel_count: 0,
+      source_game_count: 0,
+      total_flow: 0,
+      top_channel: null,
+      top_channel_flow: 0
+    }
+  }
+  if (matches.length === 1) return matches[0]
+
+  const top = matches
+    .slice()
+    .sort((a, b) => Number(b.top_channel_flow || 0) - Number(a.top_channel_flow || 0))[0]
+  const totalFlow = matches.reduce((sum, item) => sum + Number(item.total_flow || 0), 0)
+  return {
+    game_name: target,
+    settlement_month: params.settlement_month || matches[0].settlement_month || null,
+    row_count: matches.reduce((sum, item) => sum + Number(item.row_count || 0), 0),
+    channel_count: matches.reduce((sum, item) => sum + Number(item.channel_count || 0), 0),
+    source_game_count: matches.reduce((sum, item) => sum + Number(item.source_game_count || 0), 0),
+    total_flow: Number(totalFlow.toFixed(2)),
+    top_channel: top?.top_channel || null,
+    top_channel_flow: Number(top?.top_channel_flow || 0)
+  }
 }
 
 async function listQuickSdkRdLinesFromFlows(params: {
